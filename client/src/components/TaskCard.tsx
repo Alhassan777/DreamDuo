@@ -37,14 +37,28 @@ const TaskCard = ({
 }: TaskCardProps) => {
   return (
     <Box
-      bg="gray.800"
+      bg={task.completed ? "gray.700" : "gray.800"}
       p={5}
       borderRadius="lg"
       borderWidth="1px"
-      borderColor="gray.700"
+      borderColor={task.completed ? "green.500" : "gray.700"}
       position="relative"
       height="fit-content"
-      transition="height 0.2s ease-in-out"
+      transition="all 0.3s ease-in-out"
+      transform={task.completed ? "scale(0.98)" : "scale(1)"}
+      _after={task.completed ? {
+        content: '""',
+        position: "absolute",
+        top: "-1px",
+        right: "-1px",
+        bottom: "-1px",
+        left: "-1px",
+        background: "green.500",
+        opacity: 0.1,
+        borderRadius: "lg",
+        zIndex: -1,
+        transition: "opacity 0.3s ease-in-out"
+      } : undefined}
     >
       <VStack spacing={4} align="stretch">
         <Flex justify="space-between" align="center">
@@ -59,6 +73,7 @@ const TaskCard = ({
             color="white"
             fontSize="lg"
             textDecoration={task.completed ? 'line-through' : 'none'}
+            opacity={task.completed ? 0.6 : 1}
             flex="1"
             mx={4}
             onClick={() => onToggleComplete(task.id)}
@@ -78,7 +93,7 @@ const TaskCard = ({
             <IconButton
               icon={<AddIcon />}
               aria-label="Add subtask"
-              colorScheme="green"
+              colorScheme="blue"
               size="sm"
               onClick={() => onAddSubtask(task.id)}
             />
