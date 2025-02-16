@@ -1,4 +1,4 @@
-import { Box, VStack, Text, Flex, IconButton } from '@chakra-ui/react';
+import { Box, VStack, Text, Flex, IconButton, Input } from '@chakra-ui/react';
 import { AddIcon, CheckIcon, CloseIcon } from '@chakra-ui/icons';
 import { useState } from 'react';
 
@@ -15,6 +15,7 @@ interface SubtaskCardProps {
   onDelete: (taskId: number, subtaskId: number) => void;
   onAddSubtask: (taskId: number, parentSubtaskId: number) => void;
   onToggleComplete: (taskId: number, subtaskId: number) => void;
+  onUpdateName: (taskId: number, subtaskId: number, newName: string) => void;
 }
 
 const SubtaskCard = ({
@@ -22,9 +23,37 @@ const SubtaskCard = ({
   subtask,
   onDelete,
   onAddSubtask,
-  onToggleComplete
+  onToggleComplete,
+  onUpdateName
 }: SubtaskCardProps) => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedName, setEditedName] = useState(subtask.name);
+
+  const handleDoubleClick = () => {
+    setIsEditing(true);
+    setEditedName(subtask.name);
+  };
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditedName(e.target.value);
+  };
+
+  const handleNameSubmit = () => {
+    if (editedName.trim()) {
+      onUpdateName(taskId, subtask.id, editedName.trim());
+      setIsEditing(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleNameSubmit();
+    } else if (e.key === 'Escape') {
+      setIsEditing(false);
+      setEditedName(subtask.name);
+    }
+  };
 
   return (
     <Box>
@@ -62,18 +91,43 @@ const SubtaskCard = ({
             transition="all 0.3s ease-in-out"
             transform={subtask.completed ? "scale(1.1)" : "scale(1)"}
           />
-          <Text
-            color="white"
-            fontSize="sm"
-            textDecoration={subtask.completed ? 'line-through' : 'none'}
-            opacity={subtask.completed ? 0.7 : 1}
-            cursor="pointer"
-            onClick={() => onToggleComplete(taskId, subtask.id)}
-            transition="all 0.3s ease-in-out"
-            transform={subtask.completed ? "translateX(-4px)" : "translateX(0)"}
-          >
-            {subtask.name}
-          </Text>
+          {isEditing ? (
+            <Input
+              value={editedName}
+              onChange={handleNameChange}
+              onKeyDown={handleKeyDown}
+              color="white"
+              bg="gray.700"
+              fontSize="sm"
+              flex="1"
+              size="sm"
+              autoFocus
+              _focus={{
+                borderColor: "purple.500",
+                boxShadow: "0 0 0 1px var(--chakra-colors-purple-500)"
+              }}
+            />
+          ) : (
+            <Text
+              color="white"
+              fontSize="sm"
+              textDecoration={subtask.completed ? 'line-through' : 'none'}
+              opacity={subtask.completed ? 0.7 : 1}
+              cursor="text"
+              onDoubleClick={handleDoubleClick}
+              title="Double click to edit"
+              transition="all 0.3s ease-in-out"
+              transform={subtask.completed ? "translateX(-4px)" : "translateX(0)"}
+              _hover={{
+                bg: "gray.700",
+                borderRadius: "sm",
+                px: 2,
+                mx: -2
+              }}
+            >
+              {subtask.name}
+            </Text>
+          )}
         </Flex>
         <Flex gap={2}>
           <IconButton
@@ -103,6 +157,7 @@ const SubtaskCard = ({
               onDelete={onDelete}
               onAddSubtask={onAddSubtask}
               onToggleComplete={onToggleComplete}
+              onUpdateName={onUpdateName}
             />
           ))}
         </VStack>

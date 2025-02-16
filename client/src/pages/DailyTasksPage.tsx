@@ -20,8 +20,11 @@ const DailyTasksPage = () => {
     toggleCollapse,
     addSubtask,
     toggleComplete,
-    toggleSubtaskComplete
+    toggleSubtaskComplete,
+    updateTaskName,
+    updateSubtaskName
   } = useTasks();
+
 
   const handleCreateTask = () => {
     if (newTask.name.trim()) {
@@ -59,6 +62,8 @@ const DailyTasksPage = () => {
               onAddSubtask={addSubtask}
               onToggleComplete={toggleComplete}
               onToggleSubtaskComplete={toggleSubtaskComplete}
+              onUpdateName={updateTaskName}
+              onUpdateSubtaskName={updateSubtaskName}
             />
           ))}
           </Grid>

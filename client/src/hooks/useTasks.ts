@@ -7,8 +7,8 @@ export const useTasks = () => {
   const createTask = (
     newTask: Omit<Task, 'id' | 'completed' | 'collapsed' | 'subtasks'>
   ) => {
-    setTasks([
-      ...tasks,
+    setTasks(prevTasks => [
+      ...prevTasks,
       {
         id: Date.now(),
         ...newTask,
@@ -34,12 +34,12 @@ export const useTasks = () => {
 
   const deleteTask = (taskId: number, subtaskId?: number) => {
     if (subtaskId === undefined) {
-      setTasks(tasks.filter((task) => task.id !== taskId));
+      setTasks(prevTasks => prevTasks.filter((task) => task.id !== taskId));
       return;
     }
 
-    setTasks(
-      tasks.map((task) => {
+    setTasks(prevTasks =>
+      prevTasks.map((task) => {
         if (task.id === taskId) {
           return {
             ...task,
@@ -54,8 +54,8 @@ export const useTasks = () => {
   };
 
   const toggleCollapse = (taskId: number) => {
-    setTasks(
-      tasks.map((task) => {
+    setTasks(prevTasks =>
+      prevTasks.map((task) => {
         if (task.id === taskId) {
           return { ...task, collapsed: !task.collapsed };
         }
@@ -87,8 +87,8 @@ export const useTasks = () => {
   };
 
   const addSubtask = (taskId: number, parentSubtaskId?: number) => {
-    setTasks(
-      tasks.map((task) => {
+    setTasks(prevTasks =>
+      prevTasks.map((task) => {
         if (task.id === taskId) {
           const newSubtask: Subtask = {
             id: Date.now(),
@@ -117,8 +117,8 @@ export const useTasks = () => {
   };
 
   const toggleComplete = (taskId: number) => {
-    setTasks(
-      tasks.map((task) => {
+    setTasks(prevTasks =>
+      prevTasks.map((task) => {
         if (task.id === taskId) {
           return { ...task, completed: !task.completed };
         }
@@ -132,7 +132,6 @@ export const useTasks = () => {
     subtaskId: number
   ): [Subtask[], boolean] => {
     const updatedSubtasks = subtasks.map((subtask) => {
-      // Toggle the subtask if its id matches.
       if (subtask.id === subtaskId) {
         const newCompleted = !subtask.completed;
         return {
@@ -144,7 +143,6 @@ export const useTasks = () => {
               : []
         };
       }
-      // Only recurse if there are nested subtasks.
       if (subtask.subtasks && subtask.subtasks.length > 0) {
         const [updatedNestedSubtasks] = toggleSubtaskCompleteRecursive(
           subtask.subtasks,
@@ -169,8 +167,8 @@ export const useTasks = () => {
   };
 
   const toggleSubtaskComplete = (taskId: number, subtaskId: number) => {
-    setTasks(
-      tasks.map((task) => {
+    setTasks(prevTasks =>
+      prevTasks.map((task) => {
         if (task.id === taskId && task.subtasks) {
           const [updatedSubtasks, allSubtasksCompleted] =
             toggleSubtaskCompleteRecursive(task.subtasks, subtaskId);
@@ -185,6 +183,52 @@ export const useTasks = () => {
     );
   };
 
+  const updateTaskName = (taskId: number, newName: string) => {
+    setTasks(prevTasks =>
+      prevTasks.map((task) => {
+        if (task.id === taskId) {
+          return { ...task, name: newName };
+        }
+        return task;
+      })
+    );
+  };
+
+  const updateSubtaskNameRecursive = (
+    subtasks: Subtask[],
+    subtaskId: number,
+    newName: string
+  ): Subtask[] => {
+    return subtasks.map((subtask) => {
+      if (subtask.id === subtaskId) {
+        return { ...subtask, name: newName };
+      }
+      if (subtask.subtasks && subtask.subtasks.length > 0) {
+        return {
+          ...subtask,
+          subtasks: updateSubtaskNameRecursive(subtask.subtasks, subtaskId, newName)
+        };
+      }
+      return subtask;
+    });
+  };
+
+  const updateSubtaskName = (taskId: number, subtaskId: number, newName: string) => {
+    setTasks(prevTasks =>
+      prevTasks.map((task) => {
+        if (task.id === taskId) {
+          return {
+            ...task,
+            subtasks: task.subtasks
+              ? updateSubtaskNameRecursive(task.subtasks, subtaskId, newName)
+              : []
+          };
+        }
+        return task;
+      })
+    );
+  };
+
   return {
     tasks,
     createTask,
@@ -192,6 +236,8 @@ export const useTasks = () => {
     toggleCollapse,
     addSubtask,
     toggleComplete,
-    toggleSubtaskComplete
+    toggleSubtaskComplete,
+    updateTaskName,
+    updateSubtaskName
   };
 };
