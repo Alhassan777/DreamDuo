@@ -231,6 +231,7 @@ export const useTasks = () => {
 
   return {
     tasks,
+    setTasks, // Expose the setter for a single source of truth.
     createTask,
     deleteTask,
     toggleCollapse,

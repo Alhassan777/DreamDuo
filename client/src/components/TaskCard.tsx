@@ -1,5 +1,5 @@
 import { Box, VStack, Text, Flex, Tag, IconButton, Collapse, Input } from '@chakra-ui/react';
-import { AddIcon, CheckIcon, CloseIcon, ChevronUpIcon, ChevronDownIcon } from '@chakra-ui/icons';
+import { AddIcon, CloseIcon, ChevronUpIcon, ChevronDownIcon } from '@chakra-ui/icons';
 import SubtaskCard from './SubtaskCard';
 import { useState } from 'react';
 
@@ -30,6 +30,17 @@ interface TaskCardProps {
   onUpdateSubtaskName: (taskId: number, subtaskId: number, newName: string) => void;
 }
 
+interface DragProps {
+  onDragStart: (type: 'subtask' | 'sub-subtask', taskId: number, itemId: number, parentId?: number) => void;
+  onDrop: (taskId: number, parentId?: number) => void;
+  dragState: {
+    type: 'subtask' | 'sub-subtask';
+    sourceTaskId: number;
+    sourceParentId?: number;
+    itemId: number;
+  } | null;
+}
+
 const TaskCard = ({
   task,
   onDelete,
@@ -38,8 +49,11 @@ const TaskCard = ({
   onToggleComplete,
   onToggleSubtaskComplete,
   onUpdateName,
-  onUpdateSubtaskName // <-- Ensure this prop is passed from the parent
-}: TaskCardProps) => {
+  onUpdateSubtaskName,
+  onDragStart,
+  onDrop,
+  dragState
+}: TaskCardProps & DragProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(task.name);
 
@@ -68,13 +82,30 @@ const TaskCard = ({
     }
   };
 
-  // This function passes the update call down to the subtask.
+  // Passes subtask name updates down to the parent callback.
   const handleSubtaskNameUpdate = (taskId: number, subtaskId: number, newName: string) => {
     onUpdateSubtaskName(taskId, subtaskId, newName);
   };
 
   return (
     <Box
+      // Top-level tasks are not draggable so we removed draggable/onDragStart handlers.
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.currentTarget.style.boxShadow = '0 0 0 2px var(--chakra-colors-purple-500)';
+        e.currentTarget.style.transition = 'box-shadow 0.2s ease-in-out';
+      }}
+      onDragLeave={(e) => {
+        e.stopPropagation();
+        e.currentTarget.style.boxShadow = 'none';
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.currentTarget.style.boxShadow = 'none';
+        onDrop(task.id);
+      }}
       bg={task.completed ? "gray.700" : "gray.800"}
       p={5}
       borderRadius="lg"
@@ -82,8 +113,13 @@ const TaskCard = ({
       borderColor={task.completed ? "green.500" : "gray.700"}
       position="relative"
       height="fit-content"
-      transition="all 0.3s ease-in-out"
+      transition="all 0.2s ease-in-out"
       transform={task.completed ? "scale(0.98)" : "scale(1)"}
+      cursor="default"
+      _hover={{
+        borderColor: "purple.500",
+        transform: "translateY(-2px)"
+      }}
       _after={task.completed ? {
         content: '""',
         position: "absolute",
@@ -163,7 +199,7 @@ const TaskCard = ({
             />
           </Flex>
         </Flex>
-        
+
         <Tag colorScheme="purple" size="sm" width="fit-content">
           {task.category}
         </Tag>
@@ -188,6 +224,10 @@ const TaskCard = ({
                   onAddSubtask={onAddSubtask}
                   onToggleComplete={onToggleSubtaskComplete}
                   onUpdateName={handleSubtaskNameUpdate}
+                  onDragStart={(type, taskId, itemId, parentId) => 
+                    onDragStart(type as 'subtask' | 'sub-subtask', taskId, itemId, parentId)}
+                  onDrop={onDrop}
+                  dragState={dragState}
                 />
               ))}
             </VStack>

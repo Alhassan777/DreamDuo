@@ -16,6 +16,14 @@ interface SubtaskCardProps {
   onAddSubtask: (taskId: number, parentSubtaskId: number) => void;
   onToggleComplete: (taskId: number, subtaskId: number) => void;
   onUpdateName: (taskId: number, subtaskId: number, newName: string) => void;
+  onDragStart: (type: 'task' | 'subtask' | 'sub-subtask', taskId: number, itemId: number, parentId?: number) => void;
+  onDrop: (taskId: number, parentId?: number) => void;
+  dragState: {
+    type: 'task' | 'subtask' | 'sub-subtask';
+    sourceTaskId: number;
+    sourceParentId?: number;
+    itemId: number;
+  } | null;
 }
 
 const SubtaskCard = ({
@@ -24,7 +32,10 @@ const SubtaskCard = ({
   onDelete,
   onAddSubtask,
   onToggleComplete,
-  onUpdateName
+  onUpdateName,
+  onDragStart,
+  onDrop,
+  dragState
 }: SubtaskCardProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(subtask.name);
@@ -56,7 +67,33 @@ const SubtaskCard = ({
   };
 
   return (
-    <Box>
+    <Box
+      draggable
+      onDragStart={(e) => {
+        e.currentTarget.style.opacity = '0.5';
+        onDragStart('subtask', taskId, subtask.id);
+      }}
+      onDragEnd={(e) => {
+        e.currentTarget.style.opacity = '1';
+      }}
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.currentTarget.style.boxShadow = '0 0 0 2px var(--chakra-colors-purple-500)';
+      }}
+      onDragLeave={(e) => {
+        e.currentTarget.style.boxShadow = 'none';
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.currentTarget.style.boxShadow = 'none';
+        onDrop(taskId, subtask.id);
+      }}
+      cursor="move"
+      _hover={{
+        transform: "translateY(-2px)"
+      }}>
       <Flex
         justify="space-between"
         align="center"
@@ -158,6 +195,9 @@ const SubtaskCard = ({
               onAddSubtask={onAddSubtask}
               onToggleComplete={onToggleComplete}
               onUpdateName={onUpdateName}
+              onDragStart={onDragStart}
+              onDrop={onDrop}
+              dragState={dragState}
             />
           ))}
         </VStack>
