@@ -5,9 +5,10 @@ import { useRef, useState } from 'react';
 interface ProfileDropdownProps {
   userName?: string;
   userPhoto?: string;
+  isCollapsed?: boolean;
 }
 
-const ProfileDropdown = ({ userName = 'Scout', userPhoto }: ProfileDropdownProps) => {
+const ProfileDropdown = ({ userName = 'Scout', userPhoto, isCollapsed = false }: ProfileDropdownProps) => {
   const navigate = useNavigate();
   const toast = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -64,7 +65,7 @@ const ProfileDropdown = ({ userName = 'Scout', userPhoto }: ProfileDropdownProps
             name={userName}
             bg="purple.500"
           />
-          <Text color="white" fontSize="sm">{userName}</Text>
+          {!isCollapsed && <Text color="white" fontSize="sm">{userName}</Text>}
         </Box>
       </MenuButton>
       <MenuList bg="gray.800" borderColor="gray.700">
