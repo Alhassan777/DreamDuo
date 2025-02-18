@@ -5,6 +5,7 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import DailyTasksPage from './pages/DailyTasksPage';
 import EditProfilePage from './pages/EditProfilePage';
+import TagsPage from './pages/TagsPage';
 
 function App() {
   return (
@@ -16,7 +17,7 @@ function App() {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/daily-tasks" element={<DailyTasksPage />} />
           <Route path="/edit-profile" element={<EditProfilePage />} />
-          <Route path="/tags" element={<DailyTasksPage />} />
+          <Route path="/tags" element={<TagsPage />} />
           <Route path="/calendar" element={<DailyTasksPage />} />
           <Route path="*" element={<Navigate to="/daily-tasks" />} />
         </Routes>
