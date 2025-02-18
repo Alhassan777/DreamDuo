@@ -1,105 +1,121 @@
-import { VStack, Heading, SimpleGrid, Box, Text, Image, useRadioGroup, useRadio, UseRadioProps } from '@chakra-ui/react';
+import { VStack, Heading, SimpleGrid, Box, Text, Image, Select } from '@chakra-ui/react';
 import { useState } from 'react';
+import { useToast } from '@chakra-ui/react';
+import StatusCard from './StatusCard';
 
 type StatusIcon = {
-  status: 'completed' | 'not_started' | 'in_progress' | 'finished';
+  status: 'free' | 'not_started' | 'in_progress' | 'finished';
   label: string;
-  icon: string;
   description: string;
 };
 
-const DEFAULT_STATUS_ICONS: StatusIcon[] = [
+type Logo = {
+  id: string;
+  label: string;
+  icon: string;
+};
+
+const STATUS_OPTIONS: StatusIcon[] = [
   { 
-    status: 'completed', 
-    label: 'Survey Corps', 
-    icon: '/icons/survey-corps.png',
-    description: 'All tasks in the day are completed'
+    status: 'free', 
+    label: 'Free', 
+    description: 'No tasks assigned today'
   },
   { 
     status: 'not_started', 
-    label: 'Military Police', 
-    icon: '/icons/military-police.png',
-    description: 'Tasks assigned but not started'
+    label: 'Not Started', 
+    description: "Didn't start any of the assigned tasks today"
   },
   { 
     status: 'in_progress', 
-    label: 'Garrison Regiment', 
-    icon: '/icons/garrison-regiment.png',
-    description: 'Tasks are in progress'
+    label: 'In Progress', 
+    description: 'Finished some of the tasks assigned today'
   },
   { 
     status: 'finished', 
-    label: 'Training Corps', 
-    icon: '/icons/training-corps.png',
-    description: 'All assigned tasks are finished'
+    label: 'Finished', 
+    description: 'Finished all the tasks started today'
   }
 ];
 
-interface StatusCardProps extends UseRadioProps {
-  icon: StatusIcon;
-}
-
-const StatusCard = (props: StatusCardProps) => {
-  const { icon, ...radioProps } = props;
-  const { getInputProps, getRadioProps } = useRadio(radioProps);
-
-  return (
-    <Box as="label">
-      <input {...getInputProps()} />
-      <Box
-        {...getRadioProps()}
-        cursor="pointer"
-        borderWidth="1px"
-        borderRadius="md"
-        boxShadow="md"
-        _checked={{
-          bg: 'purple.600',
-          borderColor: 'purple.500',
-        }}
-        px={5}
-        py={3}
-      >
-        <VStack>
-          <Image
-            src={icon.icon}
-            alt={icon.label}
-            boxSize="50px"
-            objectFit="contain"
-          />
-          <VStack spacing={1}>
-            <Text color="white" fontSize="sm" fontWeight="bold">{icon.label}</Text>
-            <Text color="gray.300" fontSize="xs" textAlign="center">{icon.description}</Text>
-          </VStack>
-        </VStack>
-      </Box>
-    </Box>
-  );
-};
+const AVAILABLE_LOGOS: Logo[] = [
+  {
+    id: 'survey_corps',
+    label: 'Survey Corps',
+    icon: '/src/assets/survey_corps.png'
+  },
+  {
+    id: 'military_police',
+    label: 'Military Police',
+    icon: '/src/assets/police.png'
+  },
+  {
+    id: 'garrison',
+    label: 'Garrison Regiment',
+    icon: '/src/assets/garrison.png'
+  },
+  {
+    id: 'training',
+    label: 'Training Corps',
+    icon: '/src/assets/training_corps.png'
+  }
+];
 
 const CompletionStatusSection = () => {
-  const [selectedStatus, setSelectedStatus] = useState<string>('not_started');
+  const [statusLogoMap, setStatusLogoMap] = useState<Record<string, string>>({});
+  const toast = useToast();
 
-  const { getRootProps, getRadioProps } = useRadioGroup({
-    name: 'completionStatus',
-    defaultValue: 'not_started',
-    onChange: setSelectedStatus,
-  });
+  const handleLogoChange = (statusId: string, logoId: string) => {
+    if (logoId === '') {
+      setStatusLogoMap(prev => {
+        const newMap = { ...prev };
+        delete newMap[statusId];
+        return newMap;
+      });
+      return;
+    }
+
+    // Check if the logo is already used in another status
+    const existingStatusWithLogo = Object.entries(statusLogoMap).find(
+      ([currentStatus, currentLogo]) => currentLogo === logoId && currentStatus !== statusId
+    );
+
+    if (existingStatusWithLogo) {
+      const statusWithLogo = STATUS_OPTIONS.find(s => s.status === existingStatusWithLogo[0]);
+      toast({
+        title: 'Logo Already in Use',
+        description: `This logo is already assigned to the '${statusWithLogo?.label}' status. Please choose a different logo.`,
+        status: 'warning',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    setStatusLogoMap(prev => ({
+      ...prev,
+      [statusId]: logoId
+    }));
+  };
+
+  const getSelectedLogo = (statusId: string) => {
+    const logoId = statusLogoMap[statusId];
+    return AVAILABLE_LOGOS.find(logo => logo.id === logoId);
+  };
 
   return (
     <VStack align="stretch" spacing={4}>
       <Heading size="md" color="white">Completion Status Icons</Heading>
       
-      <SimpleGrid columns={4} spacing={4} {...getRootProps()}>
-        {DEFAULT_STATUS_ICONS.map((icon) => {
-          const radio = getRadioProps({ value: icon.status });
-          return (
-            <StatusCard
-              key={icon.status}
-              icon={icon}
-              {...radio}
-            />
-          );
-        })}
+      <SimpleGrid columns={4} spacing={4} alignItems="flex-start">
+        {STATUS_OPTIONS.map((status) => (
+          <StatusCard
+            key={status.status}
+            status={status}
+            selectedLogo={getSelectedLogo(status.status)}
+            onLogoChange={handleLogoChange}
+          />
+        ))}
       </SimpleGrid>
     </VStack>
   );
