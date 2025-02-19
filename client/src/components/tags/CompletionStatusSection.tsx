@@ -18,23 +18,23 @@ type Logo = {
 const STATUS_OPTIONS: StatusIcon[] = [
   { 
     status: 'free', 
-    label: 'Free', 
-    description: 'No tasks assigned today'
+    label: 'Off Duty', 
+    description: 'No orders today. But a soldier’s duty never truly ends'
   },
   { 
     status: 'not_started', 
-    label: 'Not Started', 
-    description: "Didn't start any of the assigned tasks today"
+    label: 'Mission Pending', 
+    description: "Tasks assigned but not started yet. Shinzou wo Sasageyo!!"
   },
   { 
     status: 'in_progress', 
-    label: 'In Progress', 
-    description: 'Finished some of the tasks assigned today'
+    label: 'Battle Underway', 
+    description: 'Some tasks completed, but work remains. Susume!'
   },
   { 
     status: 'finished', 
-    label: 'Finished', 
-    description: 'Finished all the tasks started today'
+    label: 'Mission Accomplished', 
+    description: 'All tasks completed. You gave everything for this mission!!'
   }
 ];
 
@@ -75,27 +75,22 @@ const CompletionStatusSection = () => {
       return;
     }
 
-    // Check if the logo is already used in another status
-    const existingStatusWithLogo = Object.entries(statusLogoMap).find(
-      ([currentStatus, currentLogo]) => currentLogo === logoId && currentStatus !== statusId
-    );
+    setStatusLogoMap(prev => {
+      const newMap = { ...prev };
+      // Find if the logo is used by another status
+      const existingStatusWithLogo = Object.entries(newMap).find(
+        ([currentStatus, currentLogo]) => currentLogo === logoId && currentStatus !== statusId
+      );
 
-    if (existingStatusWithLogo) {
-      const statusWithLogo = STATUS_OPTIONS.find(s => s.status === existingStatusWithLogo[0]);
-      toast({
-        title: 'Logo Already in Use',
-        description: `This logo is already assigned to the '${statusWithLogo?.label}' status. Please choose a different logo.`,
-        status: 'warning',
-        duration: 3000,
-        isClosable: true,
-      });
-      return;
-    }
+      // If logo is used, remove it from the previous status
+      if (existingStatusWithLogo) {
+        delete newMap[existingStatusWithLogo[0]];
+      }
 
-    setStatusLogoMap(prev => ({
-      ...prev,
-      [statusId]: logoId
-    }));
+      // Assign the logo to the new status
+      newMap[statusId] = logoId;
+      return newMap;
+    });
   };
 
   const getSelectedLogo = (statusId: string) => {
@@ -105,7 +100,7 @@ const CompletionStatusSection = () => {
 
   return (
     <VStack align="stretch" spacing={4}>
-      <Heading size="md" color="white">Completion Status Icons</Heading>
+      <Heading size="md" color="white">Daily Task Progress</Heading>
       
       <SimpleGrid columns={4} spacing={4} alignItems="flex-start">
         {STATUS_OPTIONS.map((status) => (

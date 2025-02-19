@@ -1,5 +1,6 @@
 import { VStack, Heading, HStack, Text, Input, Button, IconButton, useToast } from '@chakra-ui/react';
 import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
+import { IoColorPaletteOutline } from 'react-icons/io5';
 import { useState } from 'react';
 
 type PriorityColor = {
@@ -36,6 +37,12 @@ const PriorityColorSection = () => {
   };
 
   const handleEditPriority = (index: number) => {
+    if (editingIndex === index) {
+      // If clicking the same edit button, reset to initial state
+      setEditingIndex(null);
+      setNewPriority({ level: '', color: '#000000' });
+      return;
+    }
     setEditingIndex(index);
     setNewPriority(priorityColors[index]);
   };
@@ -57,7 +64,7 @@ const PriorityColorSection = () => {
 
   return (
     <VStack align="stretch" spacing={4}>
-      <Heading size="md" color="white">Priority Colors</Heading>
+      <Heading size="md" color="white">Task Urgency Levels</Heading>
       
       <HStack>
         <Input
@@ -67,14 +74,51 @@ const PriorityColorSection = () => {
           bg="gray.700"
           color="white"
         />
-        <Input
-          type="color"
-          value={newPriority.color}
-          onChange={(e) => setNewPriority({ ...newPriority, color: e.target.value })}
-          width="100px"
-        />
+        <HStack
+          position="relative"
+          width="38px"
+          height="38px"
+          bg="gray.700"
+          borderRadius="md"
+          border="1px solid"
+          borderColor="gray.600"
+          p={0}
+          cursor="pointer"
+          _hover={{ borderColor: 'gray.500' }}
+          justify="center"
+          align="center"
+          onClick={(e) => {
+            const input = e.currentTarget.querySelector('input[type="color"]');
+            if (input && input instanceof HTMLElement) input.click();
+          }}
+        >
+          <div
+            style={{
+              width: '24px',
+              height: '24px',
+              backgroundColor: newPriority.color,
+              borderRadius: '50%',
+              border: '2px solid white',
+              margin: 0
+            }}
+          />
+          <Input
+            type="color"
+            value={newPriority.color}
+            onChange={(e) => setNewPriority({ ...newPriority, color: e.target.value })}
+            position="absolute"
+            opacity={0}
+            width="100%"
+            height="100%"
+            top={0}
+            left={0}
+            p={0}
+            m={0}
+            cursor="pointer"
+          />
+        </HStack>
         <Button
-          colorScheme="purple"
+          colorScheme={editingIndex !== null ? "green" : "purple"}
           onClick={editingIndex !== null ? handleUpdatePriority : handleAddPriority}
         >
           {editingIndex !== null ? 'Update' : 'Add'}
@@ -85,11 +129,12 @@ const PriorityColorSection = () => {
         {priorityColors.map((priority, index) => (
           <HStack key={index} justify="space-between" p={2} bg="gray.700" borderRadius="md">
             <HStack>
-              <div style={{ 
-                width: '20px', 
-                height: '20px', 
+              <div style={{
+                width: '24px',
+                height: '24px',
                 backgroundColor: priority.color,
-                borderRadius: '4px'
+                borderRadius: '4px',
+                border: '2px solid white'
               }} />
               <Text color="white">{priority.level}</Text>
             </HStack>
