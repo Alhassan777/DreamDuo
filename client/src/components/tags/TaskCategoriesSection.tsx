@@ -1,6 +1,7 @@
 import { VStack, Heading, Button, Input, Grid, Textarea, useToast, Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, FormControl, FormLabel, useDisclosure } from '@chakra-ui/react';
 import { AddIcon } from '@chakra-ui/icons';
 import { useState } from 'react';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import CategoryCard from './CategoryCard';
 
 interface Category {
@@ -35,12 +36,12 @@ const TaskCategoriesSection: React.FC<TaskCategoriesSectionProps> = ({ categorie
         });
         return;
       }
-      setCategoryList([...categoryList, {
-        name: newCategory.name.trim(),
-        description: newCategory.description?.trim(),
-        icon: newCategory.icon
-      }]);
-      setCategories([...categories, newCategory.name.trim()]);
+      const updatedList = [
+        ...categoryList,
+        { name: newCategory.name.trim(), description: newCategory.description?.trim(), icon: newCategory.icon }
+      ];
+      setCategoryList(updatedList);
+      setCategories(updatedList.map(cat => cat.name));
       setNewCategory({ name: '', description: '', icon: '📋' });
       onClose();
     }
@@ -59,29 +60,56 @@ const TaskCategoriesSection: React.FC<TaskCategoriesSectionProps> = ({ categorie
     setCategories(newCategoryList.map(cat => cat.name));
   };
 
+  const onDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+    const sourceIndex = result.source.index;
+    const destinationIndex = result.destination.index;
+    if (sourceIndex === destinationIndex) return;
+
+    const newCategoryList = Array.from(categoryList);
+    [newCategoryList[sourceIndex], newCategoryList[destinationIndex]] = 
+      [newCategoryList[destinationIndex], newCategoryList[sourceIndex]];
+    
+    setCategoryList(newCategoryList);
+    setCategories(newCategoryList.map(cat => cat.name));
+  };
+
   return (
     <VStack align="stretch" spacing={4}>
       <Heading size="md" color="white">Task Categories</Heading>
       
-      <Button
-        leftIcon={<AddIcon />}
-        colorScheme="purple"
-        onClick={onOpen}
-        alignSelf="flex-end"
-      >
+      <Button leftIcon={<AddIcon />} colorScheme="purple" onClick={onOpen} alignSelf="flex-end">
         Create New Category
       </Button>
 
-      <Grid templateColumns="repeat(3, 1fr)" gap={6}>
-        {categoryList.map((category, index) => (
-          <CategoryCard
-            key={index}
-            category={category}
-            onDelete={() => handleDeleteCategory(index)}
-            onUpdate={(updatedCategory) => handleUpdateCategory(index, updatedCategory)}
-          />
-        ))}
-      </Grid>
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Droppable droppableId="categories" direction="horizontal">
+          {(provided) => (
+            <Grid
+              templateColumns="repeat(3, 1fr)"
+              gap={6}
+              ref={provided.innerRef}
+              {...provided.droppableProps}
+            >
+              {categoryList.map((category, index) => (
+                <Draggable key={category.name + index} draggableId={category.name + index} index={index}>
+                  {(provided) => (
+                    <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
+                      <CategoryCard
+                        category={category}
+                        onDelete={() => handleDeleteCategory(index)}
+                        onUpdate={(updatedCategory) => handleUpdateCategory(index, updatedCategory)}
+                        index={index}
+                      />
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </Grid>
+          )}
+        </Droppable>
+      </DragDropContext>
 
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
