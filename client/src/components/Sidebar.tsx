@@ -44,7 +44,7 @@ const Sidebar = () => {
 
     // Clean up any existing audio elements
     const existingAudio = document.querySelector('audio[data-aot-audio]');
-    if (existingAudio) {
+    if (existingAudio instanceof HTMLAudioElement) {
         existingAudio.pause();
         existingAudio.remove();
         return;
@@ -95,8 +95,8 @@ const Sidebar = () => {
         icon={isCollapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
         position="absolute"
         right="-12px"
-        top="50%"
-        transform="translateY(-50%)"
+        bottom="20px"
+        transform="none"
         onClick={() => setIsCollapsed(!isCollapsed)}
         bg="gray.700"
         color="white"
