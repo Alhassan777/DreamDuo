@@ -12,6 +12,7 @@ export interface Task {
   completed: boolean;
   collapsed?: boolean;
   subtasks?: Subtask[];
+  priority?: string;
 }
 
 export type TaskCategory = string;

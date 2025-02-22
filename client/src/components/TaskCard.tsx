@@ -1,5 +1,5 @@
-import { Box, VStack, Text, Flex, Tag, IconButton, Collapse, Input } from '@chakra-ui/react';
-import { AddIcon, CloseIcon, ChevronUpIcon, ChevronDownIcon } from '@chakra-ui/icons';
+import { Box, VStack, Text, Flex, Tag, IconButton, Collapse, Input, Circle } from '@chakra-ui/react';
+import { AddIcon, CloseIcon, ChevronUpIcon, ChevronDownIcon, StarIcon } from '@chakra-ui/icons';
 import SubtaskCard from './SubtaskCard';
 import { useState } from 'react';
 
@@ -17,6 +17,7 @@ interface Task {
   completed: boolean;
   collapsed?: boolean;
   subtasks?: Subtask[];
+  priority?: string;
 }
 
 interface TaskCardProps {
@@ -200,9 +201,16 @@ const TaskCard = ({
           </Flex>
         </Flex>
 
-        <Tag colorScheme="purple" size="sm" width="fit-content">
-          {task.category}
-        </Tag>
+        <Flex align="center" gap={2}>
+          <Tag colorScheme="purple" size="sm" width="fit-content">
+            {task.category}
+          </Tag>
+          {task.priority && (
+            <Circle size="24px" bg={task.priority} title="Priority Level" transition="all 0.2s ease-in-out" _hover={{ transform: "scale(1.1)" }}>
+              <StarIcon color="white" boxSize={4} />
+            </Circle>
+          )}
+        </Flex>
 
         <Collapse
           in={!task.collapsed}

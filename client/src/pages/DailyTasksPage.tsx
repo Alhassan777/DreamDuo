@@ -14,7 +14,8 @@ const DailyTasksPage = () => {
   const [categories, setCategories] = useState<string[]>([]);
   const [newTask, setNewTask] = useState({
     name: '',
-    category: ''
+    category: '',
+    priority: ''
   });
 
   // New state for category creation
@@ -56,9 +57,10 @@ const DailyTasksPage = () => {
     if (newTask.name.trim()) {
       createTask({
         name: newTask.name,
-        category: newTask.category
+        category: newTask.category,
+        priority: newTask.priority
       });
-      setNewTask({ name: '', category: categories[0] || '' });
+      setNewTask({ name: '', category: categories[0] || '', priority: '' });
       onClose();
     }
   };
@@ -102,7 +104,7 @@ const DailyTasksPage = () => {
               colorScheme="purple"
               onClick={() => {
                 setIsTaskMode(true);
-                setNewTask({ name: '', category: categories[0] || '' });
+                setNewTask({ name: '', category: categories[0] || '', priority: '' });
                 onOpen();
               }}
               ml={4}
@@ -214,7 +216,7 @@ const DailyTasksPage = () => {
                     color="white"
                   />
                 </FormControl>
-                <FormControl>
+                <FormControl mb={4}>
                   <FormLabel color="gray.300">Category</FormLabel>
                   <Select
                     value={newTask.category}
@@ -227,11 +229,25 @@ const DailyTasksPage = () => {
                     ))}
                   </Select>
                 </FormControl>
+                <FormControl>
+                  <FormLabel color="gray.300">Priority</FormLabel>
+                  <Select
+                    value={newTask.priority}
+                    onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
+                    bg="gray.700"
+                    color="white"
+                  >
+                    <option value="">No Priority</option>
+                    <option value="red.500">High</option>
+                    <option value="yellow.500">Medium</option>
+                    <option value="green.500">Low</option>
+                  </Select>
+                </FormControl>
               </>
             )}
           </ModalBody>
           <ModalFooter>
-            <Button variant="ghost" mr={3} onClick={onClose} color="gray.300">
+            <Button variant="ghost" mr={3} onClick={onClose} color="gray.300" bg="gray.700" _hover={{ bg: 'gray.600' }}>
               Cancel
             </Button>
             <Button
