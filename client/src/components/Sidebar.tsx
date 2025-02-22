@@ -1,8 +1,7 @@
-import { VStack, Box, Icon, Text, Flex, IconButton, useColorModeValue, Tooltip } from '@chakra-ui/react';
+import { VStack, Box, Icon, Text, Flex, IconButton, Tooltip } from '@chakra-ui/react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import { FaTasks, FaHashtag, FaChartPie } from 'react-icons/fa';
-import { GiCrossedSwords } from 'react-icons/gi';
 import ProfileDropdown from './ProfileDropdown';
 import { useState } from 'react';
 import attackingTitanIcon from '../assets/attacking_titan.png';
@@ -37,9 +36,41 @@ const Sidebar = () => {
   ];
 
   const handleThemeToggle = () => {
-    setIsAotMode(prev => !prev);
-    // Theme switching logic will be implemented later
-  };
+    // If we're already in AOT mode, just disable it immediately
+    if (isAotMode) {
+        setIsAotMode(false);
+        return;
+    }
+
+    // Clean up any existing audio elements
+    const existingAudio = document.querySelector('audio[data-aot-audio]');
+    if (existingAudio) {
+        existingAudio.pause();
+        existingAudio.remove();
+        return;
+    }
+
+    const button = document.querySelector('[aria-label="Toggle Theme"]');
+    const audio = new Audio('/src/assets/audio/eren_scream.mp3');
+    audio.setAttribute('data-aot-audio', 'true');
+    const mainContent = document.querySelector('#root');
+    
+    // Start earthquake animation immediately
+    mainContent?.classList.add('shake-container');
+    button?.classList.add('shake-animation');
+    
+    // Play audio
+    audio.play();
+    
+    // Remove animations and toggle theme when audio ends
+    audio.onended = () => {
+        setTimeout(() => {
+            button?.classList.remove('shake-animation');
+            mainContent?.classList.remove('shake-container');
+            setIsAotMode(true);
+        }, 1500); // Keep the delay for smooth transition
+    };
+};
 
   return (
     <Box
