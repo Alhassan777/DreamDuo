@@ -1,14 +1,17 @@
-import { VStack, Box, Icon, Text, Flex, IconButton } from '@chakra-ui/react';
+import { VStack, Box, Icon, Text, Flex, IconButton, useColorModeValue, Tooltip } from '@chakra-ui/react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import { FaTasks, FaHashtag, FaChartPie } from 'react-icons/fa';
+import { GiCrossedSwords } from 'react-icons/gi';
 import ProfileDropdown from './ProfileDropdown';
 import { useState } from 'react';
+import attackingTitanIcon from '../assets/attacking_titan.png';
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isAotMode, setIsAotMode] = useState(false);
 
   const navItems = [
     {
@@ -32,6 +35,11 @@ const Sidebar = () => {
       path: '/tags'
     }
   ];
+
+  const handleThemeToggle = () => {
+    setIsAotMode(prev => !prev);
+    // Theme switching logic will be implemented later
+  };
 
   return (
     <Box
@@ -69,6 +77,35 @@ const Sidebar = () => {
         <Box px={isCollapsed ? 4 : 8} mb={2}>
           <ProfileDropdown isCollapsed={isCollapsed} />
         </Box>
+
+        <Box px={isCollapsed ? 4 : 8}>
+          <Flex justify="center" align="center">
+            <Tooltip
+              label={isAotMode ? "Disable Attack on Titan Theme" : "Enable Attack on Titan Theme"}
+              placement="right"
+              hasArrow
+            >
+              <IconButton
+                aria-label="Toggle Theme"
+                icon={<img src={attackingTitanIcon} alt="Attack Titan" width="32" height="32" />}
+                onClick={handleThemeToggle}
+                bg={isAotMode ? 'red.600' : 'gray.700'}
+                color={isAotMode ? 'white' : 'gray.400'}
+                borderRadius="full"
+                w="50px"
+                h="50px"
+                _hover={{ 
+                  transform: 'rotateY(180deg)',
+                  bg: isAotMode ? 'red.700' : 'gray.600'
+                }}
+                transition="all 0.6s"
+                style={{ transformStyle: 'preserve-3d' }}
+                position="relative"
+              />
+            </Tooltip>
+          </Flex>
+        </Box>
+
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
