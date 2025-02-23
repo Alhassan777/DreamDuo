@@ -77,14 +77,13 @@ const SignupPage = () => {
     if (validateForm()) {
       setIsLoading(true);
       try {
-        const response = await fetch('http://localhost:3001/api/auth/signup', {
+        const response = await fetch('http://localhost:3001/api/auth/register', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            firstName: formData.firstName,
-            lastName: formData.lastName,
+            username: `${formData.firstName} ${formData.lastName}`,
             email: formData.email,
             password: formData.password
           })
@@ -93,11 +92,11 @@ const SignupPage = () => {
         const data = await response.json();
 
         if (!response.ok) {
-          if (response.status === 409) {
+          if (response.status === 400) {
             setErrors(prev => ({ ...prev, email: 'Email already exists' }));
             throw new Error('Email already exists');
           }
-          throw new Error(data.message || 'Signup failed');
+          throw new Error(data.error || 'Registration failed');
         }
 
         toast({
@@ -108,7 +107,9 @@ const SignupPage = () => {
           isClosable: true,
         });
 
-        navigate('/login');
+        // Store the token and redirect
+        localStorage.setItem('token', data.access_token);
+        navigate('/daily-tasks');
       } catch (error) {
         toast({
           title: 'Error',

@@ -8,9 +8,11 @@ import { useTasks } from '../hooks/useTasks';
 import { TaskCategory } from '../types/task';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { VStack } from '@chakra-ui/react';
+import { useTheme } from '../contexts/ThemeContext';
 
 const DailyTasksPage = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isAotMode } = useTheme();
   const [categories, setCategories] = useState<string[]>([]);
   const [newTask, setNewTask] = useState({
     name: '',
@@ -80,34 +82,50 @@ const DailyTasksPage = () => {
 
   return (
     <DashboardLayout>
-      <Box h="100vh" overflow="hidden" display="flex" flexDirection="column">
+      <Box 
+        h="100vh" 
+        overflow="hidden" 
+        display="flex" 
+        flexDirection="column"
+        bg={isAotMode ? '#1D1D1D' : 'gray.900'}
+      >
         <Flex justify="space-between" align="center" mb={6}>
           <Box flex="1">
-            <Heading color="white" mb={4}>Today's Tasks</Heading>
+            <Heading color={isAotMode ? '#E5D5B7' : 'white'} mb={4}>Today's Tasks</Heading>
           </Box>
           <Flex gap={2}>
             <Button
               leftIcon={<AddIcon />}
               variant="outline"
               size="sm"
-              colorScheme="purple"
+              colorScheme={isAotMode ? 'orange' : 'purple'}
               onClick={() => {
                 setIsTaskMode(false);
                 setNewCategory({ name: '', description: '', icon: '📋' });
                 onOpen();
+              }}
+              color={isAotMode ? '#E5D5B7' : 'white'}
+              borderColor={isAotMode ? '#C1A173' : 'purple.500'}
+              _hover={{
+                bg: isAotMode ? '#2A1F1A' : 'purple.700'
               }}
             >
               Add Category
             </Button>
             <Button
               leftIcon={<AddIcon />}
-              colorScheme="purple"
+              colorScheme={isAotMode ? 'orange' : 'purple'}
               onClick={() => {
                 setIsTaskMode(true);
                 setNewTask({ name: '', category: categories[0] || '', priority: '' });
                 onOpen();
               }}
               ml={4}
+              color={isAotMode ? '#E5D5B7' : 'white'}
+              bg={isAotMode ? '#8B0000' : 'purple.500'}
+              _hover={{
+                bg: isAotMode ? '#A52A2A' : 'purple.600'
+              }}
             >
               Create New Task
             </Button>
@@ -138,11 +156,11 @@ const DailyTasksPage = () => {
 
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
-        <ModalContent bg="gray.800">
-          <ModalHeader color="white">
+        <ModalContent bg={isAotMode ? '#2A1F1A' : 'gray.800'}>
+          <ModalHeader color={isAotMode ? '#E5D5B7' : 'white'}>
             {isTaskMode ? 'Create New Task' : 'Create New Category'}
           </ModalHeader>
-          <ModalCloseButton color="white" />
+          <ModalCloseButton color={isAotMode ? '#E5D5B7' : 'white'} />
           <ModalBody>
             {!isTaskMode ? (
               // Category Creation Form

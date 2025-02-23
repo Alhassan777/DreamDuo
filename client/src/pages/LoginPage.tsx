@@ -44,8 +44,25 @@ const toast = useToast();
     if (validateForm()) {
       setIsLoading(true);
       try {
-        // Simulate a brief loading state
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        const response = await fetch('http://localhost:3001/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username: formData.email,
+            password: formData.password
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Login failed');
+        }
+
+        // Store the token in localStorage
+        localStorage.setItem('token', data.access_token);
 
         toast({
           title: 'Welcome back!',
@@ -59,7 +76,7 @@ const toast = useToast();
       } catch (error) {
         toast({
           title: 'Error',
-          description: 'Something went wrong. Please try again.',
+          description: error instanceof Error ? error.message : 'Something went wrong. Please try again.',
           status: 'error',
           duration: 5000,
           isClosable: true,

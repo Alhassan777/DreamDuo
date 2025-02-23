@@ -1,76 +1,71 @@
-import { VStack, Box, Icon, Text, Flex, IconButton, Tooltip } from '@chakra-ui/react';
+import { VStack, Box, Icon, Text, Flex, IconButton, Tooltip, IconProps } from '@chakra-ui/react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import { FaTasks, FaHashtag, FaChartPie } from 'react-icons/fa';
+import { IconType } from 'react-icons';
+import { ComponentWithAs } from '@chakra-ui/react';
 import ProfileDropdown from './ProfileDropdown';
 import { useState } from 'react';
 import attackingTitanIcon from '../assets/attacking_titan.png';
+import sidebarIcon1 from '../assets/sidebar_icon1.png';
+import sidebarIcon2 from '../assets/sidebar_icon2.png';
+import sidebarIcon3 from '../assets/sidebar_icon3.png';
+import sidebarIcon4 from '../assets/sidebar_icon4.png';
+import { useTheme } from '../contexts/ThemeContext';
+
+interface IconWrapperProps {
+  icon: IconType | ComponentWithAs<"svg", IconProps>;
+  aotIcon?: string;
+  isAotMode: boolean;
+  boxSize?: number;
+  mr?: number;
+}
+
+const IconWrapper = ({ icon: Icon, aotIcon, isAotMode, boxSize = 6, mr = 6 }: IconWrapperProps) => {
+  if (isAotMode && aotIcon) {
+    return <img src={aotIcon} alt="icon" style={{ width: `${boxSize * 6}px`, height: `${boxSize * 6}px`, marginRight: `${mr * 2}px` }} />;
+  }
+  return <Box display="flex" alignItems="center" justifyContent="center" minWidth={`${boxSize * 4}px`}>
+    <Icon boxSize={boxSize} mr={mr} />
+  </Box>;
+};
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isAotMode, setIsAotMode] = useState(false);
+  const { isAotMode, toggleAotMode } = useTheme();
+
+  const handleThemeToggle = () => {
+    toggleAotMode();
+  };
 
   const navItems = [
     {
       label: "Today's Tasks",
       icon: FaTasks,
-      path: '/daily-tasks'
+      path: '/daily-tasks',
+      aotIcon: sidebarIcon1
     },
     {
       label: 'Calendar View',
       icon: CalendarIcon,
-      path: '/calendar'
+      path: '/calendar',
+      aotIcon: sidebarIcon2
     },
     {
-      label: 'Performance Dashboard',
+      label: 'Dashboard',
       icon: FaChartPie,
-      path: '/dashboard'
+      path: '/dashboard',
+      aotIcon: sidebarIcon3
     },
     {
       label: 'Tags',
       icon: FaHashtag,
-      path: '/tags'
+      path: '/tags',
+      aotIcon: sidebarIcon4
     }
   ];
-
-  const handleThemeToggle = () => {
-    // If we're already in AOT mode, just disable it immediately
-    if (isAotMode) {
-        setIsAotMode(false);
-        return;
-    }
-
-    // Clean up any existing audio elements
-    const existingAudio = document.querySelector('audio[data-aot-audio]');
-    if (existingAudio instanceof HTMLAudioElement) {
-        existingAudio.pause();
-        existingAudio.remove();
-        return;
-    }
-
-    const button = document.querySelector('[aria-label="Toggle Theme"]');
-    const audio = new Audio('/src/assets/audio/eren_scream.mp3');
-    audio.setAttribute('data-aot-audio', 'true');
-    const mainContent = document.querySelector('#root');
-    
-    // Start earthquake animation immediately
-    mainContent?.classList.add('shake-container');
-    button?.classList.add('shake-animation');
-    
-    // Play audio
-    audio.play();
-    
-    // Remove animations and toggle theme when audio ends
-    audio.onended = () => {
-        setTimeout(() => {
-            button?.classList.remove('shake-animation');
-            mainContent?.classList.remove('shake-container');
-            setIsAotMode(true);
-        }, 1500); // Keep the delay for smooth transition
-    };
-};
 
   return (
     <Box
@@ -78,9 +73,9 @@ const Sidebar = () => {
       left={0}
       w={isCollapsed ? "80px" : "250px"}
       h="100vh"
-      bg="gray.800"
+      bg={isAotMode ? "#1D1D1D" : "gray.800"}
       borderRight="1px"
-      borderColor="gray.700"
+      borderColor={isAotMode ? "#463A2E" : "gray.700"}
       py={8}
       transition="width 0.3s ease"
       sx={{
@@ -98,9 +93,9 @@ const Sidebar = () => {
         bottom="20px"
         transform="none"
         onClick={() => setIsCollapsed(!isCollapsed)}
-        bg="gray.700"
-        color="white"
-        _hover={{ bg: 'gray.600' }}
+        bg={isAotMode ? "#2A1F1A" : "gray.700"}
+        color={isAotMode ? "#C1A173" : "white"}
+        _hover={{ bg: isAotMode ? '#463A2E' : 'gray.600' }}
         size="sm"
         zIndex={2}
       />
@@ -120,14 +115,14 @@ const Sidebar = () => {
                 aria-label="Toggle Theme"
                 icon={<img src={attackingTitanIcon} alt="Attack Titan" width="32" height="32" />}
                 onClick={handleThemeToggle}
-                bg={isAotMode ? 'red.600' : 'gray.700'}
-                color={isAotMode ? 'white' : 'gray.400'}
+                bg={isAotMode ? '#8B0000' : 'gray.700'}
+                color={isAotMode ? '#E5D5B7' : 'gray.400'}
                 borderRadius="full"
                 w="50px"
                 h="50px"
                 _hover={{ 
                   transform: 'rotateY(180deg)',
-                  bg: isAotMode ? 'red.700' : 'gray.600'
+                  bg: isAotMode ? '#A52A2A' : 'gray.600'
                 }}
                 transition="all 0.6s"
                 style={{ transformStyle: 'preserve-3d' }}
@@ -143,24 +138,28 @@ const Sidebar = () => {
             <Flex
               key={item.path}
               align="center"
-              px={isCollapsed ? 4 : 8}
-              py={3}
+              px={isCollapsed ? 4 : 6}
+              py={2}
               cursor="pointer"
-              bg={isActive ? 'gray.700' : 'transparent'}
-              color={isActive ? 'white' : 'gray.400'}
+              bg={isActive ? (isAotMode ? '#2A1F1A' : 'gray.700') : 'transparent'}
+              color={isActive ? (isAotMode ? '#E5D5B7' : 'white') : (isAotMode ? '#C1A173' : 'gray.400')}
               _hover={{
-                bg: 'gray.700',
-                color: 'white'
+                bg: isAotMode ? '#2A1F1A' : 'gray.700',
+                color: isAotMode ? '#E5D5B7' : 'white'
               }}
               onClick={() => navigate(item.path)}
               justifyContent={isCollapsed ? "center" : "flex-start"}
+              alignItems="center"
+              gap={3}
             >
-              <Icon
-                as={item.icon}
-                boxSize={5}
-                mr={isCollapsed ? 0 : 4}
+              <IconWrapper
+                icon={item.icon}
+                aotIcon={item.aotIcon}
+                isAotMode={isAotMode}
+                boxSize={6}
+                mr={isCollapsed ? 0 : 3}
               />
-              {!isCollapsed && <Text fontSize="md">{item.label}</Text>}
+              {!isCollapsed && <Text fontSize="lg" fontWeight="bold">{item.label}</Text>}
             </Flex>
           );
         })}
