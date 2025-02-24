@@ -1,0 +1,199 @@
+/* Sidebar Container */
+.sidebar {
+  position: fixed;
+  left: 0;
+  height: 100vh;
+  transition: width 0.6s ease;
+  overflow: visible;
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--sidebar-border);
+  padding: 2rem 0;
+}
+
+/* Sidebar Container Tweaks */
+.sidebar-collapsed {
+  width: 80px;
+}
+
+.sidebar-expanded {
+  width: 250px;
+}
+
+/* Sidebar Content Margin */
+.sidebar-content-margin {
+  margin-left: 250px;
+  transition: margin-left 0.6s ease;
+}
+
+.sidebar-content-margin-collapsed {
+  margin-left: 80px;
+}
+
+/* Toggle Icon Container */
+.sidebar-toggle-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 52px;
+  height: 52px;
+}
+
+/* Toggle Button */
+.sidebar-toggle-button {
+  position: absolute;
+  right: -12px;
+  bottom: 20px;
+  transform: none;
+  z-index: 10;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* The rotation animation class for the 'stretchedIcon' image */
+.toggle-icon {
+  width: 40px;
+  height: 40px;
+  background-color: #8b0000;
+  padding: 6px;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: transform 0.6s ease;
+  transform-origin: center;
+}
+
+/* Apply 180deg rotation when collapsed */
+.toggle-icon.collapsed {
+  transform: rotate(180deg);
+}
+
+/* Add hover effect for better interaction */
+.toggle-icon:hover {
+  transform: scale(1.05);
+}
+
+.toggle-icon.collapsed:hover {
+  transform: rotate(180deg) scale(1.05);
+}
+
+/* Navigation Items */
+.nav-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  gap: 0.75rem;
+}
+
+.nav-item-collapsed {
+  padding: 0.5rem 1rem;
+  justify-content: center;
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+  border-radius: 9999px;
+  width: 50px;
+  height: 50px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.theme-toggle.aot-mode {
+  background-color: #8B0000;
+  color: #E5D5B7;
+}
+
+.theme-toggle:not(.aot-mode) {
+  background-color: var(--chakra-colors-gray-700);
+  color: var(--chakra-colors-gray-400);
+}
+
+/* Icon Wrapper Styles */
+.icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-wrapper img {
+  width: 36px;
+  height: 36px;
+}
+
+/* Navigation Item States */
+.nav-item.active.aot-mode {
+  background-color: #2A1F1A;
+  color: #E5D5B7;
+}
+
+.nav-item.active:not(.aot-mode) {
+  background-color: var(--chakra-colors-gray-700);
+  color: white;
+}
+
+.nav-item:not(.active).aot-mode {
+  color: #C1A173;
+}
+
+.nav-item:not(.active):not(.aot-mode) {
+  color: var(--chakra-colors-gray-400);
+}
+
+/* Sidebar Toggle Button States */
+.sidebar-toggle-button.aot-mode {
+  background-color: #2A1F1A;
+  color: #C1A173;
+}
+
+.sidebar-toggle-button:not(.aot-mode) {
+  background-color: var(--chakra-colors-gray-700);
+  color: white;
+}
+
+.sidebar-toggle-button.aot-mode:hover {
+  background-color: #463A2E;
+}
+
+.sidebar-toggle-button:not(.aot-mode):hover {
+  background-color: var(--chakra-colors-gray-600);
+}
+
+/* Profile and Theme Toggle Container */
+.sidebar-section {
+  padding-left: var(--sidebar-padding);
+  padding-right: var(--sidebar-padding);
+  margin-bottom: 0.5rem;
+}
+
+.sidebar-collapsed .sidebar-section {
+  --sidebar-padding: 1rem;
+}
+
+.sidebar-expanded .sidebar-section {
+  --sidebar-padding: 2rem;
+}
+
+/* Text Styles */
+.nav-item-text {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+/* CSS Variables for theme colors */
+:root {
+  --sidebar-bg: #1D1D1D;
+  --sidebar-border: #463A2E;
+  --sidebar-hover-bg: #2A1F1A;
+  --sidebar-text: #C1A173;
+  --sidebar-text-active: #E5D5B7;
+}
+
+/* Default theme colors */
+.sidebar:not(.aot-mode) {
+  --sidebar-bg: var(--chakra-colors-gray-800);
+  --sidebar-border: var(--chakra-colors-gray-700);
+  --sidebar-hover-bg: var(--chakra-colors-gray-700);
+  --sidebar-text: var(--chakra-colors-gray-400);
+  --sidebar-text-active: white;
+}
+  

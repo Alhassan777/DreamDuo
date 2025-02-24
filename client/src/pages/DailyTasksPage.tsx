@@ -87,11 +87,34 @@ const DailyTasksPage = () => {
         overflow="hidden" 
         display="flex" 
         flexDirection="column"
-        bg={isAotMode ? '#1D1D1D' : 'gray.900'}
+        bg={isAotMode ? 'transparent' : 'gray.900'}
+        position="relative"
+        sx={{
+          '&::before': isAotMode ? {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundImage: 'url("/src/assets/daily_tasks_page.jpg")',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            opacity: 0.35,
+            zIndex: 0,
+            transition: 'all 0.3s ease-in-out',
+            transform: 'scale(1.2)',
+            transformOrigin: 'left center'
+          } : {}
+        }}
       >
-        <Flex justify="space-between" align="center" mb={6}>
+        <Flex justify="space-between" align="center" mb={6} position="relative" zIndex={1}>
           <Box flex="1">
-            <Heading color={isAotMode ? '#E5D5B7' : 'white'} mb={4}>Today's Tasks</Heading>
+            <Heading 
+              color={isAotMode ? '#E5D5B7' : 'white'} 
+              mb={4}
+              textShadow={isAotMode ? '2px 2px 4px rgba(0,0,0,0.7)' : 'none'}
+            >Today's Tasks</Heading>
           </Box>
           <Flex gap={2}>
             <Button

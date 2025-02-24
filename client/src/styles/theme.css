@@ -11,9 +11,9 @@
   --aot-text: #E5D5B7;
   --aot-background: #1D1D1D;
   --aot-border: #463A2E;
-  background-color: #121212 !important;
   color: #C1A173 !important;
   border-color: #463A2E !important;
+  background-color: #1D1D1D !important;
 }
 
 /* Theme Components */
@@ -57,8 +57,20 @@
 .theme-toggle-btn {
   transition: all 0.6s;
   transform-style: preserve-3d;
+  transform-origin: center;
+  backface-visibility: hidden;
+  background: var(--aot-background);
 }
 
 .theme-toggle-btn:hover {
   transform: rotateY(180deg);
+}
+
+.sidebar-toggle-icon {
+  transform-style: preserve-3d;
+  transform-origin: center;
+  backface-visibility: hidden;
+  background: var(--aot-secondary);
+  border-radius: 4px;
+  padding: 4px;
 }
