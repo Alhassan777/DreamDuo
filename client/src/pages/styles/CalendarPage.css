@@ -1,0 +1,341 @@
+/* ===========================================================
+   1) BASE STYLING (DEFAULT MODE)
+   =========================================================== */
+
+/* Occupies full parent width/height. Defaults to Chakra (purple-based) theme */
+.calendar-page-wrapper[data-aot-mode="true"] {
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* or hidden if you prefer */
+    position: relative;
+  }
+
+  .calendar-page-wrapper[data-aot-mode="false"] {
+    width: 100%;
+    height: 100%;
+    background-color: var(--chakra-colors-gray-700);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
+
+  }
+  
+  /* Improve dropdown arrow visibility */
+  .calendar-page-wrapper[data-aot-mode="false"] .chakra-select__icon-wrapper {
+    color: white !important;
+  }
+  /* Adjusted the overlay to be a bit less opaque */
+  .calendar-page-wrapper::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5); /* darker overlay */
+    z-index: 1;
+  }
+  
+  /* Ensure content stays above the overlay */
+  .calendar-page-wrapper > * {
+    position: relative;
+    z-index: 2;
+  }
+  
+  /* Header flex row */
+  .calendar-flex-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  /* Left side of header (month/year selects) */
+  .calendar-flex-left {
+    display: flex;
+    align-items: center;
+    gap: var(--chakra-space-6); /* slightly bigger gap */
+  }
+  
+  /* Right side of header (buttons) */
+  .calendar-flex-right {
+    display: flex;
+    gap: var(--chakra-space-2);
+  }
+  
+  /* Title styling */
+  .calendar-heading {
+    color: var(--chakra-colors-white);
+    margin-left: var(--chakra-space-5);
+    margin-right: var(--chakra-space-5);
+    font-size: var(--chakra-fontSizes-xl);
+    white-space: nowrap;
+    display: inline-block;
+    box-sizing: border-box;
+    min-width: max-content;
+  }
+  
+  /* Month/Year Selects (Default Mode) */
+  select.calendar-select-month,
+  select.calendar-select-year {
+    background-color: var(--chakra-colors-gray-700) !important;
+    color: var(--chakra-colors-white) !important;
+    border: 1px solid var(--chakra-colors-gray-600) !important;
+    border-radius: var(--chakra-radii-md) !important;
+    padding: var(--chakra-space-3) !important;
+    text-align: center !important;
+    appearance: none !important;
+    background-repeat: no-repeat;
+    background-position: right 0.7rem center;
+    background-size: 1.5em;
+  }
+  
+  .calendar-select-month {
+    min-width: 160px !important;
+    min-height: 45px !important;
+  }
+  
+  .calendar-select-year {
+    width: 120px !important;
+    min-height: 45px !important;
+  }
+  
+  .calendar-select-month:hover,
+  .calendar-select-year:hover {
+    border-color: var(--chakra-colors-purple-500);
+  }
+  
+  /* Today button (Default Mode) */
+  .calendar-button-today {
+    background-color: var(--chakra-colors-purple-500);
+    color: var(--chakra-colors-white);
+    font-weight: var(--chakra-fontWeights-bold);
+    border: none;
+    border-radius: var(--chakra-radii-md);
+    padding: var(--chakra-space-2) var(--chakra-space-4);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--chakra-space-2);
+    cursor: pointer;
+  } 
+  
+  .calendar-button-today:hover {
+    background-color: var(--chakra-colors-purple-600);
+    transform: translateY(-2px) !important ;
+    box-shadow: 0 4px 8px rgba(139, 0, 0, 0.3)!important ;
+  }
+  
+  /* Icon Buttons (Default Mode) */
+  .calendar-icon-button {
+    background-color: var(--chakra-colors-purple-500)!important;
+    border: 1px solid var(--chakra-colors-purple-500);
+    color: var(--chakra-colors-purple-500);
+    border-radius: var(--chakra-radii-md);
+    cursor: pointer;
+  }
+  
+  .calendar-icon-button:hover {
+    background-color: var(--chakra-colors-white)! important ;
+    color: black;
+    transform: translateY(-2px) !important ;
+    box-shadow: 0 4px 8px rgba(139, 0, 0, 0.3)!important ;
+  }
+  
+  /* Grid (7 columns) that expands */
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: var(--chakra-space-4);
+  }
+  
+  /* Day-of-week labels */
+  .calendar-day-name {
+    text-align: center;
+    font-weight: var(--chakra-fontWeights-bold);
+    color: var(--chakra-colors-gray-400);
+    padding: var(--chakra-space-4);
+  }
+  
+  /* Empty boxes before the 1st of the month */
+  .calendar-day-empty {
+    background-color: rgba(45, 55, 72, 0.85); /* Slightly transparent version of gray-800 */
+    border: 1px solid var(--chakra-colors-gray-700);
+    min-height: 120px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  }
+  
+  /* Regular days */
+  .calendar-day {
+    background-color: rgba(45, 55, 72, 0.85); /* Slightly transparent version of gray-800 */
+    border: 1px solid var(--chakra-colors-gray-700);
+    position: relative;
+    min-height: 120px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    border-radius: 4px;               /* softer corners */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  }
+  
+  .calendar-day:hover {
+    transform: scale(1.02) !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.4)!important;
+    z-index: 1;
+  }
+  
+  /* 'today' styling */
+  .calendar-day.today {
+    border-color: var(--chakra-colors-purple-500);
+  }
+  
+  /* Day number in top-right corner */
+  .calendar-day-number {
+    position: absolute;
+    top: var(--chakra-space-2);
+    right: var(--chakra-space-2);
+    font-size: var(--chakra-fontSizes-sm);
+    font-weight: var(--chakra-fontWeights-normal);
+    color: var(--chakra-colors-gray-400);
+  }
+  
+  .calendar-day.today .calendar-day-number {
+    font-weight: var(--chakra-fontWeights-bold);
+    color: var(--chakra-colors-purple-500);
+  }
+  
+  /* ===========================================================
+     2) AOT MODE OVERRIDES
+     ===========================================================
+     When `.calendar-page-wrapper` has data-aot-mode="true", 
+     these rules override the default styles.
+  */
+/* ========================================
+   1) AOT MODE - GENERAL STYLING
+   ======================================== */
+
+/* Background adjustments for AOT mode */
+.calendar-page-wrapper[data-aot-mode="true"] {
+    background-color: var(--aot-background);
+  }
+  
+  /* Lighten overlay for better visibility */
+  .calendar-page-wrapper[data-aot-mode="true"]::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.6)), 
+                url('../../assets/calendar_bg.png') center/cover no-repeat;
+    opacity: 1;  /* Ensure full effect */
+    z-index: 0;  /* Make sure it's below content */
+}
+
+.calendar-page-wrapper[data-aot-mode="true"] > * {
+    position: relative;
+    z-index: 2;  /* Ensures all content is above overlay */
+}
+
+  /* Heading adjustments for AOT mode */
+  .calendar-page-wrapper[data-aot-mode="true"] .calendar-heading {
+    color: var(--aot-text) !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
+  }
+  
+  /* ========================================
+     2) AOT MODE - SELECT DROPDOWN STYLING
+     ======================================== */
+  
+  .calendar-page-wrapper[data-aot-mode="true"] .calendar-select-month,
+  .calendar-page-wrapper[data-aot-mode="true"] .calendar-select-year {
+    background-color: var(--aot-secondary) !important; 
+    border: 1px solid var(--aot-border) !important;
+    color: var(--aot-secondary-text) !important;
+    text-align: center !important;
+    font-weight: var(--chakra-fontWeights-medium);
+    transition: all 0.2s ease-in-out;
+  }
+  
+  /* Hover state for dropdowns */
+  .calendar-page-wrapper[data-aot-mode="true"] .calendar-select-month:hover,
+  .calendar-page-wrapper[data-aot-mode="true"] .calendar-select-year:hover {
+    border-color: var(--aot-accent) !important;
+    box-shadow: 0 0 6px rgba(220, 162, 83, 0.4);
+  }
+  
+  /* Improve dropdown arrow visibility */
+  .calendar-page-wrapper[data-aot-mode="true"] .chakra-select__icon-wrapper {
+    color: var(--aot-accent) !important;
+  }
+  
+  /* ========================================
+     3) AOT MODE - BUTTONS
+     ======================================== */
+  
+  /* Today button */
+  .calendar-page-wrapper[data-aot-mode="true"] .calendar-button-today {
+    background-color: var(--aot-primary-bg) !important;
+    color: var(--aot-primary-text-color) !important;
+  }
+  
+  .calendar-page-wrapper[data-aot-mode="true"] .calendar-button-today:hover {
+    background-color: var(--aot-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(139, 0, 0, 0.3);
+  }
+  
+  /* Icon buttons */
+  
+  .calendar-page-wrapper[data-aot-mode="true"] .calendar-icon-button {
+    background-color: var(--aot-accent) !important;
+    color: var(--aot-background) !important;
+    border-color: var(--aot-accent) !important;
+  }
+  
+  .calendar-page-wrapper[data-aot-mode="true"] .calendar-icon-button:hover {
+    background-color: var(--aot-background) !important;
+    border-color: var(--aot-accent) !important;
+    color: var(--aot-accent) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* ========================================
+     4) AOT MODE - CALENDAR GRID
+     ======================================== */
+  
+  /* Day cells */
+  .calendar-page-wrapper[data-aot-mode="true"] .calendar-day-empty,
+  .calendar-page-wrapper[data-aot-mode="true"] .calendar-day {
+    background-color: rgba(58, 42, 36, 0.85) !important;  /* Slightly transparent version of brown */
+    border: 1px solid var(--aot-border) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+  }
+  
+  /* Day name labels */
+  .calendar-page-wrapper[data-aot-mode="true"] .calendar-day-name {
+    color: var(--aot-secondary-text) !important;
+  }
+  
+  /* Day number text */
+  .calendar-page-wrapper[data-aot-mode="true"] .calendar-day-number {
+    color: var(--aot-secondary-text) !important;
+  }
+  
+  /* Today’s date highlight */
+  .calendar-page-wrapper[data-aot-mode="true"] .calendar-day.today {
+    border-color: var(--aot-accent) !important;
+  }
+  
+  .calendar-page-wrapper[data-aot-mode="true"] .calendar-day.today .calendar-day-number {
+    color: var(--aot-accent) !important;
+    font-weight: var(--chakra-fontWeights-bold);
+  }
+  
+  /* Subtle hover effect */
+  .calendar-page-wrapper[data-aot-mode="true"] .calendar-day:hover,
+  .calendar-page-wrapper[data-aot-mode="true"] .calendar-day-empty:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    border-color: var(--aot-accent) !important;
+  }
+  

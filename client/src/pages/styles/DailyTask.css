@@ -8,10 +8,10 @@
     --aot-primary: #8B0000;
     --aot-secondary: #2A1F1A;
     --aot-accent: #dca253;
-    --aot-text: #462b07e6;
+    --aot-text: #c89a5a;
     --aot-background: #1D1D1D;
     --aot-border: #463A2E;
-  
+    --aot-secondary-text: #f3f2f0;
     /* AOT Button-Specific Variables */
     --aot-primary-bg: var(--aot-primary);
     --aot-primary-bg-hover: #CD5C5C;
@@ -50,11 +50,29 @@
   
   /* Toggle background for each mode */
   .daily-tasks-page[data-aot-mode="true"] {
+    background-color: var(--aot-background);
+}
 
-  }
+.daily-tasks-page[data-aot-mode="true"]::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url("/src/assets/daily_tasks_page.jpg");
+    background-size: cover;
+    background-position: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0.6;
+    z-index: 0;
+    transition: all 0.3s ease-in-out;
+    transform: scale(1.2);
+    transform-origin: left center;
+}
   
   .daily-tasks-page[data-aot-mode="false"] {
-    background: var(--chakra-colors-gray-900);
+    background-color: var(--chakra-colors-gray-900);
   }
   
   /* AOT background image */
@@ -139,10 +157,10 @@
   }
   
   .primary-button[data-aot-mode="true"]:hover {
-    background-color: var(--aot-primary-bg-hover);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
+    background-color: var(--aot-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(139, 0, 0, 0.3);
+}
   
   .secondary-button[data-aot-mode="true"] {
     background-color: var(--aot-secondary-bg-hover);
@@ -151,9 +169,10 @@
   }
   
   .secondary-button[data-aot-mode="true"]:hover {
-    background-color: var(--aot-secondary-bg);
-    color: var(--aot-secondary-text-color);
-    transform: translateY(-1px);
+    background-color: var(--aot-accent);
+    color: var(--aot-background);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
   
   /* =======================
@@ -172,15 +191,16 @@
   }
   
   .secondary-button[data-aot-mode="false"] {
-    background-color: var(--default-secondary-bg);
-    color: var(--default-secondary-text);
-    border: 2px solid var(--default-secondary-border);
+    background-color: white;
+    color: black;
+    border: 2px solid black;
   }
   
   .secondary-button[data-aot-mode="false"]:hover {
-    background-color: var(--default-secondary-bg-hover);
-    color: var(--default-secondary-text-hover);
-    transform: translateY(-1px);
+    background-color: white;
+    color: black;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   }
   
   /* ===========================================================
@@ -201,7 +221,7 @@
   
   .daily-tasks-modal-header[data-aot-mode="true"],
   .daily-tasks-modal-close[data-aot-mode="true"] {
-    color: var(--aot-text);
+    color: var(--aot-secondary-text);
   }
   
   .daily-tasks-modal-header[data-aot-mode="false"],
@@ -236,7 +256,7 @@
   /* Modal Footer Button */
   .daily-tasks-modal-cancel[data-aot-mode="true"] {
     color: var(--aot-accent);
-    background-color: var(--aot-secondary) !important ;
+    background-color: var(--aot-accent);
     border: 2px solid var(--aot-accent);
     transition: all 0.3s ease;
   }
