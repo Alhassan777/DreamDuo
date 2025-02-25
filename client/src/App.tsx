@@ -9,11 +9,12 @@ import EditProfilePage from './pages/EditProfilePage';
 import TagsPage from './pages/TagsPage';
 import CalendarPage from './pages/CalendarPage';
 import { ThemeProvider } from './contexts/ThemeContext';
-
+import { SidebarProvider } from './contexts/SidebarContext';
 function App() {
   return (
-    <ChakraProvider>
-      <ThemeProvider>
+    <ThemeProvider>
+      <SidebarProvider>
+        <ChakraProvider>
         <Router>
           <Routes>
             <Route path="/" element={<LandingPage />} />
@@ -26,8 +27,9 @@ function App() {
             <Route path="*" element={<Navigate to="/daily-tasks" />} />
           </Routes>
         </Router>
-      </ThemeProvider>
-    </ChakraProvider>
+        </ChakraProvider>
+      </SidebarProvider>
+    </ThemeProvider>
   )
 }
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   VStack,
   Box,
@@ -21,6 +21,7 @@ import sidebarIcon2 from '../assets/sidebar_icon2.png';
 import sidebarIcon3 from '../assets/sidebar_icon3.png';
 import sidebarIcon4 from '../assets/sidebar_icon4.png';
 import { useTheme } from '../contexts/ThemeContext';
+import { useSidebar } from '../contexts/SidebarContext';
 import stretchedIcon from '../assets/Stretched.png';
 import './styles/sidebar.css';
 
@@ -61,7 +62,7 @@ interface SidebarProps {
 const Sidebar = ({ onCollapse }: SidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const { isCollapsed, setSidebarCollapsed } = useSidebar();
   const { isAotMode, toggleAotMode } = useTheme();
 
   const handleThemeToggle = () => {
@@ -174,7 +175,7 @@ const Sidebar = ({ onCollapse }: SidebarProps) => {
         className={`sidebar-toggle-button ${isAotMode ? 'aot-mode' : ''}`}
         onClick={() => {
           const newCollapsed = !isCollapsed;
-          setIsCollapsed(newCollapsed);
+          setSidebarCollapsed(newCollapsed);
           onCollapse?.(newCollapsed);
         }}
         size="sm"
