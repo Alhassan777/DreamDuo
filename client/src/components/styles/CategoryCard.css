@@ -1,0 +1,131 @@
+.category-card {
+  border-width: 1px;
+  border-radius: var(--chakra-radii-lg);
+  background-color: var(--chakra-colors-gray-800);
+  padding: var(--chakra-space-6);
+  position: relative;
+  transition: all 0.2s;
+  box-shadow: var(--chakra-shadows-lg);
+  width: 100%;
+}
+
+.category-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--chakra-shadows-xl);
+}
+
+.category-card.editing {
+  border-width: 2px;
+  background-color: var(--chakra-colors-gray-700);
+}
+
+.category-card-title {
+  font-size: var(--chakra-fontSizes-2xl);
+  font-weight: var(--chakra-fontWeights-bold);
+  color: var(--chakra-colors-white);
+  text-shadow: 0 0 10px rgba(255,255,255,0.3);
+  flex: 1;
+}
+
+.category-card-title input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+}
+
+.category-card-description {
+  color: var(--chakra-colors-gray-400);
+  font-size: var(--chakra-fontSizes-sm);
+  width: 100%;
+}
+
+.category-card-description textarea {
+  background-color: var(--chakra-colors-gray-600);
+  color: var(--chakra-colors-white);
+}
+
+.category-card-emoji-picker {
+  width: 60px;
+  height: 60px;
+  background-color: var(--chakra-colors-gray-700);
+  border-radius: var(--chakra-radii-full);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.category-card-emoji-picker:hover {
+  transform: scale(1.1);
+  background-color: var(--chakra-colors-gray-600);
+}
+
+.category-card-button {
+  transition: transform 0.2s;
+}
+
+.category-card-button:hover {
+  transform: scale(1.1);
+}
+
+.category-card-button.delete {
+  color: var(--chakra-colors-red-500);
+}
+
+.category-card-button.edit {
+  color: var(--chakra-colors-blue-500);
+}
+
+.category-card-button.save {
+  color: white;
+  background-color: var(--chakra-colors-green-500);
+}
+
+.category-card-button.cancel {
+  color: white;
+  background-color: var(--chakra-colors-red-500);
+}
+
+.category-card-emoji-content {
+  z-index: 99999;
+  width: 320px;
+  max-height: 400px;
+  overflow-y: auto;
+  box-shadow: var(--chakra-shadows-xl);
+  background-color: var(--chakra-colors-gray-700);
+}
+
+.category-card-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.category-card-icon {
+  font-size: 1.875rem;
+}
+
+.category-card-input-group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.category-card-title-input {
+  font-size: var(--chakra-fontSizes-lg);
+  padding: var(--chakra-space-2);
+}
+
+.category-card-description-textarea {
+  font-size: var(--chakra-fontSizes-sm);
+  padding: var(--chakra-space-2);
+  min-height: 100px;
+}
+
+.category-card-buttons {
+  gap: var(--chakra-space-2);
+}

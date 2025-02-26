@@ -1,0 +1,70 @@
+.priority-color-section {
+    width: 100%;
+  }
+  
+  /* Increase the container size (width/height) to give more space */
+  .priority-color-picker {
+    position: relative;
+    width: 40px; /* Was 48px */
+    height: 42px;
+    background-color: var(--chakra-colors-gray-700);
+    border-radius: var(--chakra-radii-md);
+    border: 1px solid var(--chakra-colors-gray-600);
+    padding: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 4px;
+  }
+  
+  .priority-color-picker:hover {
+    border-color: var(--chakra-colors-gray-500);
+  }
+  
+  /* Increase the preview circle size (width/height) */
+  .priority-color-preview {
+    width: 30px;  /* Was 28px */
+    height: 30px; /* Was 28px */
+    border-radius: 50%;
+    border: 2px solid white;
+    margin: 0;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
+    position: absolute;
+  }
+  
+  /* Keep this absolute and transparent if you want a custom preview + native color picker */
+  .priority-color-input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+  }
+  
+  .priority-item {
+    padding: 0.5rem;
+    background-color: var(--chakra-colors-gray-700);
+    border-radius: var(--chakra-radii-md);
+  }
+  
+  .priority-color-box {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    border: 2px solid white;
+  }
+
+  /* PriorityColorPicker.css */
+.priority-color-input-hidden {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+  }
+  
+  

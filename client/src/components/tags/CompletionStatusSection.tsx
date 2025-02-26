@@ -2,6 +2,7 @@ import { VStack, Heading, SimpleGrid, Box, Text, Image, Select } from '@chakra-u
 import { useState } from 'react';
 import { useToast } from '@chakra-ui/react';
 import StatusCard from './StatusCard';
+import '../styles/CompletionStatusSection.css';
 
 type StatusIcon = {
   status: 'free' | 'not_started' | 'in_progress' | 'finished';
@@ -99,10 +100,10 @@ const CompletionStatusSection = () => {
   };
 
   return (
-    <VStack align="stretch" spacing={4}>
-      <Heading size="md" color="white">Daily Task Progress</Heading>
+    <VStack align="stretch" spacing={4} className="completion-status-section">
+      <Heading size="md" className="completion-status-heading">Daily Task Progress</Heading>
       
-      <SimpleGrid columns={4} spacing={4} alignItems="flex-start">
+      <SimpleGrid columns={4} spacing={4} className="completion-status-grid">
         {STATUS_OPTIONS.map((status) => (
           <StatusCard
             key={status.status}

@@ -1,4 +1,4 @@
-import { Box, Button, FormControl, FormLabel, Input, VStack, Heading, FormErrorMessage, useToast, InputGroup, InputRightElement, Text, Link } from '@chakra-ui/react';
+import { Button, FormControl, FormLabel, Input, VStack, Heading, FormErrorMessage, useToast, InputGroup, InputRightElement, Text, Link } from '@chakra-ui/react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './styles/SignupPage.css';

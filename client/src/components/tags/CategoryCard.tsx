@@ -2,7 +2,7 @@ import { Box, Flex, VStack, Text, IconButton, Input, Textarea, Popover, PopoverT
 import { DeleteIcon, EditIcon, CheckIcon, CloseIcon } from '@chakra-ui/icons';
 import { useState } from 'react';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
-
+import '../styles/CategoryCard.css';
 interface CategoryCardProps {
   category: {
     name: string;
@@ -45,27 +45,12 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category, onDelete, onUpdat
   };
 
   return (
-    <Box
-      borderWidth={isEditing ? "2px" : "1px"}
-      borderRadius="lg"
-      bg={isEditing ? "gray.700" : "gray.800"}
-      p={6}
-      position="relative"
-      transition="all 0.2s"
-      boxShadow="lg"
-      _hover={{
-        transform: 'translateY(-2px)',
-        boxShadow: 'xl'
-      }}
-    >
+    <Box className={`category-card ${isEditing ? 'editing' : ''}`}>
+
       <VStack spacing={4} align="stretch">
         <Flex justify="space-between" align="center">
-          <Text
-            fontSize="2xl"
-            fontWeight="bold"
-            color="white"
-            textShadow="0 0 10px rgba(255,255,255,0.3)"
-          >
+          <Text className="category-card-title">
+
             {isEditing ? (
               <Input
                 value={editedName}
@@ -73,8 +58,8 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category, onDelete, onUpdat
                 placeholder="Category name"
                 size="lg"
                 variant="flushed"
-                color="white"
                 autoFocus
+                className="category-card-title-input"
               />
             ) : (
               category.name
@@ -85,25 +70,24 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category, onDelete, onUpdat
               icon={<DeleteIcon />}
               aria-label="Delete category"
               size="md"
-              colorScheme="red"
               variant="ghost"
               onClick={onDelete}
-              _hover={{ transform: 'scale(1.1)' }}
+              className="category-card-button delete"
             />
             <IconButton
               icon={<EditIcon />}
               aria-label="Edit category"
               size="md"
-              colorScheme="blue"
               variant="ghost"
               onClick={() => setIsEditing(!isEditing)}
-              _hover={{ transform: 'scale(1.1)' }}
+              className="category-card-button edit"
             />
           </HStack>
         </Flex>
 
         {(isEditing || category.description) && (
-          <Text color="gray.400" fontSize="sm">
+          <Text className="category-card-description">
+
             {isEditing ? (
               <Textarea
                 value={editedDescription}
@@ -111,10 +95,9 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category, onDelete, onUpdat
                 placeholder="Category description (optional)"
                 size="sm"
                 variant="filled"
-                bg="gray.600"
-                color="white"
                 resize="vertical"
                 rows={3}
+                className="category-card-description-textarea"
               />
             ) : (
               category.description
@@ -126,19 +109,16 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category, onDelete, onUpdat
           <Popover isOpen={showEmojiPicker} onClose={() => setShowEmojiPicker(false)} placement="bottom">
             <PopoverTrigger>
               <Center
-                w="60px"
-                h="60px"
-                bg="gray.700"
-                borderRadius="full"
-                cursor="pointer"
-                _hover={{ transform: 'scale(1.1)', bg: 'gray.600' }}
+                className="category-card-emoji-picker"
                 onClick={() => setShowEmojiPicker(!showEmojiPicker)}
               >
-                <Text fontSize="3xl">{selectedIcon}</Text>
+
+                <Text className="category-card-icon">{selectedIcon}</Text>
               </Center>
             </PopoverTrigger>
             <Portal>
-              <PopoverContent zIndex={99999} width="320px" maxHeight="400px" overflowY="auto" boxShadow="xl">
+              <PopoverContent className="category-card-emoji-content">
+
                 <PopoverBody p={0}>
                   <EmojiPicker onEmojiClick={handleEmojiClick} width="320px" height="400px" />
                 </PopoverBody>
@@ -152,18 +132,16 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category, onDelete, onUpdat
             <IconButton
               icon={<CheckIcon />}
               aria-label="Save changes"
-              colorScheme="green"
               size="sm"
               onClick={handleSave}
-              _hover={{ transform: 'scale(1.1)' }}
+              className="category-card-button save"
             />
             <IconButton
               icon={<CloseIcon />}
               aria-label="Cancel changes"
-              colorScheme="red"
               size="sm"
               onClick={handleCancel}
-              _hover={{ transform: 'scale(1.1)' }}
+              className="category-card-button cancel"
             />
           </Flex>
         )}

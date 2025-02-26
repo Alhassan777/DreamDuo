@@ -53,23 +53,7 @@
     background-color: var(--aot-background);
 }
 
-.daily-tasks-page[data-aot-mode="true"]::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image: url("/src/assets/daily_tasks_page.jpg");
-    background-size: cover;
-    background-position: center;
-    background-color: rgba(0, 0, 0, 0.5);
-    opacity: 0.6;
-    z-index: 0;
-    transition: all 0.3s ease-in-out;
-    transform: scale(1.2);
-    transform-origin: left center;
-}
+
   
   .daily-tasks-page[data-aot-mode="false"] {
     background-color: var(--chakra-colors-gray-900);
@@ -83,10 +67,10 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-image: url("/src/assets/daily_tasks_page.jpg");
+    background-image: url("/src/assets/daily_tasks_page_2.jpg");
     background-size: cover;
     background-position: center;
-    opacity: 0.6;
+    opacity: 0.7;
     z-index: 0;
     transition: all 0.3s ease-in-out;
     transform: scale(1.2);
