@@ -4,6 +4,7 @@ import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './styles/LoginPage.css';
+import surveyCorpsKey from '../assets/key.png';
 
 const LoginPage = () => {
 const navigate = useNavigate();
@@ -89,13 +90,16 @@ const toast = useToast();
   };
 
   return (
-    <Box minH="100vh" display="flex" alignItems="center" justifyContent="center" bg="gray.900" w="100%" p={4}>
-      <Box p={8} borderWidth={1} borderRadius={8} boxShadow="lg" bg="gray.800" maxW="500px" w="100%">
+    <Box className="login-page-background">
+      <Box className="login-box">
         <Box className="login-container">
           <Box className="login-form-container">
             <VStack spacing={4} align="stretch">
+              <Box className="key-image-container">
+                <img src={surveyCorpsKey} alt="Survey Corps Key" className="login-key-image" />
+              </Box>
               <Heading className="login-heading">
-                Welcome to The Survey corps, Ready to View your Missions?
+                Welcome Danchou, Ready to View your Missions?
               </Heading>
               
               <form onSubmit={handleSubmit}>
@@ -137,7 +141,6 @@ const toast = useToast();
               
                   <Button
                     type="submit"
-                    colorScheme="purple"
                     className="submit-button"
                     isLoading={isLoading}
                     loadingText="Logging in..."

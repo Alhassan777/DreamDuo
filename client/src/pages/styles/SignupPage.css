@@ -1,22 +1,23 @@
 /* Importing AOT-style font */
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=IM+Fell+English:ital@0;1&display=swap');
 
-body {
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
+.signup-page-background {
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: 100vh !important;
     background: 
         linear-gradient(rgba(26, 32, 44, 0.6), rgba(26, 32, 44, 0.6)), 
-        url('../../assets/signup_page.jpg') no-repeat center center !important;
-    background-size: cover;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    position: relative;
+        url('../../assets/signup_page.jpg') no-repeat center center;
+    background-size: cover !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+    position: relative !important;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    font-family: 'Cinzel', 'IM Fell English', serif;
+    font-family:  'IM Fell English';
+    width: 100% !important;
 }
 
 /* Main container */
@@ -44,14 +45,22 @@ body {
 }
 
 /* Survey Corps Logo */
+.survey-corps-logo {
+    display: flex;
+    justify-content: center;
+    margin-bottom: var(--chakra-space);
+}
+
 .survey-corps-logo img {
     width: 80px;
     height: auto;
-    display: block;
-    margin: 0 auto 10px;
-    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+    filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.5));
+    transition: transform 0.3s ease-in-out;
 }
 
+.survey-corps-logo img:hover {
+    transform: rotate(45deg);
+}
 /* Form content container */
 .signup-content {
     display: flex;
@@ -81,7 +90,6 @@ body {
 /* Form label styling */
 .form-label {
     color: #E2E8F0;
-    font-family: 'IM Fell English', serif;
     font-size: 1.1rem;
 }
 

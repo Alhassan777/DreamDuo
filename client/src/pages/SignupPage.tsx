@@ -126,7 +126,7 @@ const SignupPage = () => {
   };
 
   return (
-    <div className="signup-page-container">
+    <div className="signup-page-background">
       <div className="signup-form-box">
         <div className="survey-corps-logo">
           <img src={surveyCorpsLogo} alt="Survey Corps Emblem" />
