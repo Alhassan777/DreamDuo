@@ -2,6 +2,7 @@ import { Box, VStack, Text, Flex, Tag, IconButton, Collapse, Input, Circle } fro
 import { AddIcon, CloseIcon, ChevronUpIcon, ChevronDownIcon, StarIcon } from '@chakra-ui/icons';
 import SubtaskCard from './SubtaskCard';
 import { useState } from 'react';
+import './styles/TaskCard.css';
 
 interface Subtask {
   id: number;
@@ -90,160 +91,108 @@ const TaskCard = ({
 
   return (
     <Box
-      // Top-level tasks are not draggable so we removed draggable/onDragStart handlers.
+      className={`task-card ${task.completed ? 'completed' : ''} ${dragState ? 'drag-over' : ''}`}
       onDragOver={(e) => {
         e.preventDefault();
         e.stopPropagation();
-        e.currentTarget.style.boxShadow = '0 0 0 2px var(--chakra-colors-purple-500)';
-        e.currentTarget.style.transition = 'box-shadow 0.2s ease-in-out';
+        e.currentTarget.classList.add('drag-over');
       }}
       onDragLeave={(e) => {
         e.stopPropagation();
-        e.currentTarget.style.boxShadow = 'none';
+        e.currentTarget.classList.remove('drag-over');
       }}
       onDrop={(e) => {
         e.preventDefault();
         e.stopPropagation();
-        e.currentTarget.style.boxShadow = 'none';
+        e.currentTarget.classList.remove('drag-over');
         onDrop(task.id);
       }}
-      bg={task.completed ? "gray.700" : "gray.800"}
-      p={5}
-      borderRadius="lg"
-      borderWidth="1px"
-      borderColor={task.completed ? "green.500" : "gray.700"}
-      position="relative"
-      height="fit-content"
-      transition="all 0.2s ease-in-out"
-      transform={task.completed ? "scale(0.98)" : "scale(1)"}
-      cursor="default"
-      _hover={{
-        borderColor: "purple.500",
-        transform: "translateY(-2px)"
-      }}
-      _after={task.completed ? {
-        content: '""',
-        position: "absolute",
-        top: "-1px",
-        right: "-1px",
-        bottom: "-1px",
-        left: "-1px",
-        background: "green.500",
-        opacity: 0.1,
-        borderRadius: "lg",
-        zIndex: -1,
-        transition: "opacity 0.3s ease-in-out"
-      } : undefined}
     >
-      <VStack spacing={4} align="stretch">
-        <Flex justify="space-between" align="center">
-          <IconButton
-            icon={<CloseIcon />}
-            aria-label="Delete task"
-            colorScheme="red"
-            size="sm"
-            onClick={() => onDelete(task.id)}
-          />
-          {isEditing ? (
-            <Input
-              value={editedName}
-              onChange={handleNameChange}
-              onBlur={handleNameSubmit}
-              onKeyDown={handleKeyDown}
-              color="white"
-              bg="gray.700"
-              fontSize="lg"
-              flex="1"
-              mx={4}
-              autoFocus
-              _focus={{
-                borderColor: "purple.500",
-                boxShadow: "0 0 0 1px var(--chakra-colors-purple-500)"
-              }}
-            />
-          ) : (
-            <Text
-              color="white"
-              fontSize="lg"
-              textDecoration={task.completed ? 'line-through' : 'none'}
-              opacity={task.completed ? 0.6 : 1}
-              flex="1"
-              mx={4}
-              onDoubleClick={handleDoubleClick}
-              cursor="text"
-              title="Double click to edit"
-              _hover={{
-                bg: "gray.700",
-                borderRadius: "md",
-                px: 2,
-                mx: 2
-              }}
-            >
-              {task.name}
-            </Text>
-          )}
-          <Flex gap={2}>
+        <VStack spacing={4} align="stretch">
+          <Flex justify="space-between" align="center">
             <IconButton
-              icon={task.collapsed ? <ChevronDownIcon /> : <ChevronUpIcon />}
-              aria-label="Toggle collapse"
-              colorScheme={task.collapsed ? "gray" : "teal"}
-              variant="solid"
+              icon={<CloseIcon />}
+              aria-label="Delete task"
+              colorScheme="red"
               size="sm"
-              onClick={() => onToggleCollapse(task.id)}
+              onClick={() => onDelete(task.id)}
             />
-            <IconButton
-              icon={<AddIcon />}
-              aria-label="Add subtask"
-              colorScheme="blue"
-              size="sm"
-              onClick={() => onAddSubtask(task.id)}
-            />
+            {isEditing ? (
+              <Input
+                className="task-input"
+                value={editedName}
+                onChange={handleNameChange}
+                onBlur={handleNameSubmit}
+                onKeyDown={handleKeyDown}
+                autoFocus
+              />
+            ) : (
+              <Text
+                className={`task-name ${task.completed ? 'completed' : ''}`}
+                onDoubleClick={handleDoubleClick}
+                title="Double click to edit"
+              >
+                {task.name}
+              </Text>
+            )}
+            <Flex gap={2}>
+              <IconButton
+                icon={task.collapsed ? <ChevronDownIcon /> : <ChevronUpIcon />}
+                aria-label="Toggle collapse"
+                colorScheme={task.collapsed ? "gray" : "teal"}
+                variant="solid"
+                size="sm"
+                onClick={() => onToggleCollapse(task.id)}
+              />
+              <IconButton
+                icon={<AddIcon />}
+                aria-label="Add subtask"
+                colorScheme="blue"
+                size="sm"
+                onClick={() => onAddSubtask(task.id)}
+              />
+            </Flex>
           </Flex>
-        </Flex>
 
-        <Flex align="center" gap={2}>
-          <Tag colorScheme="purple" size="sm" width="fit-content">
-            {task.category}
-          </Tag>
-          {task.priority && (
-            <Circle size="24px" bg={task.priority} title="Priority Level" transition="all 0.2s ease-in-out" _hover={{ transform: "scale(1.1)" }}>
-              <StarIcon color="white" boxSize={4} />
-            </Circle>
-          )}
-        </Flex>
+          <Flex align="center" gap={2}>
+            <Tag colorScheme="purple" size="sm" width="fit-content">
+              {task.category}
+            </Tag>
+            {task.priority && (
+              <Circle size="24px" bg={task.priority} title="Priority Level" className="priority-indicator">
+                <StarIcon color="white" boxSize={4} />
+              </Circle>
+            )}
+          </Flex>
 
-        <Collapse
-          in={!task.collapsed}
-          style={{
-            transformOrigin: 'top',
-            position: 'relative',
-            width: '100%'
-          }}
-          animateOpacity
-        >
-          {task.subtasks && task.subtasks.length > 0 && (
-            <VStack align="stretch" pl={4} spacing={2}>
-              {task.subtasks.map((subtask) => (
-                <SubtaskCard
-                  key={subtask.id}
-                  taskId={task.id}
-                  subtask={subtask}
-                  onDelete={onDelete}
-                  onAddSubtask={onAddSubtask}
-                  onToggleComplete={onToggleSubtaskComplete}
-                  onUpdateName={handleSubtaskNameUpdate}
-                  onDragStart={(type, taskId, itemId, parentId) => 
-                    onDragStart(type as 'subtask' | 'sub-subtask', taskId, itemId, parentId)}
-                  onDrop={onDrop}
-                  dragState={dragState}
-                />
-              ))}
-            </VStack>
-          )}
-        </Collapse>
-      </VStack>
-    </Box>
-  );
+          <Collapse
+            in={!task.collapsed}
+            className="subtasks-container"
+            animateOpacity
+          >
+            {task.subtasks && task.subtasks.length > 0 && (
+              <VStack align="stretch" pl={4} spacing={2}>
+                {task.subtasks.map((subtask) => (
+                  <SubtaskCard
+                    key={subtask.id}
+                    taskId={task.id}
+                    subtask={subtask}
+                    onDelete={onDelete}
+                    onAddSubtask={onAddSubtask}
+                    onToggleComplete={onToggleSubtaskComplete}
+                    onUpdateName={handleSubtaskNameUpdate}
+                    onDragStart={(type, taskId, itemId, parentId) => 
+                      onDragStart(type as 'subtask' | 'sub-subtask', taskId, itemId, parentId)}
+                    onDrop={onDrop}
+                    dragState={dragState}
+                  />
+                ))}
+              </VStack>
+            )}
+          </Collapse>
+        </VStack>
+      </Box>
+    );
 };
 
 export default TaskCard;

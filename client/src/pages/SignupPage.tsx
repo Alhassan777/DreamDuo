@@ -1,7 +1,9 @@
-import { Box, Button, FormControl, FormLabel, Input, VStack, Heading, FormErrorMessage, useToast, InputGroup, InputRightElement } from '@chakra-ui/react';
+import { Box, Button, FormControl, FormLabel, Input, VStack, Heading, FormErrorMessage, useToast, InputGroup, InputRightElement, Text, Link } from '@chakra-ui/react';
 import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import './styles/SignupPage.css';
+import surveyCorpsLogo from '../assets/survey_corps.png';
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -107,7 +109,6 @@ const SignupPage = () => {
           isClosable: true,
         });
 
-        // Store the token and redirect
         localStorage.setItem('token', data.access_token);
         navigate('/daily-tasks');
       } catch (error) {
@@ -125,68 +126,65 @@ const SignupPage = () => {
   };
 
   return (
-    <Box minH="100vh" display="flex" alignItems="center" justifyContent="center" bg="gray.900" w="100%" p={4}>
-      <Box p={8} borderWidth={1} borderRadius={8} boxShadow="lg" bg="gray.800" maxW="500px" w="100%">
-        <VStack spacing={4} align="stretch">
-          <Heading color="white" textAlign="center" mb={6}>
+    <div className="signup-page-container">
+      <div className="signup-form-box">
+        <div className="survey-corps-logo">
+          <img src={surveyCorpsLogo} alt="Survey Corps Emblem" />
+        </div>
+        <VStack spacing={4} align="stretch" className="signup-content">
+          <Heading className="signup-heading">
             Ready to Join the Survey Corps?
           </Heading>
           
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className="signup-form">
             <VStack spacing={4}>
               <FormControl isInvalid={!!errors.firstName}>
-                <FormLabel color="gray.300">First Name</FormLabel>
+                <FormLabel className="form-label">First Name</FormLabel>
                 <Input
                   type="text"
                   value={formData.firstName}
                   onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                  bg="gray.700"
-                  color="white"
+                  className="form-input"
                 />
                 <FormErrorMessage>{errors.firstName}</FormErrorMessage>
               </FormControl>
 
               <FormControl isInvalid={!!errors.lastName}>
-                <FormLabel color="gray.300">Last Name</FormLabel>
+                <FormLabel className="form-label">Last Name</FormLabel>
                 <Input
                   type="text"
                   value={formData.lastName}
                   onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                  bg="gray.700"
-                  color="white"
+                  className="form-input"
                 />
                 <FormErrorMessage>{errors.lastName}</FormErrorMessage>
               </FormControl>
 
               <FormControl isInvalid={!!errors.email}>
-                <FormLabel color="gray.300">Email</FormLabel>
+                <FormLabel className="form-label">Email</FormLabel>
                 <Input
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  bg="gray.700"
-                  color="white"
+                  className="form-input"
                 />
                 <FormErrorMessage>{errors.email}</FormErrorMessage>
               </FormControl>
 
               <FormControl isInvalid={!!errors.password}>
-                <FormLabel color="gray.300">Password</FormLabel>
+                <FormLabel className="form-label">Password</FormLabel>
                 <InputGroup>
                   <Input
                     type={showPassword ? 'text' : 'password'}
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    bg="gray.700"
-                    color="white"
+                    className="form-input"
                   />
                   <InputRightElement>
                     <Button
                       variant="ghost"
                       onClick={() => setShowPassword(!showPassword)}
-                      _hover={{ bg: 'transparent' }}
-                      _active={{ bg: 'transparent' }}
-                      color="gray.300"
+                      className="password-toggle-button"
                     >
                       {showPassword ? <ViewOffIcon /> : <ViewIcon />}
                     </Button>
@@ -196,22 +194,19 @@ const SignupPage = () => {
               </FormControl>
 
               <FormControl isInvalid={!!errors.confirmPassword}>
-                <FormLabel color="gray.300">Confirm Password</FormLabel>
+                <FormLabel className="form-label">Confirm Password</FormLabel>
                 <InputGroup>
                   <Input
                     type={showConfirmPassword ? 'text' : 'password'}
                     value={formData.confirmPassword}
                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                    bg="gray.700"
-                    color="white"
+                    className="form-input"
                   />
                   <InputRightElement>
                     <Button
                       variant="ghost"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      _hover={{ bg: 'transparent' }}
-                      _active={{ bg: 'transparent' }}
-                      color="gray.300"
+                      className="password-toggle-button"
                     >
                       {showConfirmPassword ? <ViewOffIcon /> : <ViewIcon />}
                     </Button>
@@ -223,18 +218,24 @@ const SignupPage = () => {
               <Button
                 type="submit"
                 colorScheme="purple"
-                width="full"
-                mt={4}
+                className="submit-button"
                 isLoading={isLoading}
-                loadingText="Signing up..."
+                loadingText="Creating account..."
               >
                 Sign Up
               </Button>
             </VStack>
           </form>
+
+          <Text className="login-link-text">
+            Already have an account?{' '}
+            <Link className="login-link" onClick={() => navigate('/login')}>
+              Login here
+            </Link>
+          </Text>
         </VStack>
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 };
 

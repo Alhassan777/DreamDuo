@@ -1,0 +1,95 @@
+.task-card {
+  position: relative;
+  height: fit-content;
+  transition: all 0.2s ease-in-out;
+  cursor: default;
+  background: var(--chakra-colors-gray-800);
+  padding: var(--chakra-space-5);
+  border-radius: var(--chakra-radii-lg);
+  border-width: 1px;
+  border-color: var(--chakra-colors-gray-700);
+}
+
+.task-card:hover {
+  border-color: var(--chakra-colors-purple-500);
+  transform: translateY(-2px);
+}
+
+.task-card.completed {
+  transform: scale(0.98);
+  background: var(--chakra-colors-gray-700);
+  border-color: var(--chakra-colors-green-500);
+}
+
+.task-card.completed::after {
+  content: "";
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  bottom: -1px;
+  left: -1px;
+  background: var(--chakra-colors-green-500);
+  opacity: 0.1;
+  border-radius: var(--chakra-radii-lg);
+  z-index: -1;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.task-name {
+  cursor: text;
+}
+
+.task-name:hover {
+  background: var(--chakra-colors-gray-700);
+  border-radius: var(--chakra-radii-md);
+  padding-left: var(--chakra-space-2);
+  padding-right: var(--chakra-space-2);
+  margin-left: var(--chakra-space-2);
+  margin-right: var(--chakra-space-2);
+}
+
+.task-name.completed {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.task-input:focus {
+  border-color: var(--chakra-colors-purple-500);
+  box-shadow: 0 0 0 1px var(--chakra-colors-purple-500);
+}
+
+.priority-indicator {
+  transition: all 0.2s ease-in-out;
+}
+
+.priority-indicator:hover {
+  transform: scale(1.1);
+}
+
+.subtasks-container {
+  transform-origin: top;
+  position: relative;
+  width: 100%;
+}
+
+.task-card.drag-over {
+  box-shadow: 0 0 0 2px var(--chakra-colors-purple-500);
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.task-name {
+  color: white;
+  font-size: var(--chakra-fontSizes-lg);
+  flex: 1;
+  margin-left: var(--chakra-space-4);
+  margin-right: var(--chakra-space-4);
+}
+
+.task-input {
+  color: white;
+  background: var(--chakra-colors-gray-700);
+  font-size: var(--chakra-fontSizes-lg);
+  flex: 1;
+  margin-left: var(--chakra-space-4);
+  margin-right: var(--chakra-space-4);
+}

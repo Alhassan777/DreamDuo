@@ -1,0 +1,66 @@
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('../../assets/login_page.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  width: 100%;
+  padding: var(--chakra-space-4);
+}
+
+.login-form-container {
+  padding: var(--chakra-space-8);
+  border-width: 1px;
+  border-radius: 8px;
+  box-shadow: var(--chakra-shadows-lg);
+  background-color: var(--chakra-colors-gray-800);
+  max-width: 500px;
+  width: 100%;
+}
+
+.login-heading {
+  color: white;
+  text-align: center;
+  margin-bottom: var(--chakra-space-6);
+}
+
+.form-label {
+  color: var(--chakra-colors-gray-300);
+}
+
+.form-input {
+  background-color: var(--chakra-colors-gray-700);
+  color: white;
+}
+
+.password-toggle-button {
+  color: var(--chakra-colors-gray-300);
+}
+
+.password-toggle-button:hover,
+.password-toggle-button:active {
+  background-color: transparent;
+}
+
+.submit-button {
+  width: 100%;
+  margin-top: var(--chakra-space-4);
+}
+
+.signup-link-text {
+  color: var(--chakra-colors-gray-300);
+  text-align: center;
+  margin-top: var(--chakra-space-4);
+}
+
+.signup-link {
+  color: var(--chakra-colors-purple-300);
+  text-decoration: none;
+}
+
+.signup-link:hover {
+  text-decoration: underline;
+}

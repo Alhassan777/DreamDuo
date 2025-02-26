@@ -1,0 +1,161 @@
+/* Importing AOT-style font */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=IM+Fell+English:ital@0;1&display=swap');
+
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background: 
+        linear-gradient(rgba(26, 32, 44, 0.6), rgba(26, 32, 44, 0.6)), 
+        url('../../assets/signup_page.jpg') no-repeat center center !important;
+    background-size: cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-family: 'Cinzel', 'IM Fell English', serif;
+}
+
+/* Main container */
+.signup-page-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent; 
+    width: 100%;
+    padding: var(--chakra-space-4);
+}
+
+/* Form container */
+.signup-form-box {
+    padding: var(--chakra-space-6);
+    border-width: 2px;
+    border-color: var(--aot-accent);
+    border-radius: 8px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+    background-color: rgba(42, 31, 26, 0.4); /* Slight transparency */
+    max-width: 450px;
+    width: 100%;
+    backdrop-filter: blur(6px);
+}
+
+/* Survey Corps Logo */
+.survey-corps-logo img {
+    width: 80px;
+    height: auto;
+    display: block;
+    margin: 0 auto 10px;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+}
+
+/* Form content container */
+.signup-content {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+/* Signup heading */
+.signup-heading {
+    color: var(--aot-accent);
+    text-align: center;
+    margin-bottom: var(--chakra-space-6);
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+    font-size: 2.2rem;
+    font-weight: bold;
+    font-family: 'Cinzel', serif;
+    letter-spacing: 1px;
+}
+
+/* Form spacing */
+.signup-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--chakra-space-4);
+}
+
+/* Form label styling */
+.form-label {
+    color: #E2E8F0;
+    font-family: 'IM Fell English', serif;
+    font-size: 1.1rem;
+}
+
+/* Form input fields */
+.form-input {
+    background-color: rgba(45, 55, 72, 0.8) !important;
+    color: white !important;
+    border-color: #4A5568 !important;
+    transition: all 0.3s ease-in-out;
+    position: relative;
+}
+
+.form-input:focus {
+    border-color: #D4AF37 !important;
+    box-shadow: 0 0 10px #D4AF37 !important;
+    background-image: url('../../assets/aot_sword.png');
+    background-size: 15px;
+    background-position: right 10px center;
+    background-repeat: no-repeat;
+}
+
+/* Password toggle button */
+.password-toggle-button {
+    color: #E2E8F0 !important;
+}
+
+/* Submit button */
+.submit-button {
+    width: 100%;
+    margin-top: 1rem;
+    background-color: #8B0000 !important;
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-radius: 6px;
+    border-color: #A52A2A!important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease-in-out;
+    position: relative;
+    overflow: hidden;
+}
+
+.submit-button::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 300%;
+    height: 300%;
+    background-image: url('../../assets/survey_corps_wings.png');
+    background-size: contain;
+    opacity: 0.15;
+    transform: translate(-50%, -50%) rotate(-10deg);
+}
+
+.submit-button:hover {
+    background-color: #A52A2A !important;
+    transform: scale(1.05);
+}
+
+/* Login link text */
+.login-link-text {
+    text-align: center;
+    color: #E2E8F0;
+    margin-top: 1rem;
+    font-family: 'IM Fell English', serif;
+}
+
+/* Login link */
+.login-link {
+    color: #FF4040!important;
+    text-decoration: underline;
+    cursor: pointer;
+    transition: color 0.3s ease-in-out;
+}
+

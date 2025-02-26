@@ -1,6 +1,7 @@
 import { Box, VStack, Text, Flex, IconButton, Input } from '@chakra-ui/react';
 import { AddIcon, CheckIcon, CloseIcon } from '@chakra-ui/icons';
 import { useState } from 'react';
+import './styles/SubtaskCard.css';
 
 interface Subtask {
   id: number;
@@ -68,6 +69,7 @@ const SubtaskCard = ({
 
   return (
     <Box
+      className="subtask-card"
       draggable
       onDragStart={(e) => {
         e.currentTarget.style.opacity = '0.5';
@@ -79,45 +81,21 @@ const SubtaskCard = ({
       onDragOver={(e) => {
         e.preventDefault();
         e.stopPropagation();
-        e.currentTarget.style.boxShadow = '0 0 0 2px var(--chakra-colors-purple-500)';
+        e.currentTarget.classList.add('drag-over');
       }}
       onDragLeave={(e) => {
-        e.currentTarget.style.boxShadow = 'none';
+        e.currentTarget.classList.remove('drag-over');
       }}
       onDrop={(e) => {
         e.preventDefault();
         e.stopPropagation();
-        e.currentTarget.style.boxShadow = 'none';
+        e.currentTarget.classList.remove('drag-over');
         onDrop(taskId, subtask.id);
-      }}
-      cursor="move"
-      _hover={{
-        transform: "translateY(-2px)"
       }}>
       <Flex
-        justify="space-between"
-        align="center"
-        bg="gray.700"
-        p={2}
-        borderRadius="md"
-        transition="all 0.3s ease-in-out"
-        transform={subtask.completed ? "scale(0.98)" : "scale(1)"}
-        position="relative"
-        _after={subtask.completed ? {
-          content: '""',
-          position: "absolute",
-          top: "-1px",
-          right: "-1px",
-          bottom: "-1px",
-          left: "-1px",
-          background: "green.500",
-          opacity: 0.1,
-          borderRadius: "md",
-          zIndex: -1,
-          transition: "opacity 0.3s ease-in-out"
-        } : undefined}
+        className={`subtask-card-content ${subtask.completed ? 'completed' : ''}`}
       >
-        <Flex align="center" gap={2}>
+        <Flex className="subtask-card-left">
           <IconButton
             icon={subtask.completed ? <CheckIcon /> : undefined}
             aria-label={subtask.completed ? 'Mark as incomplete' : 'Mark as complete'}
@@ -125,48 +103,28 @@ const SubtaskCard = ({
             variant={subtask.completed ? 'solid' : 'outline'}
             size="xs"
             onClick={() => onToggleComplete(taskId, subtask.id)}
-            transition="all 0.3s ease-in-out"
-            transform={subtask.completed ? "scale(1.1)" : "scale(1)"}
+            className={`subtask-complete-button ${subtask.completed ? 'completed' : ''}`}
           />
           {isEditing ? (
             <Input
               value={editedName}
               onChange={handleNameChange}
               onKeyDown={handleKeyDown}
-              color="white"
-              bg="gray.700"
-              fontSize="sm"
-              flex="1"
+              className="subtask-input"
               size="sm"
               autoFocus
-              _focus={{
-                borderColor: "purple.500",
-                boxShadow: "0 0 0 1px var(--chakra-colors-purple-500)"
-              }}
             />
           ) : (
             <Text
-              color="white"
-              fontSize="sm"
-              textDecoration={subtask.completed ? 'line-through' : 'none'}
-              opacity={subtask.completed ? 0.7 : 1}
-              cursor="text"
+              className={`subtask-text ${subtask.completed ? 'completed' : ''}`}
               onDoubleClick={handleDoubleClick}
               title="Double click to edit"
-              transition="all 0.3s ease-in-out"
-              transform={subtask.completed ? "translateX(-4px)" : "translateX(0)"}
-              _hover={{
-                bg: "gray.700",
-                borderRadius: "sm",
-                px: 2,
-                mx: -2
-              }}
             >
               {subtask.name}
             </Text>
           )}
         </Flex>
-        <Flex gap={2}>
+        <Flex className="subtask-card-right">
           <IconButton
             icon={<AddIcon />}
             aria-label="Add subtask"
@@ -185,7 +143,7 @@ const SubtaskCard = ({
       </Flex>
       
       {subtask.subtasks && subtask.subtasks.length > 0 && (
-        <VStack align="stretch" pl={4} spacing={2} mt={2}>
+        <VStack className="subtask-nested">
           {subtask.subtasks.map((nestedSubtask) => (
             <SubtaskCard
               key={nestedSubtask.id}

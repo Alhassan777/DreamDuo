@@ -1,0 +1,100 @@
+.subtask-card {
+  cursor: move;
+  width: 100%;
+}
+
+.subtask-card:hover {
+  transform: translateY(-2px);
+}
+
+.subtask-card-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--chakra-colors-gray-700);
+  padding: var(--chakra-space-2);
+  border-radius: var(--chakra-radii-md);
+  transition: all 0.3s ease-in-out;
+  position: relative;
+  width: 100%;
+}
+
+.subtask-card-content.completed {
+  transform: scale(0.98);
+}
+
+.subtask-card-content.completed::after {
+  content: "";
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  bottom: -1px;
+  left: -1px;
+  background: var(--chakra-colors-green-500);
+  opacity: 0.1;
+  border-radius: var(--chakra-radii-md);
+  z-index: -1;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.subtask-card-left {
+  display: flex;
+  align-items: center;
+  gap: var(--chakra-space-2);
+}
+
+.subtask-card-right {
+  display: flex;
+  gap: var(--chakra-space-2);
+}
+
+.subtask-complete-button {
+  transition: all 0.3s ease-in-out;
+}
+
+.subtask-complete-button.completed {
+  transform: scale(1.1);
+}
+
+.subtask-text {
+  color: white;
+  font-size: var(--chakra-fontSizes-sm);
+  cursor: text;
+  transition: all 0.3s ease-in-out;
+}
+
+.subtask-text.completed {
+  text-decoration: line-through;
+  opacity: 0.7;
+  transform: translateX(-4px);
+}
+
+.subtask-text:hover {
+  background: var(--chakra-colors-gray-700);
+  border-radius: var(--chakra-radii-sm);
+  padding-left: var(--chakra-space-2);
+  padding-right: var(--chakra-space-2);
+  margin-left: calc(-1 * var(--chakra-space-2));
+  margin-right: calc(-1 * var(--chakra-space-2));
+}
+
+.subtask-input {
+  color: white;
+  background: var(--chakra-colors-gray-700);
+  font-size: var(--chakra-fontSizes-sm);
+  flex: 1;
+}
+
+.subtask-input:focus {
+  border-color: var(--chakra-colors-purple-500);
+  box-shadow: 0 0 0 1px var(--chakra-colors-purple-500);
+}
+
+.subtask-nested {
+  padding-left: var(--chakra-space-4);
+  margin-top: var(--chakra-space-2);
+}
+
+.subtask-card.drag-over {
+  box-shadow: 0 0 0 2px var(--chakra-colors-purple-500);
+}
