@@ -200,3 +200,15 @@
 .login-key-image:hover {
     transform: rotate(45deg);
 }
+/* Password toggle icon styling */
+.password-toggle-icon {
+    width: 32px;
+    height: 32px;
+    transition: all 0.3s ease-in-out;
+    opacity: 1;
+}
+
+.password-toggle-icon:hover {
+    transform: scale(1.2);
+    opacity: 0.9;
+}

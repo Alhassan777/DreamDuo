@@ -1,9 +1,10 @@
 import { Box, Button, FormControl, FormLabel, Input, VStack, Heading, FormErrorMessage, useToast, InputGroup, InputRightElement, Text, Link } from '@chakra-ui/react';
-import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './styles/SignupPage.css';
 import surveyCorpsLogo from '../assets/survey_corps.png';
+import hidePasswordIcon from '../assets/show_password.png';
+import showPasswordIcon from '../assets/hide_password.png';
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -185,8 +186,13 @@ const SignupPage = () => {
                       variant="ghost"
                       onClick={() => setShowPassword(!showPassword)}
                       className="password-toggle-button"
+                      p={1}
                     >
-                      {showPassword ? <ViewOffIcon /> : <ViewIcon />}
+                      <img
+                        src={showPassword ? hidePasswordIcon : showPasswordIcon}
+                        alt={showPassword ? "Hide password" : "Show password"}
+                        className="password-toggle-icon"
+                      />
                     </Button>
                   </InputRightElement>
                 </InputGroup>
@@ -207,8 +213,13 @@ const SignupPage = () => {
                       variant="ghost"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       className="password-toggle-button"
+                      p={1}
                     >
-                      {showConfirmPassword ? <ViewOffIcon /> : <ViewIcon />}
+                      <img
+                        src={showConfirmPassword ? hidePasswordIcon : showPasswordIcon}
+                        alt={showConfirmPassword ? "Hide password" : "Show password"}
+                        className="password-toggle-icon"
+                      />
                     </Button>
                   </InputRightElement>
                 </InputGroup>
@@ -217,7 +228,6 @@ const SignupPage = () => {
 
               <Button
                 type="submit"
-                colorScheme="purple"
                 className="submit-button"
                 isLoading={isLoading}
                 loadingText="Creating account..."
@@ -229,7 +239,7 @@ const SignupPage = () => {
 
           <Text className="login-link-text">
             Already have an account?{' '}
-            <Link className="login-link" onClick={() => navigate('/login')}>
+            <Link className="login-link" onClick={() => navigate('/')}>
               Login here
             </Link>
           </Text>

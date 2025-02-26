@@ -1,10 +1,11 @@
 import { Box, Button, Input, VStack, Heading, Text, Link, InputGroup, InputRightElement, useToast } from '@chakra-ui/react';
 import { FormControl, FormLabel, FormErrorMessage } from '@chakra-ui/react';
-import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './styles/LoginPage.css';
 import surveyCorpsKey from '../assets/key.png';
+import hidePasswordIcon from '../assets/show_password.png';
+import showPasswordIcon from '../assets/hide_password.png';
 
 const LoginPage = () => {
 const navigate = useNavigate();
@@ -131,8 +132,13 @@ const toast = useToast();
                           variant="ghost"
                           onClick={() => setShowPassword(!showPassword)}
                           className="password-toggle-button"
+                          p={1}
                         >
-                          {showPassword ? <ViewOffIcon /> : <ViewIcon />}
+                          <img
+                            src={showPassword ? hidePasswordIcon : showPasswordIcon}
+                            alt={showPassword ? "Hide password" : "Show password"}
+                            className="password-toggle-icon"
+                          />
                         </Button>
                       </InputRightElement>
                     </InputGroup>
