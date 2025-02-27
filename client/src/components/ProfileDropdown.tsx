@@ -44,8 +44,8 @@ const ProfileDropdown = ({ userName = 'Scout', userPhoto, isCollapsed = false }:
   };
 
   const handleSignOut = () => {
-    // Here you would typically handle sign out logic
-    navigate('/login');
+    localStorage.removeItem('token');
+    navigate('/');
   };
 
   return (

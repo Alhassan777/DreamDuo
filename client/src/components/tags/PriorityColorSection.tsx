@@ -1,12 +1,12 @@
 import { VStack, Heading, HStack, Text, Input, Button, IconButton, useToast } from '@chakra-ui/react';
 import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
 import { useState } from 'react';
-import './styles/priorityColorSection.css';
+import '../styles/priorityColorSection.css';
 
-type PriorityColor = {
+interface PriorityColor {
   level: string;
   color: string;
-};
+}
 
 const DEFAULT_PRIORITY_COLORS: PriorityColor[] = [
   { level: 'High', color: '#FF0000' },
