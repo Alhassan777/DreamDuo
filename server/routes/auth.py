@@ -9,7 +9,7 @@ def register():
         data = request.get_json()
 
         # Validate required fields
-        if not all(k in data for k in ['username', 'email', 'password']):
+        if not all(k in data for k in ['first_name', 'last_name', 'email', 'password']):
             return jsonify({'error': 'Missing required fields'}), 400
 
         # Check if user already exists
@@ -18,7 +18,8 @@ def register():
 
         # Create new user
         user = User(
-            username=data['username'],
+            first_name=data['first_name'],
+            last_name=data['last_name'],
             email=data['email']
         )
         user.set_password(data['password'])
@@ -34,7 +35,8 @@ def register():
             'access_token': access_token,
             'user': {
                 'id': user.id,
-                'username': user.username,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
                 'email': user.email
             }
         }), 201
@@ -64,7 +66,8 @@ def login():
             'access_token': access_token,
             'user': {
                 'id': user.id,
-                'username': user.username,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
                 'email': user.email
             }
         }), 200

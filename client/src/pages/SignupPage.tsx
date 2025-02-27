@@ -86,7 +86,8 @@ const SignupPage = () => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            username: `${formData.firstName} ${formData.lastName}`,
+            first_name: formData.firstName,
+            last_name: formData.lastName,
             email: formData.email,
             password: formData.password
           })
