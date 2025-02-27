@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -19,18 +19,22 @@ def create_app():
     # Initialize Flask app
     app = Flask(__name__)
 
-    # Configure CORS
-    CORS(app, resources={
-        r"/api/*": {
-            "origins": ["http://localhost:5173"],
-            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-            "allow_headers": ["Content-Type", "Authorization"],
-            "supports_credentials": True,
-            "expose_headers": ["Content-Type", "Authorization"],
-            "max_age": 3600
-        }
-    })
+    # ✅ Enable CORS Globally with proper configuration
+    CORS(app, 
+         resources={r"/api/*": {"origins": "http://localhost:5173"}},
+         supports_credentials=True,
+         allow_headers=["Content-Type", "Authorization"],
+         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 
+    # ✅ Ensure CORS Headers in Responses
+    @app.after_request
+    def add_cors_headers(response):
+        response.headers['Access-Control-Allow-Origin'] = "http://localhost:5173"
+        response.headers['Access-Control-Allow-Credentials'] = "true"
+        response.headers['Access-Control-Allow-Methods'] = "GET, POST, PUT, DELETE, OPTIONS"
+        response.headers['Access-Control-Allow-Headers'] = "Content-Type, Authorization"
+        return response
+    
     # Configure SQLAlchemy
     database_url = os.getenv('DATABASE_URL')
     if not database_url:
@@ -46,6 +50,10 @@ def create_app():
     
     app.config['JWT_SECRET_KEY'] = jwt_secret
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
+    app.config['JWT_TOKEN_LOCATION'] = ['cookies']
+    app.config['JWT_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
+    app.config['JWT_COOKIE_SAMESITE'] = 'None'  # Required for cross-site requests
+    app.config['JWT_COOKIE_CSRF_PROTECT'] = False  # Disable CSRF protection for simplicity
 
     # Initialize extensions with app
     db.init_app(app)
@@ -56,12 +64,13 @@ def create_app():
         try:
             # Import models and routes after app creation to avoid circular imports
             from models import User, Category, Task
-            from routes import auth_bp, tasks_bp, categories_bp
+            from routes import auth_bp, tasks_bp, categories_bp, user_bp
 
             # Register blueprints
             app.register_blueprint(auth_bp, url_prefix='/api/auth')
             app.register_blueprint(tasks_bp, url_prefix='/api/tasks')
             app.register_blueprint(categories_bp, url_prefix='/api/categories')
+            app.register_blueprint(user_bp)
 
             # Create database tables
             db.create_all()

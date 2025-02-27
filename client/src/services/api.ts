@@ -11,22 +11,23 @@ const api = axios.create({
 });
 
 export const auth = {
-  login: async (username: string, password: string) => {
+  login: async (email: string, password: string) => {
     try {
-      const response = await api.post('/auth/login', { username, password });
-      const { access_token } = response.data;
-      localStorage.setItem('token', access_token);
+      const response = await api.post('/auth/login', { email, password });
       return response.data;
     } catch (error) {
       throw error;
     }
   },
 
-  register: async (username: string, email: string, password: string) => {
+  register: async (first_name: string,last_name: string, email: string, password: string) => {
     try {
-      const response = await api.post('/auth/register', { username, email, password });
-      const { access_token } = response.data;
-      localStorage.setItem('token', access_token);
+      const response = await api.post('/auth/register', { 
+        first_name,
+        last_name,
+        email,
+        password
+      });
       return response.data;
     } catch (error) {
       throw error;
@@ -34,17 +35,8 @@ export const auth = {
   },
 
   logout: () => {
-    localStorage.removeItem('token');
+    // No need to handle token removal as it's managed by cookies
   },
 };
-
-// Add auth token to all requests if it exists
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
 
 export default api;

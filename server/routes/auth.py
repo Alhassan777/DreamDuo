@@ -1,5 +1,5 @@
 from flask import request, jsonify
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, set_access_cookies, unset_jwt_cookies
 from models import User, db
 from . import auth_bp
 
@@ -27,19 +27,23 @@ def register():
         db.session.add(user)
         db.session.commit()
 
-        # Create access token
+        # Create access token and response
         access_token = create_access_token(identity=user.id)
-
-        return jsonify({
+        response = jsonify({
             'message': 'User registered successfully',
-            'access_token': access_token,
             'user': {
                 'id': user.id,
                 'first_name': user.first_name,
                 'last_name': user.last_name,
-                'email': user.email
+                'email': user.email,
+                'profile_photo': user.profile_photo
             }
-        }), 201
+        })
+
+        # Set JWT cookie
+        set_access_cookies(response, access_token)
+        return response, 201
+
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
@@ -58,18 +62,22 @@ def login():
         if not user or not user.check_password(data['password']):
             return jsonify({'error': 'Invalid email or password'}), 401
 
-        # Create access token
+        # Create access token and response
         access_token = create_access_token(identity=user.id)
-
-        return jsonify({
+        response = jsonify({
             'message': 'Login successful',
-            'access_token': access_token,
             'user': {
                 'id': user.id,
                 'first_name': user.first_name,
                 'last_name': user.last_name,
-                'email': user.email
+                'email': user.email,
+                'profile_photo': user.profile_photo
             }
-        }), 200
+        })
+
+        # Set JWT cookie
+        set_access_cookies(response, access_token)
+        return response, 200
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500

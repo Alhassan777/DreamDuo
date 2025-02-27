@@ -1,15 +1,20 @@
 import { Box, Button, Input, VStack, Heading, Text, Link, InputGroup, InputRightElement, useToast } from '@chakra-ui/react';
 import { FormControl, FormLabel, FormErrorMessage } from '@chakra-ui/react';
-import { useState } from 'react';
+import { useState, useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
 import './styles/LoginPage.css';
 import surveyCorpsKey from '../assets/key.png';
 import hidePasswordIcon from '../assets/show_password.png';
 import showPasswordIcon from '../assets/hide_password.png';
-
+import api from '../services/api';
 const LoginPage = () => {
 const navigate = useNavigate();
 const toast = useToast();
+
+  useEffect(() => {
+    // No need to check localStorage token anymore as we're using cookies
+  }, []);
+
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -47,39 +52,29 @@ const toast = useToast();
     if (validateForm()) {
       setIsLoading(true);
       try {
-        const response = await fetch('http://localhost:3001/api/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: formData.email,
-            password: formData.password
-          })
+        const response = await api.post('/auth/login', {
+          email: formData.email,
+          password: formData.password
         });
+        
+        if (response.data && response.data.user) {
+          toast({
+            title: 'Welcome back!',
+            description: 'Successfully logged in to Survey Corps.',
+            status: 'success',
+            duration: 5000,
+            isClosable: true,
+          });
 
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Login failed');
+          navigate('/daily-tasks');
+        } else {
+          throw new Error('Invalid response format');
         }
-
-        // Store the token in localStorage
-        localStorage.setItem('token', data.access_token);
-
-        toast({
-          title: 'Welcome back!',
-          description: 'Successfully logged in to Survey Corps.',
-          status: 'success',
-          duration: 5000,
-          isClosable: true,
-        });
-
-        navigate('/daily-tasks');
       } catch (error) {
+        console.error('Login error:', error);
         toast({
-          title: 'Error',
-          description: error instanceof Error ? error.message : 'Something went wrong. Please try again.',
+          title: 'Login Failed',
+          description: error instanceof Error ? error.message : 'Invalid credentials. Please try again.',
           status: 'error',
           duration: 5000,
           isClosable: true,

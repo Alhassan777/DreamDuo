@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   VStack,
   Box,
@@ -24,6 +24,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useSidebar } from '../contexts/SidebarContext';
 import stretchedIcon from '../assets/Stretched.png';
 import './styles/sidebar.css';
+import api from '../services/api';
 
 interface IconWrapperProps {
   icon: IconType | ComponentWithAs<"svg", IconProps>;
@@ -64,6 +65,32 @@ const Sidebar = ({ onCollapse }: SidebarProps) => {
   const location = useLocation();
   const { isCollapsed, setSidebarCollapsed } = useSidebar();
   const { isAotMode, toggleAotMode } = useTheme();
+  const [userData, setUserData] = useState<{ firstName?: string; lastName?: string; profilePhoto?: string }>({});
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await api.get('/profile');
+        if (response.data && response.data.user) {
+          setUserData({
+            firstName: response.data.user.first_name,
+            lastName: response.data.user.last_name,
+            profilePhoto: response.data.user.profile_photo
+          });
+        }
+      } catch (error) {
+        if ((error as any).response?.status === 422) {
+          console.error('Invalid or missing authentication token');
+          // Redirect to login if token is invalid
+          navigate('/');
+        } else {
+          console.error('Error fetching user data:', error instanceof Error ? error.message : String(error));
+        }
+      }
+    };
+
+    fetchUserData();
+  }, [navigate]);
 
   const handleThemeToggle = () => {
     toggleAotMode();
@@ -103,7 +130,12 @@ const Sidebar = ({ onCollapse }: SidebarProps) => {
     >
       <VStack spacing={6} align="stretch">
         <Box px={isCollapsed ? 4 : 8} mb={2}>
-          <ProfileDropdown isCollapsed={isCollapsed} />
+          <ProfileDropdown 
+            isCollapsed={isCollapsed} 
+            firstName={userData.firstName}
+            lastName={userData.lastName}
+            userPhoto={userData.profilePhoto}
+          />
         </Box>
     
         <Box px={isCollapsed ? 4 : 8}>

@@ -1,20 +1,26 @@
 import { Box, VStack, Avatar, Text, Button, Menu, MenuButton, MenuList, MenuItem, useToast } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
+import api from '../services/api';
 
 interface ProfileDropdownProps {
-  userName?: string;
+  firstName?: string;
+  lastName?: string;
   userPhoto?: string;
   isCollapsed?: boolean;
 }
 
-const ProfileDropdown = ({ userName = 'Scout', userPhoto, isCollapsed = false }: ProfileDropdownProps) => {
+const ProfileDropdown = ({ firstName, lastName, userPhoto, isCollapsed = false }: ProfileDropdownProps) => {
   const navigate = useNavigate();
   const toast = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [profileImage, setProfileImage] = useState<string | undefined>(userPhoto);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    setProfileImage(userPhoto);
+  }, [userPhoto]);
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) { // 5MB limit
@@ -29,15 +35,30 @@ const ProfileDropdown = ({ userName = 'Scout', userPhoto, isCollapsed = false }:
       }
 
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfileImage(reader.result as string);
-        // Here you would typically upload the image to your backend
-        toast({
-          title: 'Profile photo updated',
-          status: 'success',
-          duration: 3000,
-          isClosable: true,
-        });
+      reader.onloadend = async () => {
+        const imageData = reader.result as string;
+        try {
+          // ✅ Use Axios instead of fetch
+          const response = await api.put('/profile', {
+            profile_photo: imageData
+          });
+
+          setProfileImage(response.data.user.profile_photo);
+          toast({
+            title: 'Profile photo updated',
+            status: 'success',
+            duration: 3000,
+            isClosable: true,
+          });
+        } catch (error) {
+          toast({
+            title: 'Error updating profile photo',
+            description: error instanceof Error ? error.message : 'An error occurred',
+            status: 'error',
+            duration: 3000,
+            isClosable: true,
+          });
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -47,6 +68,8 @@ const ProfileDropdown = ({ userName = 'Scout', userPhoto, isCollapsed = false }:
     localStorage.removeItem('token');
     navigate('/');
   };
+
+  const displayName = firstName && lastName ? `${firstName} ${lastName}` : firstName || lastName || 'User';
 
   return (
     <Menu>
@@ -62,10 +85,10 @@ const ProfileDropdown = ({ userName = 'Scout', userPhoto, isCollapsed = false }:
           <Avatar
             size="sm"
             src={profileImage}
-            name={userName}
+            name={displayName}
             bg="purple.500"
           />
-          {!isCollapsed && <Text color="white" fontSize="sm">{userName}</Text>}
+          {!isCollapsed && <Text color="white" fontSize="sm">{displayName}</Text>}
         </Box>
       </MenuButton>
       <MenuList bg="gray.800" borderColor="gray.700">

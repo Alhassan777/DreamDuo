@@ -5,7 +5,7 @@ import './styles/SignupPage.css';
 import surveyCorpsLogo from '../assets/survey_corps.png';
 import hidePasswordIcon from '../assets/show_password.png';
 import showPasswordIcon from '../assets/hide_password.png';
-
+import api from '../services/api';
 const SignupPage = () => {
   const navigate = useNavigate();
   const toast = useToast();
@@ -80,39 +80,26 @@ const SignupPage = () => {
     if (validateForm()) {
       setIsLoading(true);
       try {
-        const response = await fetch('http://localhost:3001/api/auth/register', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-            email: formData.email,
-            password: formData.password
-          })
+        const response = await api.post('/auth/register', {
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          email: formData.email,
+          password: formData.password
         });
 
-        const data = await response.json();
+        if (response.data && response.data.user) {
+          toast({
+            title: 'Account created.',
+            description: 'Welcome to the Survey Corps!',
+            status: 'success',
+            duration: 5000,
+            isClosable: true,
+          });
 
-        if (!response.ok) {
-          if (response.status === 400) {
-            setErrors(prev => ({ ...prev, email: 'Email already exists' }));
-            throw new Error('Email already exists');
-          }
-          throw new Error(data.error || 'Registration failed');
+          navigate('/daily-tasks');
+        } else {
+          throw new Error('Registration failed');
         }
-
-        toast({
-          title: 'Account created.',
-          description: 'Welcome to the Survey Corps!',
-          status: 'success',
-          duration: 5000,
-          isClosable: true,
-        });
-
-        localStorage.setItem('token', data.access_token);
-        navigate('/daily-tasks');
       } catch (error) {
         toast({
           title: 'Error',
