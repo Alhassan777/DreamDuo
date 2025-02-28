@@ -9,7 +9,10 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  const [isAotMode, setIsAotMode] = useState(false);
+  const [isAotMode, setIsAotMode] = useState(() => {
+    const savedMode = localStorage.getItem('aotMode');
+    return savedMode === 'true';
+  });
 
   const playThemeTransition = () => {
     const existingAudio = document.querySelector('audio[data-aot-audio]');
@@ -43,9 +46,11 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const toggleAotMode = () => {
     if (isAotMode) {
       setIsAotMode(false);
+      localStorage.setItem('aotMode', 'false');
       document.body.classList.remove('aot-theme');
       return;
     }
+    localStorage.setItem('aotMode', 'true');
     playThemeTransition();
   };
 

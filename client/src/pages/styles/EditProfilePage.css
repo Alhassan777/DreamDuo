@@ -1,0 +1,287 @@
+:root {
+  /* AOT THEME */
+  --aot-primary: #8B0000;
+  --aot-secondary: #2A1F1A;
+  --aot-accent: #dca253;
+  --aot-text: #c89a5a;
+  --aot-background: #1D1D1D;
+  --aot-border: #463A2E;
+  --aot-secondary-text: #f3f2f0;
+  /* AOT Button-Specific Variables */
+  --aot-primary-bg: var(--aot-primary);
+  --aot-primary-bg-hover: #CD5C5C;
+  --aot-primary-text-color: #FFFFFF;
+  --aot-secondary-bg: transparent;
+  --aot-secondary-border-color: var(--aot-accent);
+  --aot-secondary-text-color: var(--aot-accent);
+  --aot-secondary-bg-hover: var(--aot-accent);
+  --aot-secondary-text-hover: var(--aot-background);
+
+  /* DEFAULT THEME (Chakra) */
+  --default-primary-bg: var(--chakra-colors-purple-600);
+  --default-primary-bg-hover: var(--chakra-colors-purple-700);
+  --default-primary-text: white;
+  --default-secondary-bg: transparent;
+  --default-secondary-border: var(--chakra-colors-purple-400);
+  --default-secondary-text: var(--chakra-colors-purple-500);
+  --default-secondary-bg-hover: var(--chakra-colors-purple-400);
+  --default-secondary-text-hover: white;
+}
+
+/* General page layout with AOT theme support */
+.edit-profile-container {
+  margin: 0;
+  padding: 2rem;
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  width: 100%;
+  background-color: var(--chakra-colors-gray-700);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.edit-profile-container[data-aot-mode="true"] {
+  background-color: var(--aot-background);
+}
+
+.edit-profile-container[data-aot-mode="true"]::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("/src/assets/editprofile_backgroun.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  opacity: 0.7;
+  z-index: -1;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Profile header */
+.profile-header {
+  color: white;
+  margin-bottom: 2rem;
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 800px;
+}
+
+.profile-header[data-aot-mode="true"] {
+  color: var(--aot-text);
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+}
+
+/* Profile card container */
+.profile-card-container {
+  width: 100%;
+  max-width: 800px;
+  margin-bottom: 2rem;
+}
+
+/* Profile card */
+.profile-card {
+  background-color: #1A202C;
+  padding: 2rem;
+  border-radius: 1rem;
+  position: relative;
+  z-index: 2;
+  width: 100%;
+}
+
+.profile-card[data-aot-mode="true"] {
+  background-color: var(--aot-secondary);
+  border: 2px solid var(--aot-border);
+}
+
+/* Form container */
+.form-container {
+  width: 100%;
+  max-width: 800px;
+}
+
+/* Profile photo section */
+.profile-photo-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.profile-avatar {
+  background-color: var(--default-primary-bg);
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.profile-avatar:hover {
+  transform: scale(1.05);
+}
+
+.profile-avatar[data-aot-mode="true"] {
+  background-color: var(--aot-primary);
+  border: 2px solid var(--aot-accent);
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.profile-name {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.profile-name[data-aot-mode="true"] {
+  color: var(--aot-text);
+}
+
+.profile-email {
+  color: #A0AEC0;
+  font-size: 1.125rem;
+}
+
+.profile-email[data-aot-mode="true"] {
+  color: var(--aot-secondary-text);
+}
+
+/* Form styling */
+.edit-profile-form {
+  background-color: #1A202C;
+  padding: 2rem;
+  border-radius: 1rem;
+  position: relative;
+  z-index: 2;
+  width: 800px;
+  max-width: 100%;
+}
+
+.edit-profile-form[data-aot-mode="true"] {
+  background-color: var(--aot-secondary);
+  border: 2px solid var(--aot-border);
+}
+
+.form-label {
+  color: #CBD5E0;
+}
+
+.form-label[data-aot-mode="true"] {
+  color: var(--aot-text);
+}
+
+.form-input {
+  background-color: #2D3748 ;
+  color: white ;
+  border: 1px solid #4A5568 ;
+  transition: all 0.3s ease;
+}
+
+.form-input[data-aot-mode="true"] {
+  background-color: var(--aot-background) ;
+  border-color: var(--aot-border) ;
+  color: var(--aot-secondary-text) ;
+}
+
+.form-input:focus {
+  border-color: var(--default-primary-bg) ;
+  box-shadow: 0 0 0 1px var(--default-primary-bg);
+}
+
+.form-input[data-aot-mode="true"]:focus {
+  border-color: var(--aot-accent) ;
+  box-shadow: 0 0 0 1px var(--aot-accent) ;
+}
+
+/* Password toggle button */
+.password-toggle-button {
+  background: transparent ;
+  border: none;
+  padding: 0.5rem;
+}
+
+.password-toggle-icon {
+  width: 24px;
+  height: 24px;
+  transition: all 0.3s ease;
+  opacity: 0.8;
+}
+
+.password-toggle-icon:hover {
+  transform: scale(1.1);
+  opacity: 1;
+}
+
+.password-toggle-button[data-aot-mode="true"] .password-toggle-icon {
+  filter: sepia(100%) saturate(300%) brightness(70%) hue-rotate(350deg);
+}
+
+/* Submit button */
+.submit-button {
+  background-color: var(--chakra-colors-purple-500);
+  color: white;
+  width: 100%;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  border-color: var(--chakra-colors-purple-500);
+}
+
+.submit-button:hover {
+  background-color: var(--chakra-colors-purple-600);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.submit-button[data-aot-mode="true"] {
+  background-color: var(--aot-primary);
+  color: var(--aot-primary-text-color);
+  border: 2px solid var(--aot-accent);
+}
+
+.submit-button[data-aot-mode="true"]:hover {
+  background-color: var(--aot-primary-bg-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(139, 0, 0, 0.3);
+}
+
+/* Change photo button */
+.change-photo-button {
+  background-color: var(--default-primary-bg);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.change-photo-button:hover {
+  background-color: var(--default-primary-bg-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.change-photo-button[data-aot-mode="true"] {
+  background-color: var(--aot-primary);
+  color: var(--aot-primary-text-color);
+  border: 2px solid var(--aot-accent);
+}
+
+.change-photo-button[data-aot-mode="true"]:hover {
+  background-color: var(--aot-primary-bg-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(139, 0, 0, 0.3);
+}
