@@ -1,14 +1,17 @@
 import axios from 'axios';
 
+axios.defaults.withCredentials = true;
+
 const API_BASE_URL = 'http://localhost:3001/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
-  },
-  withCredentials: true,
+  }
 });
+ 
 
 export const auth = {
   login: async (email: string, password: string) => {
@@ -37,6 +40,29 @@ export const auth = {
   logout: () => {
     // No need to handle token removal as it's managed by cookies
   },
+};
+
+export const user = {
+  getProfile: async () => {
+    try {
+      const response = await api.get('/user/profile');
+      return response.data.user;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        throw new Error('Unauthorized: Please log in');
+      }
+      throw error;
+    }
+  },
+
+  updateProfile: async (userData: any) => {
+    try {
+      const response = await api.put('/user/profile', userData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
 };
 
 export default api;

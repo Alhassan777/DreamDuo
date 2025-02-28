@@ -70,18 +70,15 @@ const Sidebar = ({ onCollapse }: SidebarProps) => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await api.get('/profile');
-        if (response.data && response.data.user) {
-          setUserData({
-            firstName: response.data.user.first_name,
-            lastName: response.data.user.last_name,
-            profilePhoto: response.data.user.profile_photo
-          });
-        }
+        const response = await api.get('/user/profile');
+        const userData = response.data;
+        setUserData({
+          firstName: userData.first_name,
+          lastName: userData.last_name,
+          profilePhoto: userData.profile_photo
+        });
       } catch (error) {
-        if ((error as any).response?.status === 422) {
-          console.error('Invalid or missing authentication token');
-          // Redirect to login if token is invalid
+        if (error instanceof Error && error.message === 'Unauthorized: Please log in') {
           navigate('/');
         } else {
           console.error('Error fetching user data:', error instanceof Error ? error.message : String(error));

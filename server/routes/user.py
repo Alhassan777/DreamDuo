@@ -5,9 +5,9 @@ from flask_cors import cross_origin
 
 user_bp = Blueprint('user', __name__, url_prefix='/api')
 
-@user_bp.route('/profile', methods=['GET', 'PUT','OPTIONS'])
+@user_bp.route('/user/profile', methods=['GET', 'PUT', 'OPTIONS'])
 @jwt_required()
-@cross_origin()
+@cross_origin(supports_credentials=True, methods=['GET', 'PUT', 'OPTIONS'])
 def user_profile():
     try:
         if request.method == 'OPTIONS':

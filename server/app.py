@@ -7,7 +7,7 @@ from datetime import timedelta
 from dotenv import load_dotenv
 import os
 from models import db
-
+import secrets
 # Initialize extensions
 migrate = Migrate()
 jwt = JWTManager()
@@ -44,16 +44,13 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # Configure JWT
-    jwt_secret = os.getenv('JWT_SECRET_KEY')
-    if not jwt_secret:
-        raise ValueError('JWT_SECRET_KEY environment variable is not set')
-    
-    app.config['JWT_SECRET_KEY'] = jwt_secret
+    app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', secrets.token_hex(32))
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
-    app.config['JWT_TOKEN_LOCATION'] = ['cookies']
+    app.config['JWT_TOKEN_LOCATION'] = ['cookies']  # ✅ Read token from cookies
     app.config['JWT_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
-    app.config['JWT_COOKIE_SAMESITE'] = 'None'  # Required for cross-site requests
-    app.config['JWT_COOKIE_CSRF_PROTECT'] = False  # Disable CSRF protection for simplicity
+    app.config['JWT_COOKIE_SAMESITE'] = 'lax'  # Required for cross-origin requests
+    app.config['JWT_COOKIE_CSRF_PROTECT'] = False  # Disable CSRF protection for now
+    app.config['JWT_COOKIE_DOMAIN'] = 'localhost'
 
     # Initialize extensions with app
     db.init_app(app)
