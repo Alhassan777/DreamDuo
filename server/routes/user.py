@@ -64,6 +64,9 @@ def user_profile():
 
             if 'email' in data:
                 user.email = data['email']
+                
+            if 'new_password' in data and data['new_password']:
+                user.set_password(data['new_password'])
 
             try:
                 db.session.commit()

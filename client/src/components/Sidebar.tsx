@@ -71,7 +71,7 @@ const Sidebar = ({ onCollapse }: SidebarProps) => {
     const fetchUserData = async () => {
       try {
         const response = await api.get('/user/profile');
-        const userData = response.data;
+        const userData = response.data.user;
         setUserData({
           firstName: userData.first_name,
           lastName: userData.last_name,

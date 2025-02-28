@@ -1,4 +1,4 @@
-  import { Box, VStack, Avatar, Text, Button, Menu, MenuButton, MenuList, MenuItem, useToast } from '@chakra-ui/react';
+import { Box, VStack, Avatar, Text, Button, Menu, MenuButton, MenuList, MenuItem, useToast } from '@chakra-ui/react';
   import { useNavigate } from 'react-router-dom';
   import { useRef, useState, useEffect } from 'react';
   import api from '../services/api';
@@ -69,7 +69,7 @@
       navigate('/');
     };
 
-    const displayName = firstName && lastName ? `${firstName} ${lastName}` : firstName || lastName || 'User';
+    const displayName = firstName || 'User';
 
     return (
       <Menu>
@@ -88,7 +88,7 @@
               name={displayName}
               bg="purple.500"
             />
-            {!isCollapsed && <Text color="white" fontSize="sm">{displayName}</Text>}
+            {!isCollapsed && <Text color='white' fontSize="md" fontWeight="bold">{displayName}</Text>}
           </Box>
         </MenuButton>
         <MenuList bg="gray.800" borderColor="gray.700">

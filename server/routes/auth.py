@@ -1,5 +1,5 @@
 from flask import request, jsonify
-from flask_jwt_extended import create_access_token, set_access_cookies, unset_jwt_cookies
+from flask_jwt_extended import create_access_token, set_access_cookies, unset_jwt_cookies, get_jwt_identity, jwt_required
 from models import User, db
 from . import auth_bp
 from flask_cors import cross_origin
@@ -52,7 +52,7 @@ def register():
         return jsonify({'error': str(e)}), 500
 
 from flask import request, jsonify
-from flask_jwt_extended import create_access_token, set_access_cookies, unset_jwt_cookies
+from flask_jwt_extended import create_access_token, set_access_cookies, unset_jwt_cookies, get_jwt_identity, jwt_required
 from models import User, db
 from . import auth_bp
 from flask_cors import cross_origin
@@ -90,6 +90,33 @@ def login():
         
         set_access_cookies(response, access_token)
         return response, 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@auth_bp.route('/verify-password', methods=['POST'])
+@jwt_required()
+@cross_origin(supports_credentials=True)
+def verify_password():
+    try:
+        data = request.get_json()
+        if 'password' not in data:
+            return jsonify({'error': 'Password is required'}), 400
+
+        # Get the current user's ID from the JWT token
+        current_user_id = get_jwt_identity()
+        user = User.query.get(current_user_id)
+
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        # Verify the password against the stored hash
+        is_valid = user.check_password(data['password'])
+        
+        if not is_valid:
+            return jsonify({'error': 'Invalid password', 'valid': False}), 401
+            
+        return jsonify({'valid': True}), 200
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500

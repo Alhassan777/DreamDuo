@@ -7,6 +7,8 @@ import surveyCorpsKey from '../assets/key.png';
 import hidePasswordIcon from '../assets/show_password.png';
 import showPasswordIcon from '../assets/hide_password.png';
 import api from '../services/api';
+import { auth } from '../services/api';
+
 const LoginPage = () => {
 const navigate = useNavigate();
 const toast = useToast();
@@ -52,12 +54,9 @@ const toast = useToast();
     if (validateForm()) {
       setIsLoading(true);
       try {
-        const response = await api.post('/auth/login', {
-          email: formData.email,
-          password: formData.password
-        });
+        const response = await auth.login(formData.email, formData.password);
         
-        if (response.data && response.data.user) {
+        if (response && response.user) {
           toast({
             title: 'Welcome back!',
             description: 'Successfully logged in to Survey Corps.',
@@ -70,15 +69,37 @@ const toast = useToast();
         } else {
           throw new Error('Invalid response format');
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Login error:', error);
+        let errorMessage = 'An unexpected error occurred. Please try again.';
+
+        if (error.response) {
+          switch (error.response.status) {
+            case 401:
+              errorMessage = 'Incorrect email or password. Please check your credentials and try again.';
+              break;
+            case 404:
+              errorMessage = 'Email not registered. Please sign up first.';
+              break;
+            case 429:
+              errorMessage = 'Too many login attempts. Please try again later.';
+              break;
+            case 403:
+              errorMessage = 'Account is locked. Please contact support.';
+              break;
+            default:
+              errorMessage = 'Unable to log in. Please try again later.';
+          }
+        }
+
         toast({
           title: 'Login Failed',
-          description: error instanceof Error ? error.message : 'Invalid credentials. Please try again.',
+          description: errorMessage,
           status: 'error',
           duration: 5000,
           isClosable: true,
         });
+
       } finally {
         setIsLoading(false);
       }

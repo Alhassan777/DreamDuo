@@ -1,8 +1,9 @@
 import { Box, VStack, Heading, FormControl, FormLabel, Input, Button, useToast, Avatar, FormErrorMessage, Flex, Text } from '@chakra-ui/react';
 import { EditIcon } from '@chakra-ui/icons';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/DashboardLayout';
+import api from '../services/api';
 
 const EditProfilePage = () => {
   const navigate = useNavigate();
@@ -20,42 +21,43 @@ const EditProfilePage = () => {
     confirmPassword: ''
   });
 
-  const [errors, setErrors] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
+  const [userData, setUserData] = useState({
+    first_name: '',
+    last_name: '',
+    email: ''
   });
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+  useEffect(() => {
+    const fetchProfile = async () => {
+
+      try {
+        const response = await api.get('/user/profile');
+        const data = response.data;
+        setFormData(prev => ({
+          ...prev,
+          firstName: data.user.first_name,
+          lastName: data.user.last_name,
+          email: data.user.email
+        }));
+        setUserData({
+          first_name: data.user.first_name,
+          last_name: data.user.last_name,
+          email: data.user.email
+        });
+        setProfileImage(data.user.profile_photo);
+      } catch (error) {
         toast({
-          title: 'File too large',
-          description: 'Please select an image under 5MB',
+          title: 'Error',
+          description: error instanceof Error ? error.message : 'Failed to load profile',
           status: 'error',
           duration: 3000,
           isClosable: true,
         });
-        return;
       }
+    };
 
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfileImage(reader.result as string);
-        toast({
-          title: 'Profile photo updated',
-          status: 'success',
-          duration: 3000,
-          isClosable: true,
-        });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+    fetchProfile();
+  }, []);
 
   const validateForm = () => {
     const newErrors = {
@@ -68,8 +70,16 @@ const EditProfilePage = () => {
     };
     let isValid = true;
 
-    if (formData.newPassword && !formData.currentPassword) {
-      newErrors.currentPassword = 'Current password is required to set new password';
+    // Check if any credential fields have changed
+    const hasCredentialChanges = 
+      formData.firstName !== userData.first_name ||
+      formData.lastName !== userData.last_name ||
+      formData.email !== userData.email ||
+      formData.newPassword;
+
+    // Require current password if there are credential changes
+    if (hasCredentialChanges && !formData.currentPassword) {
+      newErrors.currentPassword = 'Current password is required to update profile information';
       isValid = false;
     }
 
@@ -97,8 +107,56 @@ const EditProfilePage = () => {
     if (validateForm()) {
       setIsLoading(true);
       try {
-        // Here you would typically update the user profile in your backend
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulated API call
+        // First verify the current password if there are credential changes
+        const hasCredentialChanges = 
+          formData.firstName !== userData.first_name ||
+          formData.lastName !== userData.last_name ||
+          formData.email !== userData.email ||
+          formData.newPassword;
+
+        if (hasCredentialChanges) {
+          // Verify current password first
+          const verifyResponse = await api.post('/auth/verify-password', {
+            password: formData.currentPassword
+          });
+
+          if (!verifyResponse.data.valid) {
+            toast({
+              title: 'Error',
+              description: 'Current password is incorrect',
+              status: 'error',
+              duration: 3000,
+              isClosable: true,
+            });
+            setIsLoading(false);
+            return;
+          }
+        }
+
+        // If password is verified or no credential changes, proceed with update
+        const response = await api.put('/user/profile', {
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          email: formData.email,
+          new_password: formData.newPassword
+        });
+
+        // Update local state with the new user data
+        if (response.data && response.data.user) {
+          setUserData({
+            first_name: response.data.user.first_name,
+            last_name: response.data.user.last_name,
+            email: response.data.user.email
+          });
+
+          // Reset password fields
+          setFormData(prev => ({
+            ...prev,
+            currentPassword: '',
+            newPassword: '',
+            confirmPassword: ''
+          }));
+        }
 
         toast({
           title: 'Profile updated',
@@ -112,7 +170,7 @@ const EditProfilePage = () => {
       } catch (error) {
         toast({
           title: 'Error',
-          description: 'Failed to update profile. Please try again.',
+          description: error instanceof Error ? error.message : 'Failed to update profile. Please try again.',
           status: 'error',
           duration: 3000,
           isClosable: true,
@@ -120,6 +178,57 @@ const EditProfilePage = () => {
       } finally {
         setIsLoading(false);
       }
+    }
+  };
+
+  const [errors, setErrors] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast({
+          title: 'File too large',
+          description: 'Please select an image under 5MB',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const imageData = reader.result as string;
+        try {
+          const response = await api.put('/user/profile', {
+            profile_photo: imageData
+          });
+          setProfileImage(response.data.user.profile_photo);
+          toast({
+            title: 'Profile photo updated',
+            status: 'success',
+            duration: 3000,
+            isClosable: true,
+          });
+        } catch (error) {
+          toast({
+            title: 'Error updating profile photo',
+            description: error instanceof Error ? error.message : 'An error occurred',
+            status: 'error',
+            duration: 3000,
+            isClosable: true,
+          });
+        }
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -142,14 +251,15 @@ const EditProfilePage = () => {
                 <Avatar
                   size="2xl"
                   src={profileImage}
-                  name="User"
+                  name={`${formData.firstName} ${formData.lastName}`}
                   bg="purple.500"
                   cursor="pointer"
                   onClick={() => fileInputRef.current?.click()}
                 />
               </Box>
               <VStack align="start" spacing={2}>
-                <Text color="white" fontSize="lg" fontWeight="bold">Profile Photo</Text>
+                <Text color="white" fontSize="lg" fontWeight="bold">{formData.firstName} {formData.lastName}</Text>
+                <Text color="gray.400" fontSize="md">{formData.email}</Text>
                 <Button
                   leftIcon={<EditIcon />}
                   variant="outline"

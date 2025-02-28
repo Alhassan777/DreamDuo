@@ -50,7 +50,7 @@ def create_app():
     app.config['JWT_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
     app.config['JWT_COOKIE_SAMESITE'] = 'lax'  # Required for cross-origin requests
     app.config['JWT_COOKIE_CSRF_PROTECT'] = False  # Disable CSRF protection for now
-    app.config['JWT_COOKIE_DOMAIN'] = 'localhost'
+    app.config['JWT_COOKIE_DOMAIN'] = None  # Allow the browser to handle cookie domain automatically
 
     # Initialize extensions with app
     db.init_app(app)
