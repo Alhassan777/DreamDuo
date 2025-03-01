@@ -1,0 +1,172 @@
+.task-categories-section {
+  width: 100%;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+.create-button.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(139, 69, 19, 0.3);
+  background-color: var(--chakra-colors-purple-600);
+}
+.create-button.primary{
+  background-color: var(--chakra-colors-purple-600);
+  color: white;
+}
+.cancel-button{
+    background-color: white;
+    color: black!important;
+}
+
+.task-categories-section[data-aot-mode="true"] {
+  background-color: rgba(89, 55, 48, 0.2) !important;
+  border: 2px solid #8B4513 !important;
+  border-radius: 0.5rem;
+  box-shadow: 0 0 15px rgba(139, 69, 19, 0.3);
+}
+
+.task-categories-section .chakra-heading {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  transition: color 0.3s ease;
+}
+
+.task-categories-section[data-aot-mode="true"] .chakra-heading {
+  color: var(--aot-text);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+.task-categories-section .chakra-button {
+  transition: all 0.3s ease;
+}
+
+.create-button.primary[data-aot-mode="true"] {
+   background-color: var(--aot-primary);
+  color: var(--aot-accent);
+  border: 1px solid var(--aot-accent);
+  transition: all 0.3s ease;
+}
+
+.task-categories-section[data-aot-mode="true"] .create-button.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(139, 69, 19, 0.3);
+}
+
+.task-categories-section[data-aot-mode="true"] .chakra-button.accent {
+  background-color: var(--aot-accent);
+  color: var(--aot-background);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.task-categories-section[data-aot-mode="true"] .chakra-button.accent:hover {
+  background-color: var(--aot-primary);
+  color: var(--aot-background);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(139, 69, 19, 0.3);
+}
+
+.task-categories-section[data-aot-mode="true"] .chakra-button.secondary {
+  background-color: var(--aot-primary);
+  color: var(--aot-text);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.task-categories-section[data-aot-mode="true"] .chakra-button.secondary:hover {
+  background-color: var(--aot-accent);
+  color: var(--aot-background);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(139, 69, 19, 0.3);
+}
+
+.task-categories-section .chakra-modal__content {
+  transition: all 0.3s ease;
+}
+
+.task-categories-section[data-aot-mode="true"] .chakra-modal__content {
+  background-color: rgba(89, 55, 48, 0.2);
+  border: 2px solid #8B4513;
+  box-shadow: 0 0 15px rgba(139, 69, 19, 0.3);
+}
+
+.task-categories-section[data-aot-mode="true"] .chakra-modal__header {
+  color: #ffd700;
+  border-bottom: 1px solid #8b0000;
+}
+
+.task-categories-section[data-aot-mode="true"] .chakra-modal__close-button {
+  color: #ffd700;
+}
+
+.task-categories-section[data-aot-mode="true"] .chakra-input,
+.task-categories-section[data-aot-mode="true"] .chakra-textarea {
+  background-color: rgba(139, 69, 19, 0.15);
+  border: 2px solid #8B4513;
+  color: var(--aot-text);
+}
+
+.task-categories-section[data-aot-mode="true"] .chakra-input:focus,
+.task-categories-section[data-aot-mode="true"] .chakra-textarea:focus {
+  border-color: var(--aot-accent);
+  box-shadow: 0 0 4px rgba(139, 69, 19, 0.4);
+}
+
+.task-categories-section .chakra-grid {
+  width: 100%;
+  min-height: 200px;
+}
+
+.task-categories-section[data-aot-mode="true"] .chakra-grid {
+  background-color: rgba(139, 69, 19, 0.15);
+  border: 2px solid #8B4513;
+  border-radius: 8px;
+  box-shadow: 0 0 15px rgba(139, 69, 19, 0.3);
+  transition: transform 0.3s ease;
+}
+
+.task-categories-section[data-aot-mode="true"] .chakra-grid:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(70, 58, 46, 0.5);
+  background-color: rgba(139, 69, 19, 0.3);
+}
+
+/* Draggable item styles */
+.task-categories-section .draggable-item {
+  transition: transform 0.2s ease;
+}
+
+.task-categories-section .draggable-item:hover {
+  transform: translateY(-2px);
+}
+
+.task-categories-section .draggable-item.dragging {
+  opacity: 0.5;
+  transform: scale(1.02);
+}
+
+/* Cancel button styles */
+.cancel-button[data-aot-mode="true"] {
+  background-color: var(--aot-primary);
+  color: var(--aot-accent);
+  border: 1px solid var(--aot-accent);
+  transition: all 0.3s ease;
+}
+
+.cancel-button[data-aot-mode="true"]:hover {
+  background-color:  var(--aot-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(139, 69, 19, 0.3);
+}
+.create-button.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(139, 69, 19, 0.3);
+}
+
+.heading-text {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  transition: color 0.3s ease;
+  color: var(--aot-text);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}

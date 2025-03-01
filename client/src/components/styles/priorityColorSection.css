@@ -1,6 +1,9 @@
 .priority-color-section {
-    width: 100%;
-  }
+  width: 100%;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
   
   /* Increase the container size (width/height) to give more space */
   .priority-color-picker {
@@ -31,6 +34,7 @@
     margin: 0;
     box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
     position: absolute;
+    z-index: var(--z-index-popover); /* Use popover z-index to ensure it's above other elements */
   }
   
   /* Keep this absolute and transparent if you want a custom preview + native color picker */
@@ -47,10 +51,13 @@
   }
   
   .priority-item {
-    padding: 0.5rem;
-    background-color: var(--chakra-colors-gray-700);
-    border-radius: var(--chakra-radii-md);
-  }
+  padding: 0.75rem 1rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: var(--chakra-radii-md);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: var(--chakra-shadows-md);
+  transition: all 0.3s ease;
+}
   
   .priority-color-box {
     width: 24px;
@@ -65,6 +72,110 @@
     opacity: 0;
     width: 1px;
     height: 1px;
+  }
+  
+  
+/* AOT Titan Mode Styles */
+[data-aot-mode="true"] .priority-color-section {
+  background-color: rgba(89, 55, 48, 0.2) !important;
+  border: 2px solid #8B4513 !important;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 0 15px rgba(139, 69, 19, 0.3);
+}
+
+[data-aot-mode="true"] .priority-color-heading {
+  color: var(--aot-text);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+[data-aot-mode="true"] .priority-color-picker {
+  background-color: rgba(255, 255, 255, 0.3);
+  border: white;
+
+}
+
+[data-aot-mode="true"] .priority-color-picker:hover {
+  border-color: #CD853F;
+  box-shadow: 0 0 10px rgba(139, 69, 19, 0.5);
+}
+
+
+[data-aot-mode="true"] .priority-item {
+  background-color: rgba(139, 69, 19, 0.15);
+  border: 2px solid #8B4513;
+  box-shadow: 0 0 15px rgba(139, 69, 19, 0.3);
+  transition: transform 0.3s ease;
+}
+
+[data-aot-mode="true"] .priority-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(70, 58, 46, 0.5);
+  background-color: rgba(139, 69, 19, 0.3);
+}
+
+[data-aot-mode="true"] .priority-item:hover {
+  background-color: rgba(139, 69, 19, 0.7);
+  box-shadow: 0 0 15px rgba(139, 69, 19, 0.3);
+}
+
+[data-aot-mode="true"] .priority-color-box {
+  border: 2px solid #DEB887;
+  box-shadow: 0 0 4px rgba(139, 69, 19, 0.4);
+}
+  
+  .priority-level-text {
+    color: white;
+  }
+
+  [data-aot-mode="true"] .priority-level-text {
+    color: var(--aot-text);
+    text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
+  }
+  
+  /* Button styles for AOT mode */
+  /* Primary buttons (Update, Delete) - Red */
+  [data-aot-mode="true"] .priority-button-primary {
+    background-color: var(--aot-primary);
+    color: #FFFFFF;
+    border: none;
+    transition: all 0.3s ease;
+  }
+  
+  [data-aot-mode="true"] .priority-button-primary:hover {
+    background-color: var(--aot-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(139, 0, 0, 0.3);
+  }
+  
+  /* Accent buttons (Add, Edit) - Gold */
+  [data-aot-mode="true"] .priority-button-accent {
+    background-color: var(--aot-accent);
+    color: var(--aot-background);
+    border: 2px solid var(--aot-secondary-border-color);
+    transition: all 0.3s ease;
+  }
+  
+  [data-aot-mode="true"] .priority-button-accent:hover {
+    background-color: var(--aot-accent);
+    color: var(--aot-background);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(139, 69, 19, 0.3);
+  }
+  
+  /* Secondary buttons - keeping for compatibility */
+  [data-aot-mode="true"] .priority-button-secondary {
+    background-color: var(--aot-secondary-bg-hover);
+    color: var(--aot-secondary-text-hover);
+    border: 2px solid var(--aot-secondary-border-color);
+    transition: all 0.3s ease;
+  }
+  
+  [data-aot-mode="true"] .priority-button-secondary:hover {
+    background-color: var(--aot-accent);
+    color: var(--aot-background);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(139, 69, 19, 0.3);
   }
   
   

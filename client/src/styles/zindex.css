@@ -1,0 +1,88 @@
+/* Z-Index System for AOT To Do App
+ * This file provides a consistent layering system similar to PowerPoint/Photoshop
+ * to allow elements to be brought to front when needed
+ */
+
+:root {
+  /* Base z-index values */
+  --z-index-background: 0;
+  --z-index-base: 1;
+  --z-index-elevated: 10;
+  --z-index-dropdown: 100;
+  --z-index-sticky: 200;
+  --z-index-fixed: 300;
+  --z-index-modal-backdrop: 400;
+  --z-index-modal: 500;
+  --z-index-popover: 600;
+  --z-index-tooltip: 700;
+  --z-index-top: 1000;
+}
+
+/* Utility classes for bringing elements to front */
+.z-base {
+  z-index: var(--z-index-base);
+}
+
+.z-elevated {
+  z-index: var(--z-index-elevated);
+}
+
+.z-dropdown {
+  z-index: var(--z-index-dropdown);
+}
+
+.z-sticky {
+  z-index: var(--z-index-sticky);
+}
+
+.z-fixed {
+  z-index: var(--z-index-fixed);
+}
+
+.z-modal-backdrop {
+  z-index: var(--z-index-modal-backdrop);
+}
+
+.z-modal {
+  z-index: var(--z-index-modal);
+}
+
+.z-popover {
+  z-index: var(--z-index-popover);
+}
+
+.z-tooltip {
+  z-index: var(--z-index-tooltip);
+}
+
+.z-top {
+  z-index: var(--z-index-top);
+}
+
+/* Bring to front utility class - can be added to any element to temporarily bring it to front */
+.bring-to-front {
+  z-index: var(--z-index-top) !important;
+  position: relative;
+}
+
+/* Hover effect to bring elements to front */
+.hover-elevate {
+  transition: z-index 0.01s, transform 0.2s, box-shadow 0.2s;
+}
+
+.hover-elevate:hover {
+  z-index: var(--z-index-elevated);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Draggable elements */
+.draggable {
+  position: relative;
+  cursor: move;
+}
+
+.dragging {
+  z-index: var(--z-index-top);
+  opacity: 0.8;
+}

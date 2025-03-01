@@ -4,12 +4,16 @@ import DashboardLayout from '../components/DashboardLayout';
 import TaskCategoriesSection from '../components/tags/TaskCategoriesSection';
 import PriorityColorSection from '../components/tags/PriorityColorSection';
 import CompletionStatusSection from '../components/tags/CompletionStatusSection';
+import { useTheme } from '../contexts/ThemeContext';
+import './styles/TagsPage.css';
 
 const TagsPage = () => {
   const [categories, setCategories] = useState<string[]>([]);
+  const { isAotMode } = useTheme();
 
   return (
     <DashboardLayout>
+      <div className="tags-page-wrapper" data-aot-mode={isAotMode}>
       <Container maxW="container.xl" py={8}>
         <Box mb={8}>
           <Heading color="white" mb={6}>Tags Management</Heading>
@@ -46,6 +50,7 @@ const TagsPage = () => {
           </VStack>
         </Box>
       </Container>
+      </div>
     </DashboardLayout>
   );
 };

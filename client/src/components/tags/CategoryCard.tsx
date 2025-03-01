@@ -1,4 +1,5 @@
 import { Box, Flex, VStack, Text, IconButton, Input, Textarea, Popover, PopoverTrigger, PopoverContent, PopoverBody, Portal, Center, HStack } from '@chakra-ui/react';
+import { useTheme } from '../../contexts/ThemeContext';
 import { DeleteIcon, EditIcon, CheckIcon, CloseIcon } from '@chakra-ui/icons';
 import { useState } from 'react';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
@@ -15,6 +16,7 @@ interface CategoryCardProps {
 }
 
 const CategoryCard: React.FC<CategoryCardProps> = ({ category, onDelete, onUpdate }) => {
+  const { isAotMode } = useTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(category.name);
   const [editedDescription, setEditedDescription] = useState(category.description || '');
@@ -45,7 +47,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category, onDelete, onUpdat
   };
 
   return (
-    <Box className={`category-card ${isEditing ? 'editing' : ''}`}>
+    <Box className={`category-card ${isEditing ? 'editing' : ''}`} data-aot-mode={isAotMode}>
 
       <VStack spacing={4} align="stretch">
         <Flex justify="space-between" align="center">

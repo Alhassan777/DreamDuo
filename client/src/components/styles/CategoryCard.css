@@ -129,3 +129,85 @@
 .category-card-buttons {
   gap: var(--chakra-space-2);
 }
+
+/* AOT Titan Mode Styles */
+[data-aot-mode="true"] .category-card {
+  background-color: rgba(89, 55, 48, 0.9);
+  border: 2px solid #8B4513;
+  box-shadow: 0 0 15px rgba(139, 69, 19, 0.3);
+  transition: all 0.3s ease;
+}
+
+[data-aot-mode="true"] .category-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 0 20px rgba(139, 69, 19, 0.5);
+}
+
+[data-aot-mode="true"] .category-card.editing {
+  background-color: rgba(120, 81, 69, 0.9);
+  border-color: #CD853F;
+}
+
+[data-aot-mode="true"] .category-card-title {
+  color: #FFE4B5;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+[data-aot-mode="true"] .category-card-description {
+  color: #DEB887;
+}
+
+[data-aot-mode="true"] .category-card-description textarea {
+  background-color: rgba(139, 69, 19, 0.3);
+  color: #FFE4B5;
+}
+
+[data-aot-mode="true"] .category-card-emoji-picker {
+  background-color: rgba(139, 69, 19, 0.5);
+  border: 2px solid #8B4513;
+  transition: all 0.3s ease;
+}
+
+[data-aot-mode="true"] .category-card-emoji-picker:hover {
+  background-color: rgba(139, 69, 19, 0.7);
+  box-shadow: 0 0 10px rgba(139, 69, 19, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Primary buttons (Delete, Cancel) - Red */
+[data-aot-mode="true"] .category-card-button.delete,
+[data-aot-mode="true"] .category-card-button.cancel {
+  background-color: var(--aot-primary);
+  color: #FFFFFF;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+[data-aot-mode="true"] .category-card-button.delete:hover,
+[data-aot-mode="true"] .category-card-button.cancel:hover {
+  background-color: var(--aot-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(139, 0, 0, 0.3);
+}
+
+/* Accent buttons (Edit, Save) - Gold */
+[data-aot-mode="true"] .category-card-button.edit,
+[data-aot-mode="true"] .category-card-button.save {
+  background-color: var(--aot-accent);
+  color: var(--aot-background);
+  border: 2px solid var(--aot-secondary-border-color);
+  transition: all 0.3s ease;
+}
+
+[data-aot-mode="true"] .category-card-button.edit:hover,
+[data-aot-mode="true"] .category-card-button.save:hover {
+  background-color: var(--aot-accent);
+  color: var(--aot-background);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(139, 69, 19, 0.3);
+}
+
+[data-aot-mode="true"] .category-card-emoji-content {
+  background-color: rgba(89, 55, 48, 0.95);
+  border: 2px solid #8B4513;
+}

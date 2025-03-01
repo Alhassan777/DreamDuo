@@ -1,6 +1,7 @@
 import { VStack, Heading, HStack, Text, Input, Button, IconButton, useToast } from '@chakra-ui/react';
 import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
 import { useState } from 'react';
+import { useTheme } from '../../contexts/ThemeContext';
 import '../styles/priorityColorSection.css';
 
 interface PriorityColor {
@@ -21,6 +22,7 @@ const PriorityColorSection = () => {
   const [inlineEditingIndex, setInlineEditingIndex] = useState<number | null>(null);
   const [inlineEditValue, setInlineEditValue] = useState('');
   const toast = useToast();
+  const { isAotMode } = useTheme();
 
   const handleAddPriority = () => {
     if (newPriority.level.trim()) {
@@ -100,8 +102,8 @@ const PriorityColorSection = () => {
   };
 
   return (
-    <VStack align="stretch" spacing={4} className="priority-color-section">
-      <Heading size="md" color="white">
+    <VStack align="stretch" spacing={4} className="priority-color-section" data-aot-mode={isAotMode}>
+      <Heading size="md" color="white" className='priority-color-heading'>
         Task Urgency Levels
       </Heading>
 
@@ -114,8 +116,16 @@ const PriorityColorSection = () => {
             setNewPriority({ ...newPriority, level: e.target.value })
           }
           onKeyPress={handleKeyPress}
-          bg="gray.700"
-          color="white"
+          bg={isAotMode ? "transparent" : "gray.700"}
+          color={isAotMode ? "var(--aot-text);" : "gray.700"}
+          sx={{
+            backgroundColor: isAotMode ? "rgba(39,37,45,255)" : undefined,
+            borderColor: isAotMode ? "var(--aot-accent)" : "transparent",
+            _focus: {
+              borderColor: isAotMode ? "var(--aot-accent)" : "blue.500",
+              boxShadow: isAotMode ? "0 0 0 1px var(--aot-accent)" : "0 0 0 1px #3182ce"
+            }
+          }}
         />
         <HStack
           className="priority-color-picker"
@@ -128,7 +138,7 @@ const PriorityColorSection = () => {
         >
           <div
             className="priority-color-preview"
-            style={{ backgroundColor: newPriority.color, cursor: 'pointer' }}
+            style={{ backgroundColor: newPriority.color, cursor: 'pointer'}}
           />
           <Input
             type="color"
@@ -142,6 +152,7 @@ const PriorityColorSection = () => {
         <Button
           colorScheme={editingIndex !== null ? 'green' : 'purple'}
           onClick={editingIndex !== null ? handleUpdatePriority : handleAddPriority}
+          className={isAotMode ? (editingIndex !== null ? 'priority-button-primary' : 'priority-button-accent') : ''}
         >
           {editingIndex !== null ? 'Update' : 'Add'}
         </Button>
@@ -198,6 +209,7 @@ const PriorityColorSection = () => {
                   color="white"
                   onDoubleClick={() => handleInlineEdit(index)}
                   cursor="pointer"
+                  className="priority-level-text"
                 >
                   {priority.level}
                 </Text>
@@ -210,6 +222,7 @@ const PriorityColorSection = () => {
                 size="sm"
                 colorScheme="blue"
                 onClick={() => handleEditPriority(index)}
+                className={isAotMode ? 'priority-button-accent' : ''}
               />
               <IconButton
                 aria-label="Delete priority"
@@ -217,6 +230,7 @@ const PriorityColorSection = () => {
                 size="sm"
                 colorScheme="red"
                 onClick={() => handleDeletePriority(index)}
+                className={isAotMode ? 'priority-button-primary' : ''}
               />
             </HStack>
           </HStack>

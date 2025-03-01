@@ -1,4 +1,6 @@
 import { Box, Flex, VStack, Text, Image, Select, Spacer } from '@chakra-ui/react';
+import { useTheme } from '../../contexts/ThemeContext';
+import '../styles/StatusCard.css';
 
 type StatusIcon = {
   status: 'free' | 'not_started' | 'in_progress' | 'finished';
@@ -42,6 +44,7 @@ interface StatusCardProps {
 }
 
 const StatusCard = (props: StatusCardProps) => {
+  const { isAotMode } = useTheme();
   const { status, selectedLogo, onLogoChange } = props;
 
   // Define fixed heights for collapsed and stretched states.
@@ -53,14 +56,11 @@ const StatusCard = (props: StatusCardProps) => {
 
   return (
     <Box
-      borderWidth="1px"
-      borderRadius="md"
-      boxShadow="md"
-      bg="whiteAlpha.100"
-      px={5}
-      py={3}
-      h={cardHeight}
-      transition="height 0.3s ease"
+      className="status-card"
+      data-aot-mode={isAotMode}
+      style={{ height: cardHeight }}
+      p={3}
+      bg="whiteAlpha.50"
     >
       <Flex direction="column" h="100%">
         <VStack spacing={4} alignItems="center">

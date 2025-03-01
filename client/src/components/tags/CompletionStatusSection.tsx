@@ -2,6 +2,7 @@ import { VStack, Heading, SimpleGrid, Box, Text, Image, Select } from '@chakra-u
 import { useState } from 'react';
 import { useToast } from '@chakra-ui/react';
 import StatusCard from './StatusCard';
+import { useTheme } from '../../contexts/ThemeContext';
 import '../styles/CompletionStatusSection.css';
 
 type StatusIcon = {
@@ -65,6 +66,7 @@ const AVAILABLE_LOGOS: Logo[] = [
 const CompletionStatusSection = () => {
   const [statusLogoMap, setStatusLogoMap] = useState<Record<string, string>>({});
   const toast = useToast();
+  const { isAotMode } = useTheme();
 
   const handleLogoChange = (statusId: string, logoId: string) => {
     if (logoId === '') {
@@ -100,7 +102,7 @@ const CompletionStatusSection = () => {
   };
 
   return (
-    <VStack align="stretch" spacing={4} className="completion-status-section">
+    <VStack align="stretch" spacing={4} className="completion-status-section" data-aot-mode={isAotMode}>
       <Heading size="md" className="completion-status-heading">Daily Task Progress</Heading>
       
       <SimpleGrid columns={4} spacing={4} className="completion-status-grid">
