@@ -336,6 +336,8 @@ const EditProfilePage = () => {
                         onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                         p={1}
                         data-aot-mode={isAotMode}
+                        background={"transparent"}
+                        _hover={{ bg: "transparent" }}
                       >
                         <img
                           src={showCurrentPassword ? hidePasswordIcon : showPasswordIcon}
@@ -364,6 +366,8 @@ const EditProfilePage = () => {
                         onClick={() => setShowNewPassword(!showNewPassword)}
                         p={1}
                         data-aot-mode={isAotMode}
+                        background={"transparent"}
+                        _hover={{ bg: "transparent" }}
                       >
                         <img
                           src={showNewPassword ? hidePasswordIcon : showPasswordIcon}
@@ -392,6 +396,8 @@ const EditProfilePage = () => {
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                         p={1}
                         data-aot-mode={isAotMode}
+                        background={ "transparent"}
+                        _hover={{ bg: "transparent" }}
                       >
                         <img
                           src={showConfirmPassword ? hidePasswordIcon : showPasswordIcon}

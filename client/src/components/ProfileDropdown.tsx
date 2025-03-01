@@ -2,6 +2,7 @@ import { Box, VStack, Avatar, Text, Button, Menu, MenuButton, MenuList, MenuItem
   import { useNavigate } from 'react-router-dom';
   import { useRef, useState, useEffect } from 'react';
   import api from '../services/api';
+  import { useTheme } from '../contexts/ThemeContext';
 
   interface ProfileDropdownProps {
     firstName?: string;
@@ -15,6 +16,7 @@ import { Box, VStack, Avatar, Text, Button, Menu, MenuButton, MenuList, MenuItem
     const toast = useToast();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [profileImage, setProfileImage] = useState<string | undefined>(userPhoto);
+    const { isAotMode } = useTheme();
 
     useEffect(() => {
       setProfileImage(userPhoto);
@@ -76,35 +78,41 @@ import { Box, VStack, Avatar, Text, Button, Menu, MenuButton, MenuList, MenuItem
         <MenuButton
           as={Box}
           cursor="pointer"
-          bg="gray.700"
+          bg={isAotMode ? 'var(--aot-primary)' : 'gray.700'}
           p={2}
           borderRadius="md"
-          _hover={{ bg: 'gray.600' }}
+          _hover={{ bg: isAotMode ? 'var(--aot-primary-bg-hover)' : 'gray.600' }}
+          transition="all 0.2s"
         >
           <Box display="flex" alignItems="center" gap={3}>
             <Avatar
               size="sm"
               src={profileImage}
               name={displayName}
-              bg="purple.500"
+              bg={isAotMode ? 'var(--aot-accent)' : 'purple.500'}
             />
-            {!isCollapsed && <Text color='white' fontSize="md" fontWeight="bold">{displayName}</Text>}
+            {!isCollapsed && <Text color={isAotMode ? 'var(--aot-text)' : 'white'} fontSize="md" fontWeight="bold">{displayName}</Text>}
           </Box>
         </MenuButton>
-        <MenuList bg="gray.800" borderColor="gray.700">
+        <MenuList 
+          bg={isAotMode ? 'var(--aot-secondary)' : 'gray.800'} 
+          borderColor={isAotMode ? 'var(--aot-border)' : 'gray.700'}
+        >
           <MenuItem
             onClick={() => navigate('/edit-profile')}
-            bg="gray.800"
-            _hover={{ bg: 'gray.700' }}
-            color="gray.100"
+            bg={isAotMode ? 'var(--aot-secondary)' : 'gray.800'}
+            _hover={{ bg: isAotMode ? 'var(--aot-primary)' : 'gray.700' }}
+            color={isAotMode ? 'var(--aot-text)' : 'gray.100'}
+            transition="all 0.2s"
           >
             Edit Profile
           </MenuItem>
           <MenuItem
             onClick={handleSignOut}
-            bg="gray.800"
-            _hover={{ bg: 'gray.700' }}
-            color="red.400"
+            bg={isAotMode ? 'var(--aot-secondary)' : 'gray.800'}
+            _hover={{ bg: isAotMode ? 'var(--aot-primary)' : 'gray.700' }}
+            color={isAotMode ? '#ff6b6b' : 'red.400'}
+            transition="all 0.2s"
           >
             Sign Out
           </MenuItem>

@@ -175,11 +175,14 @@ const SignupPage = () => {
                       onClick={() => setShowPassword(!showPassword)}
                       className="password-toggle-button"
                       p={1}
+                      background={"transparent"}
+                        _hover={{ bg: "transparent" }}
                     >
                       <img
                         src={showPassword ? hidePasswordIcon : showPasswordIcon}
                         alt={showPassword ? "Hide password" : "Show password"}
                         className="password-toggle-icon"
+                        
                       />
                     </Button>
                   </InputRightElement>
@@ -202,6 +205,8 @@ const SignupPage = () => {
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       className="password-toggle-button"
                       p={1}
+                      background={"transparent"}
+                        _hover={{ bg: "transparent" }}
                     >
                       <img
                         src={showConfirmPassword ? hidePasswordIcon : showPasswordIcon}

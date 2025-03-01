@@ -149,6 +149,8 @@ const toast = useToast();
                           onClick={() => setShowPassword(!showPassword)}
                           className="password-toggle-button"
                           p={1}
+                          background={"transparent"}
+                        _hover={{ bg: "transparent" }}
                         >
                           <img
                             src={showPassword ? hidePasswordIcon : showPasswordIcon}

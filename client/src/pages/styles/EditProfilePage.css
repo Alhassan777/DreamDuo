@@ -211,6 +211,7 @@
 }
 
 .password-toggle-icon {
+  background: transparent;
   width: 24px;
   height: 24px;
   transition: all 0.3s ease;
@@ -218,12 +219,14 @@
 }
 
 .password-toggle-icon:hover {
-  transform: scale(1.1);
+  transform: scale(1.1) translateY(-2px);
   opacity: 1;
+  filter: drop-shadow(0 4px 3px rgba(0, 0, 0, 0.3));
 }
 
 .password-toggle-button[data-aot-mode="true"] .password-toggle-icon {
-  filter: sepia(100%) saturate(300%) brightness(70%) hue-rotate(350deg);
+  /* Removed the yellow filter */
+  background: transparent;
 }
 
 /* Submit button */
