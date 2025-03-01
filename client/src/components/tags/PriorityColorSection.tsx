@@ -1,4 +1,4 @@
-import { VStack, Heading, HStack, Text, Input, Button, IconButton, useToast } from '@chakra-ui/react';
+import { VStack, Heading, HStack, Text, Input, Button, IconButton, useToast, Box, Center, Spinner } from '@chakra-ui/react';
 import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
 import { useState, useEffect } from 'react';
 import { tagsService } from '../../services/tags';
@@ -9,12 +9,6 @@ interface PriorityColor {
   level: string;
   color: string;
 }
-
-const DEFAULT_PRIORITY_COLORS: PriorityColor[] = [
-  { level: 'High', color: '#FF0000' },
-  { level: 'Medium', color: '#FFA500' },
-  { level: 'Low', color: '#00FF00' }
-];
 
 const PriorityColorSection = () => {
   const [priorityColors, setPriorityColors] = useState<PriorityColor[]>([]);
@@ -33,21 +27,11 @@ const PriorityColorSection = () => {
       try {
         const fetchedPriorities = await tagsService.getPriorities();
         if (fetchedPriorities.length > 0) {
-          // Convert string priorities to PriorityColor objects with default colors
-          const priorityColorObjects = fetchedPriorities.map(priority => {
-            // Try to find a matching default color or assign a new one
-            const defaultPriority = DEFAULT_PRIORITY_COLORS.find(
-              p => p.level.toLowerCase() === priority.toLowerCase()
-            );
-            return {
-              level: priority,
-              color: defaultPriority?.color || '#' + Math.floor(Math.random()*16777215).toString(16)
-            };
-          });
-          setPriorityColors(priorityColorObjects);
+          // Use the colors returned from the backend
+          setPriorityColors(fetchedPriorities);
         } else {
-          // If no priorities found, use defaults
-          setPriorityColors(DEFAULT_PRIORITY_COLORS);
+          // If no priorities found, set empty array
+          setPriorityColors([]);
         }
       } catch (error) {
         console.error('Error fetching priorities:', error);
@@ -57,8 +41,8 @@ const PriorityColorSection = () => {
           duration: 3000,
           isClosable: true,
         });
-        // Use defaults on error
-        setPriorityColors(DEFAULT_PRIORITY_COLORS);
+        // Set empty array on error instead of defaults
+        setPriorityColors([]);
       } finally {
         setIsLoading(false);
       }
@@ -67,9 +51,9 @@ const PriorityColorSection = () => {
     fetchPriorities();
   }, []);
 
-  const handleAddPriority = () => {
+  const handleAddPriority = async () => {
     if (newPriority.level.trim()) {
-      // Check for duplicate priority level
+      // Check for duplicate priority level and color
       if (
         priorityColors.some(
           (p) => p.level.toLowerCase() === newPriority.level.toLowerCase()
@@ -83,8 +67,47 @@ const PriorityColorSection = () => {
         });
         return;
       }
-      setPriorityColors([...priorityColors, { ...newPriority }]);
-      setNewPriority({ level: '', color: '#000000' });
+
+      if (
+        priorityColors.some(
+          (p) => p.color.toLowerCase() === newPriority.color.toLowerCase()
+        )
+      ) {
+        toast({
+          title: 'Priority color already exists',
+          status: 'error',
+          duration: 2000,
+          isClosable: true,
+        });
+        return;
+      }
+      
+      setIsLoading(true);
+      try {
+        // Call the API to add the priority with color
+        await tagsService.addPriority(newPriority.level.trim(), newPriority.color);
+        
+        // Update local state
+        setPriorityColors([...priorityColors, { ...newPriority }]);
+        setNewPriority({ level: '', color: '#000000' });
+        
+        toast({
+          title: 'Priority added',
+          status: 'success',
+          duration: 2000,
+          isClosable: true,
+        });
+      } catch (error) {
+        console.error('Error adding priority:', error);
+        toast({
+          title: 'Error adding priority',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -99,19 +122,107 @@ const PriorityColorSection = () => {
     setNewPriority(priorityColors[index]);
   };
 
-  const handleUpdatePriority = () => {
+  const handleUpdatePriority = async () => {
     if (editingIndex !== null && newPriority.level.trim()) {
-      const updatedPriorities = [...priorityColors];
-      updatedPriorities[editingIndex] = { ...newPriority };
-      setPriorityColors(updatedPriorities);
-      setNewPriority({ level: '', color: '#000000' });
-      setEditingIndex(null);
+      const oldPriorityLevel = priorityColors[editingIndex].level;
+      const newPriorityLevel = newPriority.level.trim();
+      
+      // Check for duplicate if name or color changed
+      if (
+        oldPriorityLevel.toLowerCase() !== newPriorityLevel.toLowerCase() &&
+        priorityColors.some(
+          (p) => p.level.toLowerCase() === newPriorityLevel.toLowerCase()
+        )
+      ) {
+        toast({
+          title: 'Priority level already exists',
+          status: 'error',
+          duration: 2000,
+          isClosable: true,
+        });
+        return;
+      }
+
+      // Check for duplicate color, excluding the current priority being edited
+      if (
+        priorityColors.some(
+          (p, i) => i !== editingIndex && p.color.toLowerCase() === newPriority.color.toLowerCase()
+        )
+      ) {
+        toast({
+          title: 'Priority color already exists',
+          status: 'error',
+          duration: 2000,
+          isClosable: true,
+        });
+        return;
+      }
+      
+      setIsLoading(true);
+      try {
+        if (oldPriorityLevel !== newPriorityLevel) {
+          // Update priority name on the backend
+          await tagsService.updatePriority(oldPriorityLevel, newPriorityLevel, newPriority.color);
+        } else {
+          // If only color changed, still update with the same name
+          await tagsService.updatePriority(oldPriorityLevel, oldPriorityLevel, newPriority.color);
+        }
+        
+        // Update local state
+        const updatedPriorities = [...priorityColors];
+        updatedPriorities[editingIndex] = { ...newPriority };
+        setPriorityColors(updatedPriorities);
+        
+        toast({
+          title: 'Priority updated',
+          status: 'success',
+          duration: 2000,
+          isClosable: true,
+        });
+      } catch (error) {
+        console.error('Error updating priority:', error);
+        toast({
+          title: 'Error updating priority',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+      } finally {
+        setIsLoading(false);
+        setNewPriority({ level: '', color: '#000000' });
+        setEditingIndex(null);
+      }
     }
   };
 
-  const handleDeletePriority = (index: number) => {
-    const updatedPriorities = priorityColors.filter((_, i) => i !== index);
-    setPriorityColors(updatedPriorities);
+  const handleDeletePriority = async (index: number) => {
+    const priorityToDelete = priorityColors[index];
+    
+    setIsLoading(true);
+    try {
+      // Call the API to delete the priority
+      await tagsService.deletePriority(priorityToDelete.level);
+      
+      const updatedPriorities = priorityColors.filter((_, i) => i !== index);
+      setPriorityColors(updatedPriorities);
+      
+      toast({
+        title: 'Priority deleted',
+        status: 'success',
+        duration: 2000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error('Error deleting priority:', error);
+      toast({
+        title: 'Error deleting priority',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleInlineEdit = (index: number) => {
@@ -127,7 +238,7 @@ const PriorityColorSection = () => {
       setIsLoading(true);
       try {
         // Update priority on the backend
-        await tagsService.updatePriority(oldPriorityLevel, newPriorityLevel);
+        await tagsService.updatePriority(oldPriorityLevel, newPriorityLevel, priorityColors[inlineEditingIndex].color);
         
         // Update local state
         const updatedPriorities = [...priorityColors];
@@ -187,7 +298,7 @@ const PriorityColorSection = () => {
           }
           onKeyPress={handleKeyPress}
           bg={isAotMode ? "transparent" : "gray.700"}
-          color={isAotMode ? "var(--aot-text);" : "gray.700"}
+          color={isAotMode ? "var(--aot-text)" : "white"}
           sx={{
             backgroundColor: isAotMode ? "rgba(39,37,45,255)" : undefined,
             borderColor: isAotMode ? "var(--aot-accent)" : "transparent",
@@ -223,10 +334,27 @@ const PriorityColorSection = () => {
           colorScheme={editingIndex !== null ? 'green' : 'purple'}
           onClick={editingIndex !== null ? handleUpdatePriority : handleAddPriority}
           className={isAotMode ? (editingIndex !== null ? 'priority-button-primary' : 'priority-button-accent') : ''}
+          isLoading={isLoading}
         >
           {editingIndex !== null ? 'Update' : 'Add'}
         </Button>
       </HStack>
+
+      {/* LOADING INDICATOR */}
+      {isLoading && (
+        <Center py={4}>
+          <Spinner size="md" color={isAotMode ? "var(--aot-accent)" : "blue.500"} />
+        </Center>
+      )}
+
+      {/* EMPTY STATE */}
+      {!isLoading && priorityColors.length === 0 && (
+        <Box textAlign="center" py={6} className="priority-empty-state" data-aot-mode={isAotMode}>
+          <Text color={isAotMode ? "var(--aot-text)" : "gray.300"}>
+            No priority levels found. Add your first priority level above.
+          </Text>
+        </Box>
+      )}
 
       {/* LIST OF EXISTING PRIORITIES */}
       <VStack align="stretch" spacing={2}>
@@ -251,13 +379,54 @@ const PriorityColorSection = () => {
                 <Input
                   type="color"
                   value={priority.color}
-                  onChange={(e) => {
-                    const updatedPriorities = [...priorityColors];
-                    updatedPriorities[index] = {
-                      ...priority,
-                      color: e.target.value,
-                    };
-                    setPriorityColors(updatedPriorities);
+                  onChange={async (e) => {
+                    const newColor = e.target.value;
+                    
+                    // Check for duplicate color
+                    if (
+                      priorityColors.some(
+                        (p, i) => i !== index && p.color.toLowerCase() === newColor.toLowerCase()
+                      )
+                    ) {
+                      toast({
+                        title: 'Priority color already exists',
+                        status: 'error',
+                        duration: 2000,
+                        isClosable: true,
+                      });
+                      return;
+                    }
+                    
+                    setIsLoading(true);
+                    try {
+                      // Update priority color on the backend
+                      await tagsService.updatePriority(priority.level, priority.level, newColor);
+                      
+                      // Update local state
+                      const updatedPriorities = [...priorityColors];
+                      updatedPriorities[index] = {
+                        ...priority,
+                        color: newColor,
+                      };
+                      setPriorityColors(updatedPriorities);
+                      
+                      toast({
+                        title: 'Priority color updated',
+                        status: 'success',
+                        duration: 2000,
+                        isClosable: true,
+                      });
+                    } catch (error) {
+                      console.error('Error updating priority color:', error);
+                      toast({
+                        title: 'Error updating priority color',
+                        status: 'error',
+                        duration: 3000,
+                        isClosable: true,
+                      });
+                    } finally {
+                      setIsLoading(false);
+                    }
                   }}
                   className="priority-color-input priority-color-input-hidden"
                 />

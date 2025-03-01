@@ -8,6 +8,11 @@ export interface Category {
   icon?: string;
 }
 
+export interface PriorityColor {
+  level: string;
+  color: string;
+}
+
 export interface CompletionStatus {
   total_tasks: number;
   completed_tasks: number;
@@ -54,7 +59,7 @@ export const tagsService = {
   },
 
   // Priority Levels Management
-  getPriorities: async (): Promise<string[]> => {
+  getPriorities: async (): Promise<PriorityColor[]> => {
     try {
       const response = await api.get('/tags/priorities');
       return response.data;
@@ -63,9 +68,30 @@ export const tagsService = {
     }
   },
 
-  updatePriority: async (priority: string, newPriority: string): Promise<{ message: string }> => {
+  addPriority: async (priority: string, color: string = '#000000'): Promise<{ message: string }> => {
     try {
-      const response = await api.put(`/tags/priorities/${priority}`, { new_priority: newPriority });
+      const response = await api.post('/tags/priorities', { priority, color });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  updatePriority: async (priority: string, newPriority: string, color?: string): Promise<{ message: string }> => {
+    try {
+      const response = await api.put(`/tags/priorities/${priority}`, { 
+        new_priority: newPriority,
+        color: color
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  deletePriority: async (priority: string): Promise<{ message: string }> => {
+    try {
+      const response = await api.delete(`/tags/priorities/${priority}`);
       return response.data;
     } catch (error) {
       throw error;
