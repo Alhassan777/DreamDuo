@@ -1,6 +1,7 @@
 import { VStack, Heading, HStack, Text, Input, Button, IconButton, useToast } from '@chakra-ui/react';
 import { DeleteIcon, EditIcon } from '@chakra-ui/icons';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { tagsService } from '../../services/tags';
 import { useTheme } from '../../contexts/ThemeContext';
 import '../styles/priorityColorSection.css';
 
@@ -16,13 +17,55 @@ const DEFAULT_PRIORITY_COLORS: PriorityColor[] = [
 ];
 
 const PriorityColorSection = () => {
-  const [priorityColors, setPriorityColors] = useState<PriorityColor[]>(DEFAULT_PRIORITY_COLORS);
+  const [priorityColors, setPriorityColors] = useState<PriorityColor[]>([]);
   const [newPriority, setNewPriority] = useState({ level: '', color: '#000000' });
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [inlineEditingIndex, setInlineEditingIndex] = useState<number | null>(null);
   const [inlineEditValue, setInlineEditValue] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
   const { isAotMode } = useTheme();
+  
+  // Fetch priorities from the backend when component mounts
+  useEffect(() => {
+    const fetchPriorities = async () => {
+      setIsLoading(true);
+      try {
+        const fetchedPriorities = await tagsService.getPriorities();
+        if (fetchedPriorities.length > 0) {
+          // Convert string priorities to PriorityColor objects with default colors
+          const priorityColorObjects = fetchedPriorities.map(priority => {
+            // Try to find a matching default color or assign a new one
+            const defaultPriority = DEFAULT_PRIORITY_COLORS.find(
+              p => p.level.toLowerCase() === priority.toLowerCase()
+            );
+            return {
+              level: priority,
+              color: defaultPriority?.color || '#' + Math.floor(Math.random()*16777215).toString(16)
+            };
+          });
+          setPriorityColors(priorityColorObjects);
+        } else {
+          // If no priorities found, use defaults
+          setPriorityColors(DEFAULT_PRIORITY_COLORS);
+        }
+      } catch (error) {
+        console.error('Error fetching priorities:', error);
+        toast({
+          title: 'Error fetching priorities',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+        // Use defaults on error
+        setPriorityColors(DEFAULT_PRIORITY_COLORS);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchPriorities();
+  }, []);
 
   const handleAddPriority = () => {
     if (newPriority.level.trim()) {
@@ -76,16 +119,43 @@ const PriorityColorSection = () => {
     setInlineEditValue(priorityColors[index].level);
   };
 
-  const handleInlineEditSubmit = () => {
+  const handleInlineEditSubmit = async () => {
     if (inlineEditingIndex !== null && inlineEditValue.trim()) {
-      const updatedPriorities = [...priorityColors];
-      updatedPriorities[inlineEditingIndex] = {
-        ...priorityColors[inlineEditingIndex],
-        level: inlineEditValue.trim(),
-      };
-      setPriorityColors(updatedPriorities);
-      setInlineEditingIndex(null);
-      setInlineEditValue('');
+      const oldPriorityLevel = priorityColors[inlineEditingIndex].level;
+      const newPriorityLevel = inlineEditValue.trim();
+      
+      setIsLoading(true);
+      try {
+        // Update priority on the backend
+        await tagsService.updatePriority(oldPriorityLevel, newPriorityLevel);
+        
+        // Update local state
+        const updatedPriorities = [...priorityColors];
+        updatedPriorities[inlineEditingIndex] = {
+          ...priorityColors[inlineEditingIndex],
+          level: newPriorityLevel,
+        };
+        setPriorityColors(updatedPriorities);
+        
+        toast({
+          title: 'Priority updated',
+          status: 'success',
+          duration: 2000,
+          isClosable: true,
+        });
+      } catch (error) {
+        console.error('Error updating priority:', error);
+        toast({
+          title: 'Error updating priority',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+      } finally {
+        setIsLoading(false);
+        setInlineEditingIndex(null);
+        setInlineEditValue('');
+      }
     }
   };
 

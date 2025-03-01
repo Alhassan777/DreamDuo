@@ -61,13 +61,13 @@ def create_app():
         try:
             # Import models and routes after app creation to avoid circular imports
             from models import User, Category, Task
-            from routes import auth_bp, tasks_bp, categories_bp, user_bp
+            from routes import auth_bp, tasks_bp, user_bp, tags_bp
 
             # Register blueprints
             app.register_blueprint(auth_bp, url_prefix='/api/auth')
             app.register_blueprint(tasks_bp, url_prefix='/api/tasks')
-            app.register_blueprint(categories_bp, url_prefix='/api/categories')
             app.register_blueprint(user_bp)
+            app.register_blueprint(tags_bp, url_prefix='/api/tags')
 
             # Create database tables
             db.create_all()

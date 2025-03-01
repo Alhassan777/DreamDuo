@@ -1,8 +1,24 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from passlib.hash import pbkdf2_sha256
+from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy.types import TypeDecorator, TEXT
+import json
 
 db = SQLAlchemy()
+
+class JSONEncodedDict(TypeDecorator):
+    impl = TEXT
+
+    def process_bind_param(self, value, dialect):
+        if value is not None:
+            value = json.dumps(value)
+        return value
+
+    def process_result_value(self, value, dialect):
+        if value is not None:
+            value = json.loads(value)
+        return value
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -27,8 +43,9 @@ class Category(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
-    description = db.Column(db.String(200))
-    icon = db.Column(db.String(50))
+    description = db.Column(db.String(200), nullable=True)
+    color = db.Column(db.String(50), nullable=True)
+    icon = db.Column(db.String(50), nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     tasks = db.relationship('Task', backref='category', lazy=True)
 
@@ -47,3 +64,14 @@ class Task(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
     parent_id = db.Column(db.Integer, db.ForeignKey('tasks.id'))
     subtasks = db.relationship('Task', backref=db.backref('parent', remote_side=[id]), lazy=True)
+
+class UserSettings(db.Model):
+    __tablename__ = 'user_settings'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    status_logos = db.Column(JSONEncodedDict, default={})
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    user = db.relationship('User', backref=db.backref('settings', lazy=True))

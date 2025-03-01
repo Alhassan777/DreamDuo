@@ -1,15 +1,15 @@
 import { VStack, Heading, Button, Input, Grid, Textarea, useToast, Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, FormControl, FormLabel, useDisclosure } from '@chakra-ui/react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { AddIcon } from '@chakra-ui/icons';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import CategoryCard from './CategoryCard';
 import '../styles/TaskCategoriesSection.css';
+import { tagsService, Category as CategoryType } from '../../services/tags';
 
-interface Category {
-  name: string;
+// Using the Category type from our service
+interface CategoryWithUI extends CategoryType {
   description?: string;
-  icon?: string;
 }
 
 interface TaskCategoriesSectionProps {
@@ -20,17 +20,42 @@ interface TaskCategoriesSectionProps {
 const TaskCategoriesSection: React.FC<TaskCategoriesSectionProps> = ({ categories, setCategories }) => {
   const { isAotMode } = useTheme();
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [categoryList, setCategoryList] = useState<Category[]>(categories.map(name => ({ name })));
-  const [newCategory, setNewCategory] = useState<Category>({
+  const [categoryList, setCategoryList] = useState<CategoryWithUI[]>([]);
+  const [newCategory, setNewCategory] = useState<CategoryWithUI>({
     name: '',
     description: '',
     icon: '📋'
   });
+  const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
+  
+  // Fetch categories from the backend when component mounts
+  useEffect(() => {
+    const fetchCategories = async () => {
+      setIsLoading(true);
+      try {
+        const fetchedCategories = await tagsService.getCategories();
+        setCategoryList(fetchedCategories);
+        setCategories(fetchedCategories.map(cat => cat.name));
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        toast({
+          title: 'Error fetching categories',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchCategories();
+  }, []);
 
-  const handleAddCategory = () => {
+  const handleAddCategory = async () => {
     if (newCategory.name.trim()) {
-      if (categories.includes(newCategory.name.trim())) {
+      if (categoryList.some(cat => cat.name.toLowerCase() === newCategory.name.trim().toLowerCase())) {
         toast({
           title: 'Category already exists',
           status: 'error',
@@ -39,28 +64,134 @@ const TaskCategoriesSection: React.FC<TaskCategoriesSectionProps> = ({ categorie
         });
         return;
       }
-      const updatedList = [
-        ...categoryList,
-        { name: newCategory.name.trim(), description: newCategory.description?.trim(), icon: newCategory.icon }
-      ];
-      setCategoryList(updatedList);
-      setCategories(updatedList.map(cat => cat.name));
-      setNewCategory({ name: '', description: '', icon: '📋' });
-      onClose();
+      
+      setIsLoading(true);
+      try {
+        const categoryToAdd = {
+          name: newCategory.name.trim(),
+          description: newCategory.description?.trim(),
+          color: '#FFFFFF', // Default color
+          icon: newCategory.icon
+        };
+        
+        const addedCategory = await tagsService.createCategory(categoryToAdd);
+        
+        const updatedList = [...categoryList, addedCategory];
+        setCategoryList(updatedList);
+        setCategories(updatedList.map(cat => cat.name));
+        setNewCategory({ name: '', description: '', icon: '📋' });
+        
+        toast({
+          title: 'Category created',
+          status: 'success',
+          duration: 2000,
+          isClosable: true,
+        });
+        
+        onClose();
+      } catch (error) {
+        console.error('Error creating category:', error);
+        toast({
+          title: 'Error creating category',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
-  const handleDeleteCategory = (index: number) => {
-    const updatedCategories = categoryList.filter((_, i) => i !== index);
-    setCategoryList(updatedCategories);
-    setCategories(updatedCategories.map(cat => cat.name));
+  const handleDeleteCategory = async (index: number) => {
+    const categoryToDelete = categoryList[index];
+    if (!categoryToDelete.id) {
+      toast({
+        title: 'Cannot delete category',
+        description: 'Category ID is missing',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+    
+    setIsLoading(true);
+    try {
+      await tagsService.deleteCategory(categoryToDelete.id);
+      
+      const updatedCategories = categoryList.filter((_, i) => i !== index);
+      setCategoryList(updatedCategories);
+      setCategories(updatedCategories.map(cat => cat.name));
+      
+      toast({
+        title: 'Category deleted',
+        status: 'success',
+        duration: 2000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      toast({
+        title: 'Error deleting category',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleUpdateCategory = (index: number, updatedCategory: Category) => {
-    const newCategoryList = [...categoryList];
-    newCategoryList[index] = updatedCategory;
-    setCategoryList(newCategoryList);
-    setCategories(newCategoryList.map(cat => cat.name));
+  const handleUpdateCategory = async (index: number, updatedCategory: CategoryWithUI) => {
+    const categoryToUpdate = categoryList[index];
+    if (!categoryToUpdate.id) {
+      toast({
+        title: 'Cannot update category',
+        description: 'Category ID is missing',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+    
+    setIsLoading(true);
+    try {
+      const updatedData = {
+        name: updatedCategory.name,
+        color: categoryToUpdate.color,
+        icon: updatedCategory.icon
+      };
+      
+      const result = await tagsService.updateCategory(categoryToUpdate.id, updatedData);
+      
+      const newCategoryList = [...categoryList];
+      newCategoryList[index] = {
+        ...result,
+        description: updatedCategory.description
+      };
+      
+      setCategoryList(newCategoryList);
+      setCategories(newCategoryList.map(cat => cat.name));
+      
+      toast({
+        title: 'Category updated',
+        status: 'success',
+        duration: 2000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error('Error updating category:', error);
+      toast({
+        title: 'Error updating category',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const onDragEnd = (result: DropResult) => {
