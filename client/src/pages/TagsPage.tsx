@@ -16,7 +16,7 @@ const TagsPage = () => {
       <div className="tags-page-wrapper" data-aot-mode={isAotMode}>
       <Container maxW="container.xl" py={8}>
         <Box mb={8}>
-          <Heading color="white" mb={6} className='heading_text' data-aot-mode={isAotMode}>Tags Management</Heading>
+          <Heading color="white" mb={6} className='heading_text' data-aot-mode={isAotMode}>🏷️ Tags Management</Heading>
           <VStack spacing={8} align="stretch">
             {/* Task Categories Section */}
             <Box

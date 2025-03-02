@@ -4,7 +4,7 @@ import api from './api';
 export interface Category {
   id?: number;
   name: string;
-  color?: string;
+  description?: string;
   icon?: string;
 }
 

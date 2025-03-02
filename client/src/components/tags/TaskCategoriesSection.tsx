@@ -70,7 +70,6 @@ const TaskCategoriesSection: React.FC<TaskCategoriesSectionProps> = ({ categorie
         const categoryToAdd = {
           name: newCategory.name.trim(),
           description: newCategory.description?.trim(),
-          color: '#FFFFFF', // Default color
           icon: newCategory.icon
         };
         
@@ -160,7 +159,7 @@ const TaskCategoriesSection: React.FC<TaskCategoriesSectionProps> = ({ categorie
     try {
       const updatedData = {
         name: updatedCategory.name,
-        color: categoryToUpdate.color,
+        description: updatedCategory.description,
         icon: updatedCategory.icon
       };
       

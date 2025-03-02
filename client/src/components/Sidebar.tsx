@@ -10,8 +10,8 @@ import {
   IconProps,
 } from '@chakra-ui/react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
-import { FaTasks, FaHashtag, FaChartPie } from 'react-icons/fa';
+import { ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
+import { FaTasks, FaHashtag, FaChartPie, FaCalendar } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 import { ComponentWithAs } from '@chakra-ui/react';
 import ProfileDropdown from './ProfileDropdown';
@@ -102,7 +102,7 @@ const Sidebar = ({ onCollapse }: SidebarProps) => {
     },
     {
       label: 'Calendar View',
-      icon: CalendarIcon,
+      icon: FaCalendar,
       path: '/calendar',
       aotIcon: sidebarIcon2,
     },
@@ -138,7 +138,7 @@ const Sidebar = ({ onCollapse }: SidebarProps) => {
         <Box px={isCollapsed ? 4 : 8}>
           <Flex justify="center" align="center">
             <Tooltip
-              label={isAotMode ? "Disable Attack on Titan Theme" : "Enable Attack on Titan Theme"}
+              label={isAotMode ? "Disable Attack On Titan Theme" : "Launch Attack On Titan Theme"}
               placement="right"
               hasArrow
             >
@@ -148,8 +148,9 @@ const Sidebar = ({ onCollapse }: SidebarProps) => {
                   <img
                     src={attackingTitanIcon}
                     alt="Attack Titan"
-                    width="32"
-                    height="32"
+                    width="48"
+                    height="48"
+                    style={{ maxWidth: '100%', maxHeight: '100%' }}
                   />
                 }
                 onClick={handleThemeToggle}

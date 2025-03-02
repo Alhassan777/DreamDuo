@@ -14,7 +14,7 @@ def get_user_categories():
     return jsonify([{
         'id': category.id,
         'name': category.name,
-        'color': category.color,
+        'description': category.description,
         'icon': category.icon
     } for category in categories])
 
@@ -30,7 +30,7 @@ def create_user_category():
 
     category = Category(
         name=data['name'],
-        color=data.get('color'),
+        description=data.get('description'),
         icon=data.get('icon'),
         user_id=user_id
     )
@@ -41,7 +41,7 @@ def create_user_category():
     return jsonify({
         'id': category.id,
         'name': category.name,
-        'color': category.color,
+        'description': category.description,
         'icon': category.icon
     }), 201
 
@@ -58,8 +58,8 @@ def update_user_category(category_id):
     data = request.get_json()
     if 'name' in data:
         category.name = data['name']
-    if 'color' in data:
-        category.color = data['color']
+    if 'description' in data:
+        category.description = data['description']
     if 'icon' in data:
         category.icon = data['icon']
 
@@ -68,7 +68,7 @@ def update_user_category(category_id):
     return jsonify({
         'id': category.id,
         'name': category.name,
-        'color': category.color,
+        'description': category.description,
         'icon': category.icon
     })
 
