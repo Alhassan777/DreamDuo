@@ -51,8 +51,8 @@ export const useDragAndDrop = (
     }
 
     try {
-      // For tasks, we want to make them siblings, not children
-      const newParentId = dragState.type === 'task' ? null : (targetParentId || targetTaskId);
+      // Always use targetParentId if provided, otherwise use targetTaskId
+      const newParentId = targetParentId || targetTaskId;
       
       // Update the backend using moveTask
       await tasksService.moveTask(dragState.itemId, newParentId);

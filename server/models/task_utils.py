@@ -195,56 +195,42 @@ def delete_task(session: Session, task_id: int, user_id: int = None) -> bool:
         return False
 
 
-def move_subtask(session: Session, subtask_id: int, new_parent_id: int, user_id: int = None) -> bool:
-    """Moves a subtask (and all of its descendants) under a new parent."""
-
-
-def toggle_task_completion(session: Session, task_id: int, user_id: int = None) -> Dict[str, Any]:
-    """Toggles the completion status of a task."""
-    task_query = session.query(Task).filter(Task.id == task_id)
-    if user_id:
-        task_query = task_query.filter(Task.user_id == user_id)
-
-    task = task_query.first()
-    if not task:
-        return None
-
-    # Flip the completed status
-    task.completed = not task.completed
-    session.commit()
-
-    return {
-        'id': task.id,
-        'completed': task.completed
-    }
-
-
-def move_subtask(session: Session, subtask_id: int, new_parent_id: int, user_id: int = None) -> bool:
-    """Moves a subtask (and all of its descendants) under a new parent."""
+def move_subtask(session: Session, subtask_id: int, new_parent_id: int = None, user_id: int = None) -> bool:
+    """Moves a task (and all of its descendants) under a new parent or makes it a root task."""
     subtask_query = session.query(Task).filter(Task.id == subtask_id)
-    new_parent_query = session.query(Task).filter(Task.id == new_parent_id)
-
     if user_id:
         subtask_query = subtask_query.filter(Task.user_id == user_id)
-        new_parent_query = new_parent_query.filter(Task.user_id == user_id)
 
     subtask = subtask_query.first()
-    new_parent = new_parent_query.first()
-
-    if not subtask or not new_parent:
+    if not subtask:
         return False
 
-    # Prevent circular references
-    if subtask_id == new_parent_id:
-        return False
+    # If new_parent_id is None, we're making this a root task
+    if new_parent_id is not None:
+        new_parent_query = session.query(Task).filter(Task.id == new_parent_id)
+        if user_id:
+            new_parent_query = new_parent_query.filter(Task.user_id == user_id)
+        new_parent = new_parent_query.first()
+        if not new_parent:
+            return False
 
-    # Check if new_parent is a descendant of subtask
-    is_descendant = session.query(TaskHierarchy).filter(
-        TaskHierarchy.ancestor == subtask_id,
-        TaskHierarchy.descendant == new_parent_id
-    ).first()
-    if is_descendant:
-        return False
+        # Prevent circular references
+        if subtask_id == new_parent_id:
+            return False
+
+        # Check if new_parent is a descendant of subtask
+        is_descendant = session.query(TaskHierarchy).filter(
+            TaskHierarchy.ancestor == subtask_id,
+            TaskHierarchy.descendant == new_parent_id
+        ).first()
+        if is_descendant:
+            return False
+            
+        # Removing the restriction that prevents root tasks from becoming subtasks
+        # The following check was preventing root tasks from being moved:
+        # if subtask.parent_id is None:
+        #     # Don't allow root tasks to become subtasks
+        #     return False
 
     try:
         # Get all descendants
@@ -267,19 +253,48 @@ def move_subtask(session: Session, subtask_id: int, new_parent_id: int, user_id:
             {"descendant_ids": tuple(descendant_ids)}
         )
 
-        # Now link subtask's chain to the new parent's ancestors
-        ancestors_query = session.execute(
-            text("""
-                SELECT ancestor, depth FROM task_hierarchy
-                WHERE descendant = :new_parent_id
-            """),
-            {"new_parent_id": new_parent_id}
-        )
+        if new_parent_id is not None:
+            # Link subtask's chain to the new parent's ancestors
+            ancestors_query = session.execute(
+                text("""
+                    SELECT ancestor, depth FROM task_hierarchy
+                    WHERE descendant = :new_parent_id
+                """),
+                {"new_parent_id": new_parent_id}
+            )
 
-        for ancestor_row in ancestors_query:
-            ancestor_id = ancestor_row[0]
-            depth = ancestor_row[1]
+            for ancestor_row in ancestors_query:
+                ancestor_id = ancestor_row[0]
+                depth = ancestor_row[1]
 
+                for descendant_id in descendant_ids:
+                    subtask_depth_query = session.execute(
+                        text("""
+                            SELECT depth FROM task_hierarchy
+                            WHERE ancestor = :subtask_id
+                            AND descendant = :descendant_id
+                        """),
+                        {"subtask_id": subtask_id, "descendant_id": descendant_id}
+                    ).first()
+
+                    if subtask_depth_query:
+                        subtask_depth = subtask_depth_query[0]
+                        new_depth = depth + subtask_depth + 1
+                        session.execute(
+                            text("""
+                                INSERT INTO task_hierarchy (ancestor, descendant, depth)
+                                VALUES (:ancestor_id, :descendant_id, :depth)
+                                ON CONFLICT (ancestor, descendant) DO UPDATE
+                                SET depth = EXCLUDED.depth
+                            """),
+                            {
+                                "ancestor_id": ancestor_id,
+                                "descendant_id": descendant_id,
+                                "depth": new_depth
+                            }
+                        )
+        else:
+            # Make it a root task - create self-referencing entries for the task and its descendants
             for descendant_id in descendant_ids:
                 subtask_depth_query = session.execute(
                     text("""
@@ -292,16 +307,17 @@ def move_subtask(session: Session, subtask_id: int, new_parent_id: int, user_id:
 
                 if subtask_depth_query:
                     subtask_depth = subtask_depth_query[0]
-                    new_depth = depth + subtask_depth + 1
                     session.execute(
                         text("""
                             INSERT INTO task_hierarchy (ancestor, descendant, depth)
-                            VALUES (:ancestor_id, :descendant_id, :depth)
+                            VALUES (:subtask_id, :descendant_id, :depth)
+                            ON CONFLICT (ancestor, descendant) DO UPDATE
+                            SET depth = EXCLUDED.depth
                         """),
                         {
-                            "ancestor_id": ancestor_id,
+                            "subtask_id": subtask_id,
                             "descendant_id": descendant_id,
-                            "depth": new_depth
+                            "depth": subtask_depth
                         }
                     )
 
@@ -311,5 +327,29 @@ def move_subtask(session: Session, subtask_id: int, new_parent_id: int, user_id:
         return True
     except Exception as e:
         session.rollback()
-        print(f"Error moving subtask: {e}")
+        print(f"Error moving task: {e}")
         return False
+
+
+def toggle_task_completion(session: Session, task_id: int, user_id: int = None) -> Dict[str, Any]:
+    """Toggles the completion status of a task."""
+    task_query = session.query(Task).filter(Task.id == task_id)
+    if user_id:
+        task_query = task_query.filter(Task.user_id == user_id)
+
+    task = task_query.first()
+    if not task:
+        return None
+
+    # Flip the completed status
+    task.completed = not task.completed
+    session.commit()
+
+    return {
+        'id': task.id,
+        'completed': task.completed
+    }
+
+
+# Second implementation of move_subtask removed to fix the function duplication issue
+# The implementation at lines 198-327 now handles both cases where new_parent_id can be None or a valid ID

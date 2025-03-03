@@ -106,10 +106,10 @@ export const tasksService = {
     }
   },
 
-  moveTask: async (taskId: number, newParentId: number | null): Promise<TaskResponse> => {
+  moveTask: async (taskId: number, newParentId: number | null): Promise<Task> => {
     try {
       const response = await api.put(`/tasks/${taskId}/move`, { parent_id: newParentId });
-      return response.data;
+      return mapTaskResponseToTask(response.data);
     } catch (error) {
       throw error;
     }

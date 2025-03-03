@@ -32,6 +32,7 @@ interface Task {
   priority?: string;
   category?: string;
   categoryIcon?: string;
+  parent_id?: number;
   /** Nested subtasks for hierarchical structure */
   children: Task[];
   // Keep subtasks for backward compatibility
@@ -125,7 +126,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
       onDragStart={(e) => {
         e.stopPropagation();
         e.currentTarget.style.opacity = '0.5';
-        onDragStart && onDragStart('task', task.id, task.id);
+        onDragStart && onDragStart('task', task.id, task.id, task.parent_id);
       }}
       onDragEnd={(e) => {
         e.preventDefault();
