@@ -10,6 +10,7 @@ interface Subtask {
   completed: boolean;
   children: Subtask[];
   subtasks?: Subtask[]; // Keep for backward compatibility
+  parent_id?: number; // Add parent_id property
 }
 
 interface SubtaskCardProps {
@@ -27,7 +28,7 @@ interface SubtaskCardProps {
   ) => void;
   onDrop: (taskId: number, parentId?: number) => void;
   dragState: {
-    type: 'subtask' | 'sub-subtask';
+    type: 'task' | 'subtask' | 'sub-subtask';
     sourceTaskId: number;
     sourceParentId?: number;
     itemId: number;
@@ -86,10 +87,13 @@ const SubtaskCard = ({
       data-aot-mode={isAotMode}
       draggable
       onDragStart={(e) => {
+        e.stopPropagation();
         e.currentTarget.style.opacity = '0.5';
-        onDragStart('subtask', taskId, subtask.id, undefined);
+        onDragStart('subtask', taskId, subtask.id, subtask.parent_id);
       }}
       onDragEnd={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
         e.currentTarget.style.opacity = '1';
       }}
       onDragOver={(e) => {
@@ -98,13 +102,17 @@ const SubtaskCard = ({
         e.currentTarget.classList.add('drag-over');
       }}
       onDragLeave={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
         e.currentTarget.classList.remove('drag-over');
       }}
       onDrop={(e) => {
         e.preventDefault();
         e.stopPropagation();
         e.currentTarget.classList.remove('drag-over');
-        onDrop(taskId, subtask.id);
+        if (dragState && dragState.itemId !== subtask.id) {
+          onDrop(taskId, subtask.id);
+        }
       }}
     >
       {/* Subtask Header */}

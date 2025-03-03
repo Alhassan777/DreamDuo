@@ -41,14 +41,14 @@ interface Task {
 /** Props for drag-and-drop. Remove if you don't need them. */
 interface DragProps {
   onDragStart: (
-    type: 'subtask' | 'sub-subtask',
+    type: 'task' | 'subtask' | 'sub-subtask',
     taskId: number,
     itemId: number,
     parentId?: number
   ) => void;
   onDrop: (taskId: number, parentId?: number) => void;
   dragState: {
-    type: 'subtask' | 'sub-subtask';
+    type: 'task' | 'subtask' | 'sub-subtask';
     sourceTaskId: number;
     sourceParentId?: number;
     itemId: number;
@@ -123,10 +123,13 @@ const TaskCard: React.FC<TaskCardProps> = ({
       data-aot-mode={isAotMode}
       draggable
       onDragStart={(e) => {
+        e.stopPropagation();
         e.currentTarget.style.opacity = '0.5';
-        onDragStart && onDragStart('subtask', task.id, task.id);
+        onDragStart && onDragStart('task', task.id, task.id);
       }}
       onDragEnd={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
         e.currentTarget.style.opacity = '1';
       }}
       onDragOver={(e) => {
@@ -135,6 +138,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
         e.currentTarget.classList.add('drag-over');
       }}
       onDragLeave={(e) => {
+        e.preventDefault();
         e.stopPropagation();
         e.currentTarget.classList.remove('drag-over');
       }}
@@ -142,7 +146,9 @@ const TaskCard: React.FC<TaskCardProps> = ({
         e.preventDefault();
         e.stopPropagation();
         e.currentTarget.classList.remove('drag-over');
-        onDrop && onDrop(task.id);
+        if (dragState && dragState.itemId !== task.id) {
+          onDrop && onDrop(task.id);
+        }
       }}
     >
       <VStack spacing={4} align="stretch">

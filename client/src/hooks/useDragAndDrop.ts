@@ -3,8 +3,8 @@ import { Task } from '../services/tasks';
 import { tasksService } from '../services/tasks';
 
 interface DragState {
-  // Only allow dragging for subtasks (or deeper)
-  type: 'subtask' | 'sub-subtask';
+  // Allow dragging for tasks, subtasks, or deeper
+  type: 'task' | 'subtask' | 'sub-subtask';
   sourceTaskId: number;
   sourceParentId?: number | undefined;
   itemId: number;
@@ -16,9 +16,9 @@ export const useDragAndDrop = (
 ) => {
   const [dragState, setDragState] = useState<DragState | null>(null);
 
-  // Only allow dragging subtasks or deeper – never top-level tasks.
+  // Allow dragging tasks, subtasks, or deeper
   const handleDragStart = (
-    type: 'subtask' | 'sub-subtask',
+    type: 'task' | 'subtask' | 'sub-subtask',
     sourceTaskId: number,
     itemId: number,
     parentId?: number
@@ -51,18 +51,18 @@ export const useDragAndDrop = (
     }
 
     try {
+      // For tasks, we want to make them siblings, not children
+      const newParentId = dragState.type === 'task' ? null : (targetParentId || targetTaskId);
+      
       // Update the backend using moveTask
-      await tasksService.moveTask(dragState.itemId, targetParentId || targetTaskId);
+      await tasksService.moveTask(dragState.itemId, newParentId);
       
       // Fetch updated tasks from the backend to reflect the changes
-      // This ensures we get the correct hierarchy after the move
       const updatedTasks = await tasksService.getTasks();
       setTasks(updatedTasks);
     } catch (error) {
-      console.error('Error moving subtask:', error);
-      // You might want to show a user-friendly error message here
+      console.error('Error moving task/subtask:', error);
     } finally {
-      // Always clear the drag state, whether the operation succeeded or failed
       setDragState(null);
     }
   };

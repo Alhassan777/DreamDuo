@@ -105,3 +105,21 @@ def toggle_task_completion_route(task_id):
         return jsonify({'error': 'Task not found'}), 404
         
     return jsonify(result)
+
+
+@tasks_bp.route('/<int:task_id>/move', methods=['PUT', 'OPTIONS'])
+@jwt_required()
+def move_task_route(task_id):
+    if request.method == 'OPTIONS':
+        # Handle preflight request
+        return '', 200
+
+    user_id = get_jwt_identity()
+    data = request.get_json()
+    new_parent_id = data.get('parent_id')
+
+    if not move_subtask(db.session, task_id, new_parent_id, user_id):
+        return jsonify({'error': 'Failed to move task'}), 400
+
+    # Return the updated task with its subtasks
+    return jsonify(get_task_with_subtasks(db.session, task_id, user_id))
