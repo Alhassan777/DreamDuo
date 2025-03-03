@@ -128,14 +128,27 @@ export const useTasks = () => {
   /**
    * Toggle completion of a subtask.
    */
+  const findSubtaskRecursively = (task: Task, subtaskId: number): Task | undefined => {
+    // Check direct children first
+    const directChild = task.children.find(s => s.id === subtaskId);
+    if (directChild) return directChild;
+
+    // If not found, recursively check children's children
+    for (const child of task.children) {
+      const found = findSubtaskRecursively(child, subtaskId);
+      if (found) return found;
+    }
+    return undefined;
+  };
+
   const toggleSubtaskComplete = async (taskId: number, subtaskId: number) => {
     try {
       // Find the parent task
       const parentTask = tasks.find(t => t.id === taskId);
       if (!parentTask) return;
 
-      // Find the subtask inside parent's children
-      const subtask = parentTask.children.find(s => s.id === subtaskId);
+      // Find the subtask recursively through all levels
+      const subtask = findSubtaskRecursively(parentTask, subtaskId);
       if (!subtask) return;
 
       await tasksService.toggleTaskComplete(subtaskId, !subtask.completed);
