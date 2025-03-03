@@ -78,9 +78,12 @@ def get_task_with_subtasks(session: Session, task_id: int, user_id: int = None) 
     # Query the hierarchy table for all descendants
     subtasks_query = session.execute(
         text("""
-            SELECT t.*, h.depth
+            SELECT t.*, h.depth, c.name as category_name, c.icon as category_icon,
+                   p.color as priority_color
             FROM tasks t
             JOIN task_hierarchy h ON t.id = h.descendant
+            LEFT JOIN categories c ON t.category_id = c.id
+            LEFT JOIN priorities p ON t.priority = p.level
             WHERE h.ancestor = :task_id AND h.depth > 0
             ORDER BY h.depth ASC
         """),
@@ -89,16 +92,37 @@ def get_task_with_subtasks(session: Session, task_id: int, user_id: int = None) 
 
     subtasks_flat = [dict(row._mapping) for row in subtasks_query]
 
+    # Get category information for the main task
+    category = task.category
+    category_info = {
+        'id': category.id,
+        'name': category.name,
+        'description': category.description,
+        'icon': category.icon
+    } if category else None
+
     # Build a nested structure
+    # Get priority color for the main task
+    priority_color = None
+    if task.priority:
+        priority_query = session.execute(
+            text("SELECT color FROM priorities WHERE level = :priority AND user_id = :user_id"),
+            {"priority": task.priority, "user_id": task.user_id}
+        ).first()
+        if priority_query:
+            priority_color = priority_query[0]
+
     task_dict = {
         'id': task.id,
         'name': task.name,
         'description': task.description,
         'completed': task.completed,
-        'priority': task.priority,
+        'priority': priority_color,
         'category_id': task.category_id,
+        'category': category_info,
         'subtasks': build_subtask_hierarchy(subtasks_flat, task.id)
     }
+
     return task_dict
 
 
@@ -112,7 +136,7 @@ def build_subtask_hierarchy(subtasks_flat: List[Dict[str, Any]], parent_id: int)
             'id': child['id'],
             'name': child['name'],
             'completed': child['completed'],
-            'priority': child.get('priority'),  # optional
+            'priority': child.get('priority_color'),  # optional
             'category_id': child.get('category_id'),
             'subtasks': build_subtask_hierarchy(subtasks_flat, child['id'])
         }

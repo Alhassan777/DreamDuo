@@ -10,6 +10,17 @@ export interface TaskCreateRequest {
 }
 
 export type TaskCategory = string;
+
+/**
+ * Category information returned from the backend
+ */
+export interface CategoryResponse {
+  id: number;
+  name: string;
+  description?: string;
+  icon?: string;
+}
+
 /**
  * The shape the backend returns, with "subtasks".
  * Each subtask is itself a TaskResponse in nested form.
@@ -24,6 +35,7 @@ export interface TaskResponse {
   parent_id?: number | null;
   creation_date: string;    // Typically an ISO string from the backend
   subtasks?: TaskResponse[]; // The backend calls them 'subtasks'
+  category?: CategoryResponse; // Category information including name and icon
 }
 
 /**
@@ -54,13 +66,14 @@ function mapTaskResponseToTask(taskRes: TaskResponse): Task {
     name: taskRes.name,
     description: taskRes.description,
     completed: taskRes.completed,
-    priority: taskRes.priority,
+    priority: taskRes.priority, // Priority is a string from the backend
     parent_id: taskRes.parent_id ?? null,
     category_id: taskRes.category_id,
     creation_date: new Date(taskRes.creation_date), // parse ISO string
     collapsed: false, // default to expanded in the UI
     children: (taskRes.subtasks || []).map(mapTaskResponseToTask), // Recursively map subtasks
-    // category, categoryIcon optional
+    category: taskRes.category?.name,
+    categoryIcon: taskRes.category?.icon
   };
 }
 
