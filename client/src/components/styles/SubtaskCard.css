@@ -3,6 +3,10 @@
   width: 100%;
 }
 
+.subtask-card[data-aot-mode="true"] {
+  transition: all 0.2s ease-in-out;
+}
+
 .subtask-card:hover {
   transform: translateY(-2px);
 }
@@ -19,8 +23,18 @@
   width: 100%;
 }
 
+.subtask-card-content[data-aot-mode="true"] {
+  background: rgba(39, 37, 45, 0.85);
+  border: 1px solid var(--aot-primary);
+  backdrop-filter: blur(5px);
+}
+
 .subtask-card-content.completed {
   transform: scale(0.98);
+}
+
+.subtask-card-content[data-aot-mode="true"].completed {
+  border-color: var(--aot-accent);
 }
 
 .subtask-card-content.completed::after {
@@ -63,6 +77,11 @@
   transition: all 0.3s ease-in-out;
 }
 
+.subtask-text[data-aot-mode="true"] {
+  color: var(--aot-text);
+  text-shadow: 0 0 3px var(--aot-accent);
+}
+
 .subtask-text.completed {
   text-decoration: line-through;
   opacity: 0.7;
@@ -97,4 +116,8 @@
 
 .subtask-card.drag-over {
   box-shadow: 0 0 0 2px var(--chakra-colors-purple-500);
+}
+
+.subtask-card[data-aot-mode="true"].drag-over {
+  box-shadow: 0 0 0 2px var(--aot-accent);
 }

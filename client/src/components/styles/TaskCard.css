@@ -10,15 +10,31 @@
   border-color: var(--chakra-colors-gray-700);
 }
 
+.task-card[data-aot-mode="true"] {
+  background: rgba(39, 37, 45, 0.85);
+  border-color: var(--aot-primary);
+  backdrop-filter: blur(5px);
+}
+
 .task-card:hover {
   border-color: var(--chakra-colors-purple-500);
   transform: translateY(-2px);
+}
+
+.task-card[data-aot-mode="true"]:hover {
+  border-color: var(--aot-accent);
+  box-shadow: 0 0 10px var(--aot-accent);
 }
 
 .task-card.completed {
   transform: scale(0.98);
   background: var(--chakra-colors-gray-700);
   border-color: var(--chakra-colors-green-500);
+}
+
+.task-card[data-aot-mode="true"].completed {
+  background: rgba(39, 37, 45, 0.75);
+  border-color: var(--aot-accent);
 }
 
 .task-card.completed::after {
@@ -88,6 +104,12 @@
   flex: 1;
   margin-left: var(--chakra-space-4);
   margin-right: var(--chakra-space-4);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+.task-name[data-aot-mode="true"] {
+  color: var(--aot-text);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7), 0 0 5px var(--aot-accent);
 }
 
 .task-input {

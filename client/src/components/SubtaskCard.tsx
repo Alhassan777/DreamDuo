@@ -1,6 +1,7 @@
 import { Box, VStack, Text, Flex, IconButton, Input } from '@chakra-ui/react';
 import { AddIcon, CheckIcon, CloseIcon } from '@chakra-ui/icons';
 import { useState } from 'react';
+import { useTheme } from '../contexts/ThemeContext';
 import './styles/SubtaskCard.css';
 
 interface Subtask {
@@ -44,6 +45,7 @@ const SubtaskCard = ({
   onDrop,
   dragState
 }: SubtaskCardProps) => {
+  const { isAotMode } = useTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(subtask.name);
 
@@ -81,6 +83,7 @@ const SubtaskCard = ({
   return (
     <Box
       className="subtask-card"
+      data-aot-mode={isAotMode}
       draggable
       onDragStart={(e) => {
         e.currentTarget.style.opacity = '0.5';
@@ -107,6 +110,7 @@ const SubtaskCard = ({
       {/* Subtask Header */}
       <Flex
         className={`subtask-card-content ${subtask.completed ? 'completed' : ''}`}
+        data-aot-mode={isAotMode}
       >
         <Flex className="subtask-card-left">
           {/* Complete / Uncomplete Button */}
@@ -136,6 +140,7 @@ const SubtaskCard = ({
               className="subtask-input"
               size="sm"
               autoFocus
+              data-aot-mode={isAotMode}
             />
           ) : (
             <Text
@@ -159,6 +164,7 @@ const SubtaskCard = ({
             colorScheme="blue"
             size="xs"
             onClick={() => onAddSubtask(taskId, subtask.id)}
+            data-aot-mode={isAotMode}
           />
           {/* Delete Subtask */}
           <IconButton
@@ -167,6 +173,7 @@ const SubtaskCard = ({
             colorScheme="red"
             size="xs"
             onClick={() => onDelete(taskId, subtask.id)}
+            data-aot-mode={isAotMode}
           />
         </Flex>
       </Flex>

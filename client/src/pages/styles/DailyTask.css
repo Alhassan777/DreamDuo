@@ -46,14 +46,13 @@
     display: flex;
     flex-direction: column;
     position: relative;
+    padding: 0.3rem 0.5rem;
   }
   
   /* Toggle background for each mode */
   .daily-tasks-page[data-aot-mode="true"] {
     background-color: var(--aot-background);
-}
-
-
+  }
   
   .daily-tasks-page[data-aot-mode="false"] {
     background-color: var(--chakra-colors-gray-900);
@@ -79,15 +78,16 @@
   
   /* Header / Title / Buttons container */
   .daily-tasks-header {
-    padding: 1rem 1.5rem;
-    margin-bottom: 1rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
     position: relative;
-    z-index: 1; /* Sits above the background */
+    z-index: 1;
   }
   
   .daily-tasks-title {
     font-size: 1.75rem;
-    margin-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+    margin-top: 1rem;
   }
   
   /* AOT vs Default Title Colors */
@@ -103,14 +103,16 @@
   
   /* Buttons row (Add Category, Create Task, etc.) */
   .daily-tasks-buttons {
-    display: flex; /* or grid, if you prefer */
-    gap: 0.75rem;
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
   }
   
   .daily-tasks-container {
-    padding: 0 1.5rem 2rem;
+    padding: 2rem;
     position: relative;
     z-index: 1;
+    margin-top: 1rem;
   }
   
   /* ===========================================================
@@ -240,14 +242,14 @@
   /* Modal Footer Button */
   .daily-tasks-modal-cancel[data-aot-mode="true"] {
     color: var(--aot-accent);
-    background-color: var(--aot-accent);
+    background-color: var(--aot-primary);
     border: 2px solid var(--aot-accent);
     transition: all 0.3s ease;
   }
 
   .daily-tasks-modal-cancel[data-aot-mode="true"]:hover {
-    background-color: var(--aot-accent);
-    color: var(--aot-background);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
 
   .daily-tasks-modal-cancel[data-aot-mode="false"] {

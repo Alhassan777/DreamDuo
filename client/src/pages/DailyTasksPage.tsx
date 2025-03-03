@@ -26,6 +26,7 @@ import { useTasks } from '../hooks/useTasks';
 import { useDragAndDrop } from '../hooks/useDragAndDrop';
 import { useTheme } from '../contexts/ThemeContext';
 import { tagsService, Category } from '../services/tags';
+import { tasksService } from '../services/tasks';
 import './styles/DailyTask.css';
 
 /** PriorityColor is used to render & pick priority options. */
@@ -92,13 +93,15 @@ const DailyTasksPage: React.FC = () => {
     const fetchTags = async () => {
       setIsLoading(true);
       try {
-        const [fetchedCats, fetchedPriorities] = await Promise.all([
+        const [fetchedCats, fetchedPriorities, fetchedTasks] = await Promise.all([
           tagsService.getCategories(),
           tagsService.getPriorities(),
+          tasksService.getTasks(),
         ]);
 
         setCategories(fetchedCats); // Store the full Category objects
         setPriorities(fetchedPriorities);
+        setTasks(fetchedTasks); // Initialize tasks when component mounts
 
         if (fetchedCats.length === 0) {
           toast({
@@ -261,6 +264,8 @@ const DailyTasksPage: React.FC = () => {
                 setNewCategory({ name: '', description: '', icon: '📋' });
                 onOpen();
               }}
+              className={`secondary-button ${isAotMode ? 'aot-mode' : ''}`}
+              data-aot-mode={isAotMode}
             >
               Add Category
             </Button>
@@ -278,6 +283,8 @@ const DailyTasksPage: React.FC = () => {
                 });
                 onOpen();
               }}
+              className={`primary-button ${isAotMode ? 'aot-mode' : ''}`}
+              data-aot-mode={isAotMode}
             >
               Create New Task
             </Button>
@@ -310,13 +317,13 @@ const DailyTasksPage: React.FC = () => {
       </Box>
 
       {/* MODAL for either new Task or new Category */}
-      <Modal isOpen={isOpen} onClose={onClose}>
+      <Modal isOpen={isOpen} onClose={onClose} data-aot-mode={isAotMode}>
         <ModalOverlay />
-        <ModalContent data-aot-mode={isAotMode}>
-          <ModalHeader data-aot-mode={isAotMode}>
+        <ModalContent className="daily-tasks-modal" data-aot-mode={isAotMode}>
+          <ModalHeader className="daily-tasks-modal-header" data-aot-mode={isAotMode}>
             {isTaskMode ? 'Create New Task' : 'Create New Category'}
           </ModalHeader>
-          <ModalCloseButton data-aot-mode={isAotMode} />
+          <ModalCloseButton className="daily-tasks-modal-close" data-aot-mode={isAotMode} />
           <ModalBody>
             {isTaskMode ? (
               <TaskCreationForm
@@ -337,7 +344,12 @@ const DailyTasksPage: React.FC = () => {
             )}
           </ModalBody>
           <ModalFooter>
-            <Button onClick={onClose} mr={3}>
+            <Button
+              onClick={onClose}
+              mr={3}
+              className="cancel-button"
+              data-aot-mode={isAotMode}
+            >
               Cancel
             </Button>
             <Button
@@ -347,6 +359,8 @@ const DailyTasksPage: React.FC = () => {
                 (isTaskMode && !newTask.name.trim()) ||
                 (!isTaskMode && !newCategory.name.trim())
               }
+              className={`${isTaskMode ? 'create-button-primary' : 'create-button-secondary'} ${isAotMode ? 'aot-mode' : ''}`}
+              data-aot-mode={isAotMode}
             >
               {isTaskMode ? 'Create Task' : 'Create Category'}
             </Button>

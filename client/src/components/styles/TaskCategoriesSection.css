@@ -4,18 +4,19 @@
   padding: 1.5rem;
   transition: all 0.3s ease;
 }
-.create-button.primary:hover {
+.create-button-primary:hover,  .create-button-secondary:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(139, 69, 19, 0.3);
   background-color: var(--chakra-colors-purple-600);
 }
-.create-button.primary{
-  background-color: var(--chakra-colors-purple-600);
-  color: white;
+.create-button-primary, .create-button-secondary {
+  background-color: var(--chakra-colors-purple-600) !important;
+  color: white !important;
 }
+
 .cancel-button{
     background-color: white;
-    color: black!important;
+    color: black;
 }
 
 .task-categories-section[data-aot-mode="true"] {
@@ -40,16 +41,17 @@
   transition: all 0.3s ease;
 }
 
-.create-button.primary[data-aot-mode="true"] {
-   background-color: var(--aot-primary);
-  color: var(--aot-accent);
+.create-button-primary[data-aot-mode="true"], .create-button-secondary[data-aot-mode="true"] {
+  background-color: var(--aot-primary)!important;
+  color: var(--aot-accent)!important;
   border: 1px solid var(--aot-accent);
   transition: all 0.3s ease;
 }
 
-.task-categories-section[data-aot-mode="true"] .create-button.primary:hover {
+.task-categories-section[data-aot-mode="true"] .create-button-primary:hover, .create-button-secondary:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(139, 69, 19, 0.3);
+  border: 1px solid var(--aot-accent);
 }
 
 .task-categories-section[data-aot-mode="true"] .chakra-button.accent {
@@ -158,9 +160,16 @@
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(139, 69, 19, 0.3);
 }
-.create-button.primary:hover {
+
+
+.cancel-button {
+  background-color: transparent;
+  color: gray.300;
+  transition: all 0.3s ease;
+}
+
+.cancel-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(139, 69, 19, 0.3);
 }
 
 .heading-text {

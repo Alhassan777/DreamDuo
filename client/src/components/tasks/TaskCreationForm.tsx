@@ -48,18 +48,19 @@ const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
   return (
     <VStack spacing={4} align="stretch">
       <FormControl isRequired>
-        <FormLabel>Task Name</FormLabel>
+        <FormLabel color="white">Task Name</FormLabel>
         <Input
           value={newTask.name}
           onChange={(e) =>
             setNewTask({ ...newTask, name: e.target.value })
           }
           placeholder="Enter task name"
+          color="white"
         />
       </FormControl>
 
       <FormControl>
-        <FormLabel>Description</FormLabel>
+        <FormLabel color="white">Description</FormLabel>
         <Textarea
           value={newTask.description || ''}
           onChange={(e) =>
@@ -68,16 +69,18 @@ const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
           placeholder="Enter task description"
           resize="vertical"
           rows={3}
+          color="white"
         />
       </FormControl>
 
       <FormControl>
-        <FormLabel>Category</FormLabel>
+        <FormLabel color="white">Category</FormLabel>
         <Select
           value={newTask.category_id || ''}
           onChange={(e) =>
             setNewTask({ ...newTask, category_id: e.target.value ? parseInt(e.target.value) : undefined })
           }
+          color="white"
         >
           <option value="">No Category</option>
           {categories.map((cat) => (
@@ -89,13 +92,14 @@ const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
       </FormControl>
 
       <FormControl>
-        <FormLabel>Priority</FormLabel>
+        <FormLabel color="white">Priority</FormLabel>
         {priorities.length > 0 ? (
           <Select
             value={newTask.priority || ''}
             onChange={(e) =>
               setNewTask({ ...newTask, priority: e.target.value || undefined })
             }
+            color="white"
           >
             <option value="">No Priority</option>
             {priorities.map((p) => (

@@ -10,6 +10,7 @@ import {
   Input,
   Circle,
 } from '@chakra-ui/react';
+import { useTheme } from '../contexts/ThemeContext';
 import {
   AddIcon,
   CloseIcon,
@@ -79,6 +80,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
   onDrop,
   dragState,
 }) => {
+  const { isAotMode } = useTheme();
   // Local state for renaming this task
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(task.name);
@@ -118,6 +120,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
   return (
     <Box
       className={`task-card ${task.completed ? 'completed' : ''}`}
+      data-aot-mode={isAotMode}
       draggable
       onDragStart={(e) => {
         e.currentTarget.style.opacity = '0.5';
@@ -151,6 +154,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
             colorScheme="red"
             size="sm"
             onClick={() => onDelete(task.id)}
+            data-aot-mode={isAotMode}
           />
 
           {/* Name (inline edit) */}
@@ -162,12 +166,14 @@ const TaskCard: React.FC<TaskCardProps> = ({
               onKeyDown={handleKeyDown}
               className="task-input"
               autoFocus
+              data-aot-mode={isAotMode}
             />
           ) : (
             <Text
               className={`task-name ${task.completed ? 'completed' : ''}`}
               onDoubleClick={handleDoubleClick}
               title="Double click to edit"
+              data-aot-mode={isAotMode}
             >
               {task.name}
             </Text>
@@ -181,6 +187,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
               colorScheme={task.collapsed ? 'gray' : 'teal'}
               size="sm"
               onClick={() => onToggleCollapse(task.id)}
+              data-aot-mode={isAotMode}
             />
             <IconButton
               icon={<AddIcon />}
@@ -188,6 +195,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
               colorScheme="blue"
               size="sm"
               onClick={() => onAddSubtask(task.id)}
+              data-aot-mode={isAotMode}
             />
           </Flex>
         </Flex>
@@ -195,7 +203,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
         {/* Category & Priority info */}
         <Flex align="center" gap={2}>
           {task.category && (
-            <Tag size="sm">
+            <Tag size="sm" data-aot-mode={isAotMode}>
               {task.categoryIcon && (
                 <span style={{ marginRight: '0.3rem' }}>{task.categoryIcon}</span>
               )}
@@ -203,7 +211,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
             </Tag>
           )}
           {task.priority && (
-            <Circle size="24px" bg={task.priority} title="Priority Level" className="priority-indicator">
+            <Circle size="24px" bg={task.priority} title="Priority Level" className="priority-indicator" data-aot-mode={isAotMode}>
               <StarIcon color="white" boxSize={4} />
             </Circle>
           )}
@@ -212,7 +220,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
         {/* SUBTASKS: expand/collapse. If you want infinite nesting, subtask is rendered below */}
         <Collapse in={!task.collapsed}>
           {subtasks && subtasks.length > 0 && (
-            <VStack align="stretch" pl={4} spacing={2} className="subtasks-container">
+            <VStack align="stretch" pl={4} spacing={2} className="subtasks-container" data-aot-mode={isAotMode}>
               {subtasks.map((sub) => (
                 <SubtaskCard
                   key={sub.id}
