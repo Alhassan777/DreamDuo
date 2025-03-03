@@ -1,4 +1,8 @@
-from models import db
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent))
+
+from .db import db
 from datetime import datetime
 
 class Priority(db.Model):

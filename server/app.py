@@ -1,12 +1,11 @@
-from flask import Flask, request
+from flask import Flask
 from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from datetime import timedelta
 from dotenv import load_dotenv
 import os
-from models import db
+from models.db import db
 import secrets
 # Initialize extensions
 migrate = Migrate()

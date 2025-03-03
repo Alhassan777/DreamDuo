@@ -1,237 +1,183 @@
 import { useState } from 'react';
-import { Task, Subtask } from '../types/task';
+import { tasksService, Task } from '../services/tasks';
 
+/**
+ * Hook for managing tasks in a hierarchical system (with nesting).
+ * 
+ * Assumes tasksService.getTasks() returns Task[] objects 
+ * already nested properly (children instead of subtasks).
+ */
 export const useTasks = () => {
+  /**
+   * React state holding the entire tree of tasks.
+   * Each `Task` can have `children: Task[]` for nested subtasks.
+   */
   const [tasks, setTasks] = useState<Task[]>([]);
 
-  const createTask = (
-    newTask: Omit<Task, 'id' | 'completed' | 'collapsed' | 'subtasks'>
+  /**
+   * Create a new task (top-level or subtask).
+   * The backend automatically sets `creation_date`.
+   */
+  const createTask = async (
+    newTask: Omit<Task, 'id' | 'completed' | 'collapsed' | 'creation_date' | 'children'>
   ) => {
-    setTasks(prevTasks => [
-      ...prevTasks,
-      {
-        id: Date.now(),
-        ...newTask,
-        completed: false,
-        collapsed: false,
-        subtasks: []
-      }
-    ]);
-  };
+    try {
+      // Build the request body for the backend.
+      // If parent_id is null or undefined, pass null to create a root task.
+      await tasksService.createTask({
+        name: newTask.name,
+        priority: newTask.priority,
+        parent_id: newTask.parent_id ?? null,
+        category_id: newTask.category_id
+        // No need to send creation_date — DB sets it.
+      });
 
-  const deleteSubtaskRecursive = (
-    subtasks: Subtask[],
-    subtaskId: number
-  ): Subtask[] => {
-    return subtasks.filter((subtask) => {
-      if (subtask.id === subtaskId) return false;
-      if (subtask.subtasks) {
-        subtask.subtasks = deleteSubtaskRecursive(subtask.subtasks, subtaskId);
-      }
-      return true;
-    });
-  };
-
-  const deleteTask = (taskId: number, subtaskId?: number) => {
-    if (subtaskId === undefined) {
-      setTasks(prevTasks => prevTasks.filter((task) => task.id !== taskId));
-      return;
+      // Fetch the updated list of tasks (fully nested).
+      const updatedTasks = await tasksService.getTasks();
+      setTasks(updatedTasks);
+    } catch (error) {
+      console.error('Error creating task:', error);
+      throw error;
     }
-
-    setTasks(prevTasks =>
-      prevTasks.map((task) => {
-        if (task.id === taskId) {
-          return {
-            ...task,
-            subtasks: task.subtasks
-              ? deleteSubtaskRecursive(task.subtasks, subtaskId)
-              : []
-          };
-        }
-        return task;
-      })
-    );
   };
 
+  /**
+   * Delete a task (either root or subtask).
+   */
+  const deleteTask = async (taskId: number, subtaskId?: number) => {
+    try {
+      if (subtaskId === undefined) {
+        // Deleting a root task
+        await tasksService.deleteTask(taskId);
+        // Optionally do an optimistic update for root-level tasks:
+        setTasks(prev => prev.filter(t => t.id !== taskId));
+        return;
+      }
+
+      // Deleting a subtask
+      await tasksService.deleteTask(subtaskId);
+      // Re-fetch to update the entire hierarchy
+      const updatedTasks = await tasksService.getTasks();
+      setTasks(updatedTasks);
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      throw error;
+    }
+  };
+
+  /**
+   * Toggle a task's collapse/expand state in the UI only.
+   * No server call needed — purely local UI state.
+   */
   const toggleCollapse = (taskId: number) => {
     setTasks(prevTasks =>
-      prevTasks.map((task) => {
-        if (task.id === taskId) {
-          return { ...task, collapsed: !task.collapsed };
-        }
-        return task;
-      })
+      prevTasks.map(task =>
+        task.id === taskId
+          ? { ...task, collapsed: !task.collapsed }
+          : task
+      )
     );
   };
 
-  const addSubtaskRecursive = (
-    subtasks: Subtask[],
-    parentSubtaskId: number,
-    newSubtask: Subtask
-  ): Subtask[] => {
-    return subtasks.map((subtask) => {
-      if (subtask.id === parentSubtaskId) {
-        return {
-          ...subtask,
-          subtasks: [...(subtask.subtasks || []), newSubtask]
-        };
-      }
-      if (subtask.subtasks && subtask.subtasks.length > 0) {
-        return {
-          ...subtask,
-          subtasks: addSubtaskRecursive(subtask.subtasks, parentSubtaskId, newSubtask)
-        };
-      }
-      return subtask;
-    });
+  /**
+   * Add a new subtask (or sub-subtask) under a given parent.
+   */
+  const addSubtask = async (taskId: number, parentSubtaskId?: number) => {
+    try {
+      // If parentSubtaskId is provided, create a subtask under that subtask
+      // Otherwise, create a subtask directly under the task
+      const parentId = parentSubtaskId !== undefined ? parentSubtaskId : taskId;
+      
+      const newSubtaskData = {
+        name: 'New Subtask',
+        parent_id: parentId
+      };
+      
+      // The actual API call should use the correct parent ID
+      await tasksService.addSubtask(parentId, newSubtaskData);
+      
+      // Re-fetch tasks to refresh the nested structure
+      const updatedTasks = await tasksService.getTasks();
+      setTasks(updatedTasks);
+    } catch (error) {
+      console.error('Error adding subtask:', error);
+      throw error;
+    }
   };
 
-  const addSubtask = (taskId: number, parentSubtaskId?: number) => {
-    setTasks(prevTasks =>
-      prevTasks.map((task) => {
-        if (task.id === taskId) {
-          const newSubtask: Subtask = {
-            id: Date.now(),
-            name: 'New Subtask',
-            completed: false,
-            subtasks: []
-          };
+  /**
+   * Toggle completion of a top-level task.
+   */
+  const toggleComplete = async (taskId: number) => {
+    try {
+      // Find the local copy of the task
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
 
-          if (parentSubtaskId === undefined) {
-            return {
-              ...task,
-              subtasks: [...(task.subtasks || []), newSubtask]
-            };
-          }
-
-          return {
-            ...task,
-            subtasks: task.subtasks
-              ? addSubtaskRecursive(task.subtasks, parentSubtaskId, newSubtask)
-              : []
-          };
-        }
-        return task;
-      })
-    );
+      // Call the backend route that toggles completion
+      await tasksService.toggleTaskComplete(taskId, !task.completed);
+      // Re-fetch updated tasks
+      const updatedTasks = await tasksService.getTasks();
+      setTasks(updatedTasks);
+    } catch (error) {
+      console.error('Error toggling task completion:', error);
+      throw error;
+    }
   };
 
-  const toggleComplete = (taskId: number) => {
-    setTasks(prevTasks =>
-      prevTasks.map((task) => {
-        if (task.id === taskId) {
-          return { ...task, completed: !task.completed };
-        }
-        return task;
-      })
-    );
+  /**
+   * Toggle completion of a subtask.
+   */
+  const toggleSubtaskComplete = async (taskId: number, subtaskId: number) => {
+    try {
+      // Find the parent task
+      const parentTask = tasks.find(t => t.id === taskId);
+      if (!parentTask) return;
+
+      // Find the subtask inside parent's children
+      const subtask = parentTask.children.find(s => s.id === subtaskId);
+      if (!subtask) return;
+
+      await tasksService.toggleTaskComplete(subtaskId, !subtask.completed);
+      const updatedTasks = await tasksService.getTasks();
+      setTasks(updatedTasks);
+    } catch (error) {
+      console.error('Error toggling subtask completion:', error);
+      throw error;
+    }
   };
 
-  const toggleSubtaskCompleteRecursive = (
-    subtasks: Subtask[],
-    subtaskId: number
-  ): [Subtask[], boolean] => {
-    const updatedSubtasks = subtasks.map((subtask) => {
-      if (subtask.id === subtaskId) {
-        const newCompleted = !subtask.completed;
-        return {
-          ...subtask,
-          completed: newCompleted,
-          subtasks:
-            subtask.subtasks && subtask.subtasks.length > 0
-              ? subtask.subtasks.map((s) => ({ ...s, completed: newCompleted }))
-              : []
-        };
-      }
-      if (subtask.subtasks && subtask.subtasks.length > 0) {
-        const [updatedNestedSubtasks] = toggleSubtaskCompleteRecursive(
-          subtask.subtasks,
-          subtaskId
-        );
-        return {
-          ...subtask,
-          subtasks: updatedNestedSubtasks,
-          completed: updatedNestedSubtasks.every((child) => child.completed)
-        };
-      }
-      return subtask;
-    });
-
-    const allCompleted = updatedSubtasks.every((subtask) => {
-      if (subtask.subtasks && subtask.subtasks.length > 0) {
-        return subtask.subtasks.every((child) => child.completed);
-      }
-      return subtask.completed;
-    });
-    return [updatedSubtasks, allCompleted];
+  /**
+   * Rename a task (root or otherwise).
+   */
+  const updateTaskName = async (taskId: number, newName: string) => {
+    try {
+      await tasksService.updateTask(taskId, { name: newName });
+      const updatedTasks = await tasksService.getTasks();
+      setTasks(updatedTasks);
+    } catch (error) {
+      console.error('Error updating task name:', error);
+      throw error;
+    }
   };
 
-  const toggleSubtaskComplete = (taskId: number, subtaskId: number) => {
-    setTasks(prevTasks =>
-      prevTasks.map((task) => {
-        if (task.id === taskId && task.subtasks) {
-          const [updatedSubtasks, allSubtasksCompleted] =
-            toggleSubtaskCompleteRecursive(task.subtasks, subtaskId);
-          return {
-            ...task,
-            subtasks: updatedSubtasks,
-            completed: allSubtasksCompleted
-          };
-        }
-        return task;
-      })
-    );
-  };
-
-  const updateTaskName = (taskId: number, newName: string) => {
-    setTasks(prevTasks =>
-      prevTasks.map((task) => {
-        if (task.id === taskId) {
-          return { ...task, name: newName };
-        }
-        return task;
-      })
-    );
-  };
-
-  const updateSubtaskNameRecursive = (
-    subtasks: Subtask[],
-    subtaskId: number,
-    newName: string
-  ): Subtask[] => {
-    return subtasks.map((subtask) => {
-      if (subtask.id === subtaskId) {
-        return { ...subtask, name: newName };
-      }
-      if (subtask.subtasks && subtask.subtasks.length > 0) {
-        return {
-          ...subtask,
-          subtasks: updateSubtaskNameRecursive(subtask.subtasks, subtaskId, newName)
-        };
-      }
-      return subtask;
-    });
-  };
-
-  const updateSubtaskName = (taskId: number, subtaskId: number, newName: string) => {
-    setTasks(prevTasks =>
-      prevTasks.map((task) => {
-        if (task.id === taskId) {
-          return {
-            ...task,
-            subtasks: task.subtasks
-              ? updateSubtaskNameRecursive(task.subtasks, subtaskId, newName)
-              : []
-          };
-        }
-        return task;
-      })
-    );
+  /**
+   * Rename a subtask (convenience method).
+   */
+  const updateSubtaskName = async (taskId: number, subtaskId: number, newName: string) => {
+    try {
+      await tasksService.updateTask(subtaskId, { name: newName });
+      const updatedTasks = await tasksService.getTasks();
+      setTasks(updatedTasks);
+    } catch (error) {
+      console.error('Error updating subtask name:', error);
+      throw error;
+    }
   };
 
   return {
     tasks,
-    setTasks, // Expose the setter for a single source of truth.
+    setTasks,
     createTask,
     deleteTask,
     toggleCollapse,

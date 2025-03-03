@@ -13,58 +13,35 @@ import {
   ModalFooter,
   ModalBody,
   ModalCloseButton,
-  FormControl,
-  FormLabel,
-  Input,
-  Select,
-  Textarea,
-  Center,
-  Text,
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-  PopoverBody,
-  Portal,
-  VStack
+  useToast,
 } from '@chakra-ui/react';
 import { AddIcon } from '@chakra-ui/icons';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 
 import DashboardLayout from '../components/DashboardLayout';
 import TaskCard from '../components/TaskCard';
+import TaskCreationForm from '../components/tasks/TaskCreationForm';
+import CategoryCreationForm from '../components/tasks/CategoryCreationForm';
 import { useTasks } from '../hooks/useTasks';
 import { useDragAndDrop } from '../hooks/useDragAndDrop';
 import { useTheme } from '../contexts/ThemeContext';
-import { TaskCategory } from '../types/task';
+import { tagsService, Category } from '../services/tags';
 import './styles/DailyTask.css';
 
-const DailyTasksPage = () => {
-  const { isOpen, onOpen, onClose } = useDisclosure();
+/** PriorityColor is used to render & pick priority options. */
+interface PriorityColor {
+  level: string;
+  color: string;
+}
+
+const DailyTasksPage: React.FC = () => {
+  const toast = useToast();
   const { isAotMode } = useTheme();
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
-  // Categories stored in local state
-  const [categories, setCategories] = useState<string[]>([]);
-
-  // For creating a new task
-  const [newTask, setNewTask] = useState({
-    name: '',
-    category: '',
-    priority: ''
-  });
-
-  // For creating a new category
-  const [newCategory, setNewCategory] = useState({
-    name: '',
-    description: '',
-    icon: '📋'
-  });
-
-  // Show/hide the emoji picker
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-
-  // Task management from custom hook
+  // From your custom tasks hook
   const {
-    tasks: initialTasks,
+    tasks,
     createTask,
     deleteTask,
     toggleCollapse,
@@ -72,84 +49,212 @@ const DailyTasksPage = () => {
     toggleComplete,
     toggleSubtaskComplete,
     updateTaskName,
-    updateSubtaskName
+    updateSubtaskName,
+    setTasks,
   } = useTasks();
 
-  const [tasks, setTasks] = useState(initialTasks);
+  // Category & Priority arrays
+  const [categories, setCategories] = useState<Category[]>([]); // Changed from string[] to Category[]
+  const [priorities, setPriorities] = useState<PriorityColor[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Whenever initialTasks updates (e.g., from context or storage), sync local tasks
-  useEffect(() => {
-    setTasks(initialTasks);
-  }, [initialTasks]);
+  // For new category creation
+  const [newCategory, setNewCategory] = useState({
+    name: '',
+    description: '',
+    icon: '📋',
+  });
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
-  // Drag-and-drop management from custom hook
-  const { dragState, handleDragStart, handleDrop, handleDragEnd } = useDragAndDrop(tasks, setTasks);
-
-  // Toggle between creating a Task or a Category in the modal
-  const [isTaskMode, setIsTaskMode] = useState(true);
-
-  const handleCreateTask = () => {
-    if (newTask.name.trim()) {
-      createTask({
-        name: newTask.name,
-        category: newTask.category,
-        priority: newTask.priority
-      });
-      // Reset the task form, defaulting to the first category if any
-      setNewTask({
-        name: '',
-        category: categories[0] || '',
-        priority: ''
-      });
-      onClose();
-    }
-  };
-
+  // Handle emoji selection for category creation
   const handleEmojiClick = (emojiData: EmojiClickData) => {
-    setNewCategory((prev) => ({ ...prev, icon: emojiData.emoji }));
+    setNewCategory(prev => ({ ...prev, icon: emojiData.emoji }));
     setShowEmojiPicker(false);
   };
 
-  const handleCreateCategory = () => {
-    if (newCategory.name.trim()) {
-      setCategories((prev) => [...prev, newCategory.name]);
-      setNewCategory({
+  // For creating a new *root-level* task
+  const [newTask, setNewTask] = useState({
+    name: '',
+    description: '',
+    category_id: undefined as number | undefined,
+    priority: undefined as string | undefined,
+    parent_id: null as number | null,
+  });
+
+  // Decide whether the modal is for a Task or Category
+  const [isTaskMode, setIsTaskMode] = useState(true);
+
+  // Drag-and-drop from your custom hook
+  const { dragState, handleDragStart, handleDrop } = useDragAndDrop(tasks, setTasks);
+
+  // Load categories & priorities
+  useEffect(() => {
+    const fetchTags = async () => {
+      setIsLoading(true);
+      try {
+        const [fetchedCats, fetchedPriorities] = await Promise.all([
+          tagsService.getCategories(),
+          tagsService.getPriorities(),
+        ]);
+
+        setCategories(fetchedCats); // Store the full Category objects
+        setPriorities(fetchedPriorities);
+
+        if (fetchedCats.length === 0) {
+          toast({
+            title: 'No Categories Found',
+            description: 'Add categories to better organize your tasks',
+            status: 'info',
+            duration: 5000,
+            isClosable: true,
+          });
+        }
+        if (fetchedPriorities.length === 0) {
+          toast({
+            title: 'No Priority Levels Set',
+            description: 'Set up priority levels to manage task importance',
+            status: 'info',
+            duration: 5000,
+            isClosable: true,
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching categories/priorities:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load categories & priorities',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchTags();
+  }, [toast]);
+
+  const handleCreateTask = async () => {
+    if (!newTask.name.trim()) return;
+    setIsLoading(true);
+
+    try {
+      await createTask({
+        name: newTask.name,
+        description: newTask.description,
+        category_id: newTask.category_id,
+        priority: newTask.priority,
+        parent_id: null // root-level
+      });
+      
+      setNewTask({
         name: '',
         description: '',
-        icon: '📋'
+        category_id: undefined,
+        priority: '',
+        parent_id: null
+      });
+      
+      toast({
+        title: 'Task Created',
+        status: 'success',
+        duration: 2000,
+        isClosable: true,
       });
       onClose();
+    } catch (error) {
+      console.error('Error creating task:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to create task',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  /**
+   * Create a new Category
+   */
+  const handleCreateCategory = async () => {
+    if (!newCategory.name.trim()) return;
+    setIsLoading(true);
+
+    try {
+      const createdCat = await tagsService.createCategory({
+        name: newCategory.name,
+        description: newCategory.description,
+        icon: newCategory.icon,
+      });
+
+      setCategories((prev) => [...prev, createdCat]);
+      setNewCategory({ name: '', description: '', icon: '📋' });
+
+      toast({
+        title: 'Category Created',
+        status: 'success',
+        duration: 2000,
+        isClosable: true,
+      });
+      onClose();
+    } catch (error) {
+      console.error('Error creating category:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to create category',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * Delete Task or Subtask, then show a toast
+   */
+  const handleDeleteTask = (taskId: number, subtaskId?: number) => {
+    deleteTask(taskId, subtaskId)
+      .then(() => {
+        toast({
+          title: 'Task Deleted',
+          status: 'success',
+          duration: 2000,
+          isClosable: true,
+        });
+      })
+      .catch((error) => {
+        console.error('Error deleting task:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to delete task',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+      });
   };
 
   return (
     <DashboardLayout>
-      {/* Outer container with AOT class toggling */}
       <Box
         className={`daily-tasks-page ${isAotMode ? 'aot-mode' : ''}`}
         data-aot-mode={isAotMode}
       >
-        <Flex
-          className="daily-tasks-header"
-          justify="space-between"
-          align="center"
-          position="relative"
-          zIndex={1}
-        >
+        {/* HEADER */}
+        <Flex justify="space-between" align="center" position="relative" zIndex={1}>
           <Box flex="1">
-            <Heading
-              className="daily-tasks-title"
-              data-aot-mode={isAotMode}
-            >
+            <Heading className="daily-tasks-title" data-aot-mode={isAotMode}>
               ☑️ Today&apos;s Tasks
             </Heading>
           </Box>
 
-          {/* Action buttons */}
-          <Flex className="daily-tasks-buttons">
+          <Flex>
             <Button
-              className="secondary-button"
-              data-aot-mode={isAotMode}
               leftIcon={<AddIcon />}
               onClick={() => {
                 setIsTaskMode(false);
@@ -159,14 +264,18 @@ const DailyTasksPage = () => {
             >
               Add Category
             </Button>
-
             <Button
-              className="primary-button"
-              data-aot-mode={isAotMode}
               leftIcon={<AddIcon />}
+              ml={4}
               onClick={() => {
                 setIsTaskMode(true);
-                setNewTask({ name: '', category: categories[0] || '', priority: '' });
+                setNewTask({
+                  name: '',
+                  description: '',
+                  category_id: categories.length > 0 ? categories[0].id : undefined,
+                  priority: '',
+                  parent_id: null
+                });
                 onOpen();
               }}
             >
@@ -175,20 +284,22 @@ const DailyTasksPage = () => {
           </Flex>
         </Flex>
 
-        {/* Task cards grid */}
-        <Box className="daily-tasks-container" flex="1" overflow="auto">
+        {/* MAIN CONTENT */}
+        <Box className="daily-tasks-container" flex="1" overflow="auto" mt={6}>
           <Grid templateColumns="repeat(3, 1fr)" gap={6}>
             {tasks.map((task) => (
               <TaskCard
                 key={task.id}
+                // This 'task' prop is correct for <TaskCard>, not for <TaskCreationForm>.
                 task={task}
-                onDelete={deleteTask}
+                onDelete={handleDeleteTask}
                 onToggleCollapse={toggleCollapse}
                 onAddSubtask={addSubtask}
                 onToggleComplete={toggleComplete}
                 onToggleSubtaskComplete={toggleSubtaskComplete}
                 onUpdateName={updateTaskName}
                 onUpdateSubtaskName={updateSubtaskName}
+                // Drag
                 onDragStart={handleDragStart}
                 onDrop={handleDrop}
                 dragState={dragState}
@@ -198,153 +309,44 @@ const DailyTasksPage = () => {
         </Box>
       </Box>
 
-      {/* Creation Modal: Reused for either new task or new category */}
+      {/* MODAL for either new Task or new Category */}
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
-        <ModalContent
-          className="daily-tasks-modal"
-          data-aot-mode={isAotMode}
-        >
-          <ModalHeader
-            className="daily-tasks-modal-header"
-            data-aot-mode={isAotMode}
-          >
+        <ModalContent data-aot-mode={isAotMode}>
+          <ModalHeader data-aot-mode={isAotMode}>
             {isTaskMode ? 'Create New Task' : 'Create New Category'}
           </ModalHeader>
-
-          <ModalCloseButton
-            className="daily-tasks-modal-close"
-            data-aot-mode={isAotMode}
-          />
-
+          <ModalCloseButton data-aot-mode={isAotMode} />
           <ModalBody>
-            {!isTaskMode ? (
-              // Category Creation Form
-              <VStack spacing={4}>
-                <FormControl>
-                  <FormLabel className="daily-tasks-form-label">
-                    Category Name
-                  </FormLabel>
-                  <Input
-                    className="daily-tasks-form-input"
-                    value={newCategory.name}
-                    onChange={(e) =>
-                      setNewCategory((prev) => ({ ...prev, name: e.target.value }))
-                    }
-                    placeholder="Enter category name"
-                  />
-                </FormControl>
-
-                <FormControl>
-                  <FormLabel className="daily-tasks-form-label">
-                    Description (Optional)
-                  </FormLabel>
-                  <Textarea
-                    className="daily-tasks-form-input"
-                    value={newCategory.description}
-                    onChange={(e) =>
-                      setNewCategory((prev) => ({ ...prev, description: e.target.value }))
-                    }
-                    placeholder="Enter category description"
-                    resize="vertical"
-                    rows={3}
-                  />
-                </FormControl>
-
-                <FormControl>
-                  <FormLabel className="daily-tasks-form-label">Icon</FormLabel>
-                  <Flex justify="center" align="center">
-                    <Popover
-                      isOpen={showEmojiPicker}
-                      onClose={() => setShowEmojiPicker(false)}
-                      placement="bottom"
-                    >
-                      <PopoverTrigger>
-                        <Center
-                          className="daily-tasks-emoji-picker"
-                          onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                        >
-                          <Text fontSize="3xl">{newCategory.icon}</Text>
-                        </Center>
-                      </PopoverTrigger>
-
-                      <Portal>
-                        <PopoverContent
-                          width="320px"
-                          maxHeight="400px"
-                          overflowY="auto"
-                          boxShadow="xl"
-                        >
-                          <PopoverBody p={0}>
-                            <EmojiPicker
-                              onEmojiClick={handleEmojiClick}
-                              width="320px"
-                              height="400px"
-                            />
-                          </PopoverBody>
-                        </PopoverContent>
-                      </Portal>
-                    </Popover>
-                  </Flex>
-                </FormControl>
-              </VStack>
+            {isTaskMode ? (
+              <TaskCreationForm
+                newTask={newTask}
+                setNewTask={setNewTask}
+                categories={categories}
+                priorities={priorities}
+                onClose={onClose}
+              />
             ) : (
-              // Task Creation Form
-              <>
-                <FormControl mb={4}>
-                  <FormLabel className="daily-tasks-form-label">Task Name</FormLabel>
-                  <Input
-                    className="daily-tasks-form-input"
-                    value={newTask.name}
-                    onChange={(e) => setNewTask({ ...newTask, name: e.target.value })}
-                    placeholder="Enter task name"
-                  />
-                </FormControl>
-
-                <FormControl mb={4}>
-                  <FormLabel className="daily-tasks-form-label">Category</FormLabel>
-                  <Select
-                    className="daily-tasks-form-input"
-                    value={newTask.category}
-                    onChange={(e) =>
-                      setNewTask({ ...newTask, category: e.target.value as TaskCategory })
-                    }
-                  >
-                    {categories.map((category) => (
-                      <option key={category} value={category}>
-                        {category}
-                      </option>
-                    ))}
-                  </Select>
-                </FormControl>
-
-                <FormControl>
-                  <FormLabel className="daily-tasks-form-label">Priority</FormLabel>
-                  <Select
-                    className="daily-tasks-form-input"
-                    value={newTask.priority}
-                    onChange={(e) =>
-                      setNewTask({ ...newTask, priority: e.target.value })
-                    }
-                  >
-                    <option value="">No Priority</option>
-                    <option value="red.500">High</option>
-                    <option value="yellow.500">Medium</option>
-                    <option value="green.500">Low</option>
-                  </Select>
-                </FormControl>
-              </>
+              <CategoryCreationForm
+                newCategory={newCategory}
+                setNewCategory={setNewCategory}
+                showEmojiPicker={showEmojiPicker}
+                setShowEmojiPicker={setShowEmojiPicker}
+                handleEmojiClick={handleEmojiClick}
+              />
             )}
           </ModalBody>
-
           <ModalFooter>
-            <Button className="daily-tasks-modal-cancel" onClick={onClose}>
+            <Button onClick={onClose} mr={3}>
               Cancel
             </Button>
             <Button
-              className="primary-button"
-              data-aot-mode={isAotMode}
               onClick={isTaskMode ? handleCreateTask : handleCreateCategory}
+              isLoading={isLoading}
+              isDisabled={
+                (isTaskMode && !newTask.name.trim()) ||
+                (!isTaskMode && !newCategory.name.trim())
+              }
             >
               {isTaskMode ? 'Create Task' : 'Create Category'}
             </Button>
