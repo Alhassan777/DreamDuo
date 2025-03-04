@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { tasksService, Task } from '../services/tasks';
+import { tasksService, Task, TaskCreateRequest } from '../services/tasks';
 
 /**
  * Hook for managing tasks in a hierarchical system (with nesting).
@@ -19,7 +19,7 @@ export const useTasks = () => {
    * The backend automatically sets `creation_date`.
    */
   const createTask = async (
-    newTask: Omit<Task, 'id' | 'completed' | 'collapsed' | 'creation_date' | 'children'>
+    newTask: TaskCreateRequest
   ) => {
     try {
       // Build the request body for the backend.
@@ -28,8 +28,8 @@ export const useTasks = () => {
         name: newTask.name,
         priority: newTask.priority,
         parent_id: newTask.parent_id ?? null,
-        category_id: newTask.category_id
-        // No need to send creation_date — DB sets it.
+        category_id: newTask.category_id,
+        creation_date: newTask.creation_date
       });
 
       // Fetch the updated list of tasks (fully nested).

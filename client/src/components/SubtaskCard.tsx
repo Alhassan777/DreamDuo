@@ -9,12 +9,12 @@ interface Subtask {
   name: string;
   completed: boolean;
   children: Subtask[];
-  subtasks?: Subtask[]; // Keep for backward compatibility
-  parent_id?: number; // Add parent_id property
+  subtasks?: Subtask[];
+  parent_id: number | null;
 }
 
 interface SubtaskCardProps {
-  taskId: number;  // The *top-level* task ID this subtask belongs to
+  taskId: number;
   subtask: Subtask;
   onDelete: (taskId: number, subtaskId: number) => void;
   onAddSubtask: (taskId: number, parentSubtaskId: number) => void;
@@ -24,9 +24,9 @@ interface SubtaskCardProps {
     type: 'subtask' | 'sub-subtask', 
     taskId: number, 
     itemId: number, 
-    parentId?: number
+    parentId: number | null
   ) => void;
-  onDrop: (taskId: number, parentId?: number) => void;
+  onDrop: (taskId: number, parentId: number | null) => void;
   dragState: {
     type: 'task' | 'subtask' | 'sub-subtask';
     sourceTaskId: number;

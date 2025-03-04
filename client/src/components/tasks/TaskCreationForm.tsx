@@ -10,6 +10,7 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { Category } from '../../services/tags';
+import { TaskCreateRequest } from '../../services/tasks';
 
 interface PriorityColor {
   level: string;
@@ -17,24 +18,13 @@ interface PriorityColor {
 }
 
 interface TaskCreationFormProps {
-  newTask: {
-    name: string;
-    description: string;
-    category_id: number | undefined;
-    priority: string | undefined;
-    parent_id: number | null;
-  };
-  setNewTask: React.Dispatch<
-    React.SetStateAction<{
-      name: string;
-      description: string;
-      category_id: number | undefined;
-      priority: string | undefined;
-      parent_id: number | null;
-    }>
-  >;
+  /** Matches the TaskCreateRequest shape exactly */
+  newTask: TaskCreateRequest;
+  /** State setter also uses the same TaskCreateRequest type */
+  setNewTask: React.Dispatch<React.SetStateAction<TaskCreateRequest>>;
   categories: Category[];
   priorities: PriorityColor[];
+  /** Called when user cancels or finishes creating a task */
   onClose: () => void;
 }
 
@@ -52,7 +42,7 @@ const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
         <Input
           value={newTask.name}
           onChange={(e) =>
-            setNewTask({ ...newTask, name: e.target.value })
+            setNewTask((prev) => ({ ...prev, name: e.target.value }))
           }
           placeholder="Enter task name"
           color="white"
@@ -62,9 +52,9 @@ const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
       <FormControl>
         <FormLabel color="white">Description</FormLabel>
         <Textarea
-          value={newTask.description || ''}
+          value={newTask.description ?? ''}
           onChange={(e) =>
-            setNewTask({ ...newTask, description: e.target.value })
+            setNewTask((prev) => ({ ...prev, description: e.target.value }))
           }
           placeholder="Enter task description"
           resize="vertical"
@@ -76,9 +66,14 @@ const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
       <FormControl>
         <FormLabel color="white">Category</FormLabel>
         <Select
-          value={newTask.category_id || ''}
+          value={newTask.category_id ?? ''}
           onChange={(e) =>
-            setNewTask({ ...newTask, category_id: e.target.value ? parseInt(e.target.value) : undefined })
+            setNewTask((prev) => ({
+              ...prev,
+              category_id: e.target.value
+                ? parseInt(e.target.value, 10)
+                : undefined,
+            }))
           }
           color="white"
         >
@@ -95,9 +90,12 @@ const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
         <FormLabel color="white">Priority</FormLabel>
         {priorities.length > 0 ? (
           <Select
-            value={newTask.priority || ''}
+            value={newTask.priority ?? ''}
             onChange={(e) =>
-              setNewTask({ ...newTask, priority: e.target.value || undefined })
+              setNewTask((prev) => ({
+                ...prev,
+                priority: e.target.value || undefined,
+              }))
             }
             color="white"
           >
@@ -128,7 +126,8 @@ const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
         )}
       </FormControl>
 
-
+      {/* If you want to show a date picker or handle creation_date, 
+          you can add another FormControl here. */}
     </VStack>
   );
 };

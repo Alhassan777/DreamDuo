@@ -12,21 +12,23 @@ def add_task(session: Session,
              description: str = None,
              parent_id: int = None,
              category_id: int = None,
-             priority: str = None) -> Task:
+             priority: str = None,
+             creation_date: datetime = None) -> Task:
     """
     Add a new task with proper hierarchy management.
     Automatically sets creation_date via the DB default.
     """
 
     new_task = Task(
+
         name=name,
         description=description,
         parent_id=parent_id,
         user_id=user_id,
         category_id=category_id,
-        priority=priority
-        # No need to manually set creation_date unless you want to override
-    )
+        priority=priority,
+        creation_date=creation_date)
+    creation_date=creation_date
     session.add(new_task)
     session.flush()  # Acquire the new task ID
 

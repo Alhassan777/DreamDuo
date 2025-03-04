@@ -1,29 +1,24 @@
 import api from './api';
 
-// Types for API requests/responses
+// ------------------
+// Types for API
+// ------------------
+
+/**
+ * Request shape used to create or update a Task,
+ * expecting an ISO string for `creation_date`.
+ */
 export interface TaskCreateRequest {
   name: string;
   category_id?: number;
+  description?: string;
   priority?: string;
   parent_id: number | null;
-  // creation_date?: string; // Not needed, since the backend sets it
-}
-
-export type TaskCategory = string;
-
-/**
- * Category information returned from the backend
- */
-export interface CategoryResponse {
-  id: number;
-  name: string;
-  description?: string;
-  icon?: string;
+  creation_date?: string | null;  // ISO string (if provided)
 }
 
 /**
- * The shape the backend returns, with "subtasks".
- * Each subtask is itself a TaskResponse in nested form.
+ * The backend returns tasks in this shape, using ISO strings for dates.
  */
 export interface TaskResponse {
   id: number;
@@ -33,13 +28,20 @@ export interface TaskResponse {
   priority?: string;
   category_id?: number;
   parent_id?: number | null;
-  creation_date: string;    // Typically an ISO string from the backend
-  subtasks?: TaskResponse[]; // The backend calls them 'subtasks'
-  category?: CategoryResponse; // Category information including name and icon
+  creation_date: string;          // An ISO date string from the backend
+  subtasks?: TaskResponse[];      // 'subtasks' are nested tasks
+  category?: CategoryResponse;    // Additional info about the category
+}
+
+export interface CategoryResponse {
+  id: number;
+  name: string;
+  description?: string;
+  icon?: string;
 }
 
 /**
- * The front-end Task shape, with 'children' for nesting.
+ * Front-end shape for a Task. Again, store dates as ISO strings.
  */
 export interface Task {
   id: number;
@@ -49,12 +51,16 @@ export interface Task {
   priority?: string;
   category_id?: number;
   parent_id: number | null;
-  creation_date: Date;      // We'll parse from ISO
+  creation_date: string; // Keep as ISO string
   collapsed?: boolean;
-  children: Task[];
+  children: Task[]; 
   category?: string;
   categoryIcon?: string;
 }
+
+// ------------------
+// Conversion helpers
+// ------------------
 
 /**
  * Recursively converts the backend's TaskResponse (which may have nested subtasks)
@@ -66,37 +72,54 @@ function mapTaskResponseToTask(taskRes: TaskResponse): Task {
     name: taskRes.name,
     description: taskRes.description,
     completed: taskRes.completed,
-    priority: taskRes.priority, // Priority is a string from the backend
+    priority: taskRes.priority, 
     parent_id: taskRes.parent_id ?? null,
     category_id: taskRes.category_id,
-    creation_date: new Date(taskRes.creation_date), // parse ISO string
-    collapsed: false, // default to expanded in the UI
-    children: (taskRes.subtasks || []).map(mapTaskResponseToTask), // Recursively map subtasks
+    creation_date: taskRes.creation_date,         // Keep the ISO string 
+    collapsed: false,                             // Default UI preference
+    children: (taskRes.subtasks || []).map(mapTaskResponseToTask),
     category: taskRes.category?.name,
     categoryIcon: taskRes.category?.icon
   };
 }
 
+// ------------------
+// Task service
+// ------------------
+
 export const tasksService = {
   /**
-   * Fetches all tasks from '/tasks/',
-   * which returns an array of root tasks with nested 'subtasks'.
-   * We then map them into the `Task` shape (with 'children').
+   * Fetches all root tasks. Each task can contain nested 'subtasks'.
    */
   getTasks: async (): Promise<Task[]> => {
     try {
       const response = await api.get<TaskResponse[]>('/tasks/');
-      const taskResponses = response.data; // Each item can have nested 'subtasks'
-      // Convert each root TaskResponse into a front-end Task
-      const tasks: Task[] = taskResponses.map(mapTaskResponseToTask);
-      return tasks;
+      const taskResponses = response.data;
+      return taskResponses.map(mapTaskResponseToTask);
     } catch (error) {
       throw error;
     }
   },
 
-  // (no changes needed in the following methods except for type signatures)
-  
+  /**
+   * Fetches tasks filtered by an exact ISO date/time string.
+   * Example usage:
+   *   tasksService.getTasksByDate(new Date().toISOString());
+   */
+  getTasksByDate: async (isoString: string): Promise<Task[]> => {
+    try {
+      // Pass the entire ISO string as a query parameter (the backend must accept it)
+      const response = await api.get<TaskResponse[]>(`/tasks/?date=${encodeURIComponent(isoString)}`);
+      const taskResponses = response.data;
+      return taskResponses.map(mapTaskResponseToTask);
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Fetch a task's entire hierarchy by ID.
+   */
   getTaskHierarchy: async (taskId: number) => {
     try {
       const response = await api.get(`/tasks/${taskId}/hierarchy`);
@@ -106,6 +129,9 @@ export const tasksService = {
     }
   },
 
+  /**
+   * Moves a task to a new parent, then returns the updated task.
+   */
   moveTask: async (taskId: number, newParentId: number | null): Promise<Task> => {
     try {
       const response = await api.put(`/tasks/${taskId}/move`, { parent_id: newParentId });
@@ -115,8 +141,18 @@ export const tasksService = {
     }
   },
 
+  /**
+   * Creates a new task. Make sure `creation_date` is an ISO string if provided.
+   * If not provided, you can generate a default one here:
+   *
+   *   task.creation_date = task.creation_date ?? new Date().toISOString();
+   */
   createTask: async (task: TaskCreateRequest): Promise<TaskResponse> => {
     try {
+      // Optional: Provide a default date if none is supplied
+      if (!task.creation_date) {
+        task.creation_date = new Date().toISOString();
+      }
       const response = await api.post('/tasks/', task);
       return response.data;
     } catch (error) {
@@ -124,6 +160,9 @@ export const tasksService = {
     }
   },
 
+  /**
+   * Updates an existing task. Partial updates can include a new ISO creation_date.
+   */
   updateTask: async (taskId: number, updates: Partial<TaskCreateRequest>): Promise<TaskResponse> => {
     try {
       const response = await api.put(`/tasks/${taskId}`, updates);
@@ -133,6 +172,9 @@ export const tasksService = {
     }
   },
 
+  /**
+   * Deletes a task by ID.
+   */
   deleteTask: async (taskId: number): Promise<{ message: string }> => {
     try {
       const response = await api.delete(`/tasks/${taskId}`);
@@ -142,10 +184,12 @@ export const tasksService = {
     }
   },
 
+  /**
+   * Toggles a task's 'completed' status on the server.
+   * Some backends ignore the 'completed' value you send; it depends on the API.
+   */
   toggleTaskComplete: async (taskId: number, completed: boolean): Promise<TaskResponse> => {
     try {
-      // Currently your backend route toggles automatically, ignoring 'completed'
-      // If you want to pass 'completed', you'd do: { completed } instead of {}
       const response = await api.put(`/tasks/${taskId}/toggle`, {});
       return response.data;
     } catch (error) {
@@ -153,6 +197,9 @@ export const tasksService = {
     }
   },
 
+  /**
+   * Adds a new subtask under a given parent task.
+   */
   addSubtask: async (parentId: number, subtask: { name: string }): Promise<TaskResponse> => {
     try {
       const response = await api.post('/tasks/', {
@@ -165,6 +212,9 @@ export const tasksService = {
     }
   },
 
+  /**
+   * Updates just the name of a given task.
+   */
   updateTaskName: async (taskId: number, newName: string): Promise<TaskResponse> => {
     try {
       const response = await api.put(`/tasks/${taskId}`, { name: newName });
@@ -174,4 +224,3 @@ export const tasksService = {
     }
   },
 };
-

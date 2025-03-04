@@ -12,9 +12,21 @@ from datetime import datetime
 @jwt_required()
 def get_tasks():
     user_id = get_jwt_identity()
-    # Get all root tasks for this user
-    root_tasks = get_root_tasks(db.session, user_id)
-    # Build and return a nested JSON for each root task
+    date_str = request.args.get('date')
+    
+    # Get tasks filtered by date if provided
+    query = Task.query.filter_by(user_id=user_id)
+    
+    if date_str:
+        try:
+            filter_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            query = query.filter(db.func.date(Task.creation_date) == filter_date)
+        except ValueError:
+            return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
+    
+    # Get all tasks for the date and build hierarchy
+    tasks = query.all()
+    root_tasks = [t for t in tasks if t.parent_id is None]
     return jsonify([get_task_with_subtasks(db.session, task.id, user_id) for task in root_tasks])
 
 
@@ -28,17 +40,27 @@ def create_task():
         return jsonify({'error': 'Task name is required'}), 400
 
     try:
+        # Parse if your front-end sends an ISO string
+        creation_date_str = data.get('creation_date')
+        creation_date_dt = None
+        if creation_date_str:
+            try:
+                creation_date_dt = datetime.fromisoformat(creation_date_str)
+            except ValueError:
+                # Fallback to strptime if not in ISO format
+                creation_date_dt = datetime.strptime(creation_date_str, '%Y-%m-%dT%H:%M:%S')
+
         new_task = add_task(
             session=db.session,
             name=data['name'],
             user_id=user_id,
-            description=data.get('description', None),
-            parent_id=data.get('parent_id', None),
-            category_id=data.get('category_id', None),
-            priority=data.get('priority') if data.get('priority') else None
+            description=data.get('description'),
+            parent_id=data.get('parent_id'),
+            category_id=data.get('category_id'),
+            priority=data.get('priority'),
+            creation_date=creation_date_dt  # pass the parsed datetime
         )
 
-        # Return the newly created task with subtasks (likely empty at creation)
         return jsonify(get_task_with_subtasks(db.session, new_task.id, user_id)), 201
     except Exception as e:
         db.session.rollback()

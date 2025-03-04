@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Flex,
@@ -7,16 +8,47 @@ import {
   Text,
   IconButton,
   Select,
-  Button
+  Button,
+  Badge
 } from '@chakra-ui/react';
 import { ChevronLeftIcon, ChevronRightIcon, CalendarIcon } from '@chakra-ui/icons';
 import { useTheme } from '../contexts/ThemeContext';
 import DashboardLayout from '../components/DashboardLayout';
+import DayTasksModal from '../components/tasks/DayTasksModal';
+import { tasksService, Task } from '../services/tasks';
+import { tagsService, Category } from '../services/tags';
 import './styles/calendarPage.css'; // Import the CSS file
 
 const CalendarPage = () => {
   const { isAotMode } = useTheme();
+  const navigate = useNavigate();
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [dayTasks, setDayTasks] = useState<Task[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [priorities, setPriorities] = useState<{level: string; color: string}[]>([]);
+  
+  // Fetch all tasks, categories, and priorities when component mounts
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [tasksData, categoriesData, prioritiesData] = await Promise.all([
+          tasksService.getTasks(),
+          tagsService.getCategories(),
+          tagsService.getPriorities()
+        ]);
+        setTasks(tasksData);
+        setCategories(categoriesData);
+        setPriorities(prioritiesData);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    
+    fetchData();
+  }, []);
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
@@ -52,6 +84,118 @@ const CalendarPage = () => {
     setCurrentDate(new Date(newYear, currentDate.getMonth(), 1));
   };
 
+  // Get tasks for a specific day
+  const getTasksForDay = async (date: Date) => {
+    try {
+      // Filter tasks by the selected date
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+      
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
+      
+      const tasksForDay = tasks.filter(task => {
+        const taskDate = new Date(task.creation_date);
+        return taskDate >= startOfDay && taskDate <= endOfDay;
+      });
+      
+      setDayTasks(tasksForDay);
+      return tasksForDay;
+    } catch (error) {
+      console.error('Error fetching tasks for day:', error);
+      return [];
+    }
+  };
+  
+  // Handle day click to navigate to DailyTasksPage with the selected date
+  const handleDayClick = (day: number) => {
+    const clickedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+    // Format date as YYYY-MM-DD for the URL
+    const formattedDate = clickedDate.toISOString().split('T')[0];
+    // Navigate to DailyTasksPage with the selected date using React Router
+    navigate(`/daily-tasks/${formattedDate}`);
+  };
+  
+  // Task CRUD operations
+  const handleCreateTask = async (task: any) => {
+    try {
+      await tasksService.createTask(task);
+      // Refresh tasks for the selected day
+      if (selectedDate) {
+        const updatedTasks = await getTasksForDay(selectedDate);
+        setDayTasks(updatedTasks);
+      }
+      // Also refresh all tasks
+      const allTasks = await tasksService.getTasks();
+      setTasks(allTasks);
+    } catch (error) {
+      console.error('Error creating task:', error);
+    }
+  };
+  
+  const handleDeleteTask = async (taskId: number) => {
+    try {
+      await tasksService.deleteTask(taskId);
+      // Refresh tasks for the selected day
+      if (selectedDate) {
+        const updatedTasks = await getTasksForDay(selectedDate);
+        setDayTasks(updatedTasks);
+      }
+      // Also refresh all tasks
+      const allTasks = await tasksService.getTasks();
+      setTasks(allTasks);
+    } catch (error) {
+      console.error('Error deleting task:', error);
+    }
+  };
+  
+  const handleToggleTaskComplete = async (taskId: number) => {
+    try {
+      await tasksService.toggleTaskComplete(taskId, true);
+      // Refresh tasks for the selected day
+      if (selectedDate) {
+        const updatedTasks = await getTasksForDay(selectedDate);
+        setDayTasks(updatedTasks);
+      }
+      // Also refresh all tasks
+      const allTasks = await tasksService.getTasks();
+      setTasks(allTasks);
+    } catch (error) {
+      console.error('Error toggling task completion:', error);
+    }
+  };
+  
+  const handleUpdateTaskName = async (taskId: number, newName: string) => {
+    try {
+      await tasksService.updateTaskName(taskId, newName);
+      // Refresh tasks for the selected day
+      if (selectedDate) {
+        const updatedTasks = await getTasksForDay(selectedDate);
+        setDayTasks(updatedTasks);
+      }
+      // Also refresh all tasks
+      const allTasks = await tasksService.getTasks();
+      setTasks(allTasks);
+    } catch (error) {
+      console.error('Error updating task name:', error);
+    }
+  };
+  
+  // Count tasks for each day in the current month
+  const getTaskCountForDay = (day: number) => {
+    const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+    
+    return tasks.filter(task => {
+      const taskDate = new Date(task.creation_date);
+      return taskDate >= startOfDay && taskDate <= endOfDay;
+    }).length;
+  };
+
   const renderCalendarDays = () => {
     const daysInMonth = getDaysInMonth(currentDate);
     const firstDayOfMonth = getFirstDayOfMonth(currentDate);
@@ -69,18 +213,26 @@ const CalendarPage = () => {
       const isToday =
         new Date().toDateString() ===
         new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toDateString();
+      
+      const taskCount = getTaskCountForDay(day);
 
       days.push(
         <Box
           key={day}
           className={`calendar-day ${isToday ? 'today' : ''}`}
-          onClick={() => {
-            console.log(
-              `Clicked on ${currentDate.getFullYear()}-${currentDate.getMonth() + 1}-${day}`
-            );
-          }}
+          onClick={() => handleDayClick(day)}
         >
           <Text className="calendar-day-number">{day}</Text>
+          {taskCount > 0 && (
+            <Badge 
+              colorScheme="blue" 
+              borderRadius="full" 
+              px="2" 
+              fontSize="0.8em"
+            >
+              {taskCount}
+            </Badge>
+          )}
         </Box>
       );
     }
@@ -177,6 +329,22 @@ const CalendarPage = () => {
             ))}
             {renderCalendarDays()}
           </Grid>
+          
+          {/* Day Tasks Modal */}
+          {selectedDate && (
+            <DayTasksModal
+              isOpen={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+              selectedDate={selectedDate}
+              tasks={dayTasks}
+              categories={categories}
+              priorities={priorities}
+              onCreateTask={handleCreateTask}
+              onDeleteTask={handleDeleteTask}
+              onToggleTaskComplete={handleToggleTaskComplete}
+              onUpdateTaskName={handleUpdateTaskName}
+            />
+          )}
         </Flex>
       </Box>
     </DashboardLayout>

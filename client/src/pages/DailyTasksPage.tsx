@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
   Flex,
@@ -14,6 +15,7 @@ import {
   ModalBody,
   ModalCloseButton,
   useToast,
+  Text,
 } from '@chakra-ui/react';
 import { AddIcon } from '@chakra-ui/icons';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
@@ -28,6 +30,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { tagsService, Category } from '../services/tags';
 import { tasksService } from '../services/tasks';
 import './styles/DailyTask.css';
+import { TaskCreateRequest } from '../services/tasks';
 
 /** PriorityColor is used to render & pick priority options. */
 interface PriorityColor {
@@ -39,6 +42,28 @@ const DailyTasksPage: React.FC = () => {
   const toast = useToast();
   const { isAotMode } = useTheme();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { date } = useParams<{ date?: string }>();
+  const navigate = useNavigate();
+  
+  // Parse the date from URL or use today's date
+  const [selectedDate, setSelectedDate] = useState<Date>(() => {
+    if (date) {
+      const parsedDate = new Date(date);
+      return isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
+    }
+    navigate(`/daily-tasks/${new Date().toISOString().split('T')[0]}`);
+    return new Date();
+  });
+
+  // Update selectedDate when URL parameter changes
+  useEffect(() => {
+    if (date) {
+      const parsedDate = new Date(date);
+      if (!isNaN(parsedDate.getTime())) {
+        setSelectedDate(parsedDate);
+      }
+    }
+  }, [date]);
 
   // From your custom tasks hook
   const {
@@ -74,12 +99,13 @@ const DailyTasksPage: React.FC = () => {
   };
 
   // For creating a new *root-level* task
-  const [newTask, setNewTask] = useState({
+  const [newTask, setNewTask] = useState<TaskCreateRequest>({
     name: '',
     description: '',
-    category_id: undefined as number | undefined,
-    priority: undefined as string | undefined,
-    parent_id: null as number | null,
+    category_id: undefined,
+    priority: undefined,
+    parent_id: null,
+    creation_date: ''
   });
 
   // Decide whether the modal is for a Task or Category
@@ -88,19 +114,21 @@ const DailyTasksPage: React.FC = () => {
   // Drag-and-drop from your custom hook
   const { dragState, handleDragStart, handleDrop } = useDragAndDrop(tasks, setTasks);
 
-  // Load categories & priorities
+  // Load categories, priorities, and tasks
   useEffect(() => {
     const fetchTags = async () => {
       setIsLoading(true);
       try {
-        const [fetchedCats, fetchedPriorities, fetchedTasks] = await Promise.all([
+        const [fetchedCats, fetchedPriorities] = await Promise.all([
           tagsService.getCategories(),
           tagsService.getPriorities(),
-          tasksService.getTasks(),
         ]);
 
         setCategories(fetchedCats); // Store the full Category objects
         setPriorities(fetchedPriorities);
+        
+        // Always fetch tasks based on selectedDate
+        const fetchedTasks = await tasksService.getTasksByDate(selectedDate.toISOString().split('T')[0]);
         setTasks(fetchedTasks); // Initialize tasks when component mounts
 
         if (fetchedCats.length === 0) {
@@ -147,7 +175,8 @@ const DailyTasksPage: React.FC = () => {
         description: newTask.description,
         category_id: newTask.category_id,
         priority: newTask.priority,
-        parent_id: null // root-level
+        parent_id: null, // root-level
+        creation_date: selectedDate.toISOString()
       });
       
       setNewTask({
@@ -252,8 +281,29 @@ const DailyTasksPage: React.FC = () => {
         <Flex justify="space-between" align="center" position="relative" zIndex={1}>
           <Box flex="1">
             <Heading className="daily-tasks-title" data-aot-mode={isAotMode}>
-              ☑️ Today&apos;s Tasks
+              ☑️ {date ? (
+                <>
+                  Tasks for {selectedDate.toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}
+                </>
+              ) : (
+                "Today's Tasks"
+              )}
             </Heading>
+            {date && (
+              <Button 
+                onClick={() => navigate('/daily-tasks')}
+                size="sm"
+                mt={2}
+                variant="outline"
+              >
+                Back to Today's Tasks
+              </Button>
+            )}
           </Box>
 
           <Flex>
@@ -279,7 +329,8 @@ const DailyTasksPage: React.FC = () => {
                   description: '',
                   category_id: categories.length > 0 ? categories[0].id : undefined,
                   priority: '',
-                  parent_id: null
+                  parent_id: null,
+                  creation_date: selectedDate.toISOString().split('T')[0]
                 });
                 onOpen();
               }}

@@ -18,7 +18,8 @@ function App() {
           <Routes>
             <Route path="/" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
-            <Route path="/daily-tasks" element={<DailyTasksPage />} />
+            <Route path="/daily-tasks" element={<Navigate to={`/daily-tasks/${new Date().toISOString().split('T')[0]}`} replace />} />
+            <Route path="/daily-tasks/:date" element={<DailyTasksPage />} />
             <Route path="/edit-profile" element={<EditProfilePage />} />
             <Route path="/tags" element={<TagsPage />} />
             <Route path="/calendar" element={<CalendarPage />} />

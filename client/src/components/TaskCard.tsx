@@ -32,7 +32,7 @@ interface Task {
   priority?: string;
   category?: string;
   categoryIcon?: string;
-  parent_id?: number;
+  parent_id: number | null;
   /** Nested subtasks for hierarchical structure */
   children: Task[];
   // Keep subtasks for backward compatibility
@@ -45,9 +45,9 @@ interface DragProps {
     type: 'task' | 'subtask' | 'sub-subtask',
     taskId: number,
     itemId: number,
-    parentId?: number
+    parentId: number | null
   ) => void;
-  onDrop: (taskId: number, parentId?: number) => void;
+  onDrop: (taskId: number, parentId: number | null) => void;
   dragState: {
     type: 'task' | 'subtask' | 'sub-subtask';
     sourceTaskId: number;
@@ -148,7 +148,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
         e.stopPropagation();
         e.currentTarget.classList.remove('drag-over');
         if (dragState && dragState.itemId !== task.id) {
-          onDrop && onDrop(task.id);
+          onDrop && onDrop(task.id, task.parent_id);
         }
       }}
     >
