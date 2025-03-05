@@ -57,8 +57,14 @@ export const useDragAndDrop = (
       // Update the backend using moveTask
       await tasksService.moveTask(dragState.itemId, newParentId);
       
-      // Fetch updated tasks from the backend to reflect the changes
-      const updatedTasks = await tasksService.getTasks();
+      // Get the current date from the URL
+      const urlDate = window.location.pathname.split('/').pop();
+      // If no date in URL, default to today's date
+      const today = new Date();
+      const dateStr = urlDate || `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      
+      // Fetch updated tasks for the specific date
+      const updatedTasks = await tasksService.getTasksByDate(dateStr);
       setTasks(updatedTasks);
     } catch (error) {
       console.error('Error moving task/subtask:', error);
