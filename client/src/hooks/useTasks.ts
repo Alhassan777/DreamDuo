@@ -29,6 +29,7 @@ export const useTasks = () => {
         priority: newTask.priority,
         parent_id: newTask.parent_id ?? null,
         category_id: newTask.category_id,
+        deadline: newTask.deadline,
         creation_date: newTask.creation_date
       });
 

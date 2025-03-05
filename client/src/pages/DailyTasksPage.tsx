@@ -179,6 +179,7 @@ const DailyTasksPage: React.FC = () => {
         description: newTask.description,
         category_id: newTask.category_id,
         priority: newTask.priority,
+        deadline: newTask.deadline,
         parent_id: null, // root-level
         creation_date: `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`
       });
@@ -188,7 +189,8 @@ const DailyTasksPage: React.FC = () => {
         description: '',
         category_id: undefined,
         priority: '',
-        parent_id: null
+        parent_id: null,
+        deadline: undefined
       });
       
       toast({
@@ -300,12 +302,7 @@ const DailyTasksPage: React.FC = () => {
             </Heading>
             {date && (
               <Button 
-                onClick={() => navigate('/daily-tasks')}
-                size="sm"
-                mt={2}
-                variant="outline"
-                className="back-to-today"
-                data-aot-mode={isAotMode}
+                className='back-to-today'
               >
                 Back to Today's Tasks
               </Button>
@@ -336,6 +333,7 @@ const DailyTasksPage: React.FC = () => {
                   category_id: categories.length > 0 ? categories[0].id : undefined,
                   priority: '',
                   parent_id: null,
+                  deadline: undefined,
                   // Format the creation date using local timezone
                   creation_date: `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`
                 });

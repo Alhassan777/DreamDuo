@@ -13,7 +13,8 @@ def add_task(session: Session,
              parent_id: int = None,
              category_id: int = None,
              priority: str = None,
-             creation_date: datetime = None) -> Task:
+             creation_date: datetime = None,
+             deadline: datetime = None) -> Task:
     """
     Add a new task with proper hierarchy management.
     Automatically sets creation_date via the DB default.
@@ -26,7 +27,8 @@ def add_task(session: Session,
         user_id=user_id,
         category_id=category_id,
         priority=priority,
-        creation_date=creation_date)
+        creation_date=creation_date,
+        deadline=deadline)
     
     session.add(new_task)
     session.flush()  # Acquire the new task ID
@@ -121,6 +123,7 @@ def get_task_with_subtasks(session: Session, task_id: int, user_id: int = None) 
         'priority': priority_color,
         'category_id': task.category_id,
         'category': category_info,
+        'deadline': task.deadline.isoformat() if task.deadline else None,
         'subtasks': build_subtask_hierarchy(subtasks_flat, task.id)
     }
 

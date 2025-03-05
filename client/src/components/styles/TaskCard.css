@@ -10,6 +10,31 @@
   border-color: var(--chakra-colors-gray-700);
 }
 
+.deadline-tag {
+  background: #3182ce;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.deadline-tag:hover {
+  transform: translateY(-1px);
+}
+
+[data-aot-mode="true"] .deadline-tag {
+  background: var(--aot-primary);
+  color: var(--aot-text);
+  border: 1px solid var(--aot-accent);
+  box-shadow: 0 0 8px var(--aot-accent);
+}
+
+.deadline-time-icon {
+  margin-right: 0.5rem;
+}
+
+[data-aot-mode="true"] .deadline-time-icon {
+  filter: drop-shadow(0 0 2px var(--aot-accent));
+}
+
 .task-card[data-aot-mode="true"] {
   background: rgba(39, 37, 45, 0.85);
   border-color: var(--aot-primary);

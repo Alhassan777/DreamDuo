@@ -9,6 +9,7 @@ import {
   Collapse,
   Input,
   Circle,
+  Tooltip,
 } from '@chakra-ui/react';
 import { useTheme } from '../contexts/ThemeContext';
 import {
@@ -17,7 +18,9 @@ import {
   ChevronUpIcon,
   ChevronDownIcon,
   StarIcon,
+  TimeIcon,
 } from '@chakra-ui/icons';
+import { format, isValid, parseISO } from 'date-fns';
 
 import SubtaskCard from './SubtaskCard';
 import './styles/TaskCard.css';
@@ -33,6 +36,7 @@ interface Task {
   category?: string;
   categoryIcon?: string;
   parent_id: number | null;
+  deadline?: string;
   /** Nested subtasks for hierarchical structure */
   children: Task[];
   // Keep subtasks for backward compatibility
@@ -208,7 +212,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
         </Flex>
 
         {/* Category & Priority info */}
-        <Flex align="center" gap={2}>
+        <Flex align="center" gap={3} flexWrap="wrap" mt={2} mb={2}>
           {task.category && (
             <Tag size="sm" data-aot-mode={isAotMode}>
               {task.categoryIcon && (
@@ -222,6 +226,20 @@ const TaskCard: React.FC<TaskCardProps> = ({
               <StarIcon color="white" boxSize={4} />
             </Circle>
           )}
+          {task.deadline && (() => {
+            const deadlineDate = parseISO(task.deadline);
+            if (isValid(deadlineDate)) {
+              return (
+                <Tooltip label={format(deadlineDate, "PPpp")}>
+                  <Tag size="sm" colorScheme="blue" className="deadline-tag" data-aot-mode={isAotMode}>
+                    <TimeIcon className="deadline-time-icon" />
+                    {format(deadlineDate, "MMM do, h:mm a")}
+                  </Tag>
+                </Tooltip>
+              );
+            }
+            return null;
+          })()}
         </Flex>
 
         {/* SUBTASKS: expand/collapse. If you want infinite nesting, subtask is rendered below */}

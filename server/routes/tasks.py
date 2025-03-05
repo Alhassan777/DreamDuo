@@ -58,6 +58,16 @@ def create_task():
                 utc_offset = datetime.now().astimezone().utcoffset()
                 creation_date_dt = local_dt - utc_offset
 
+        # Parse deadline if provided
+        deadline_str = data.get('deadline')
+        deadline_dt = None
+        if deadline_str:
+            try:
+                # Convert deadline from ISO format to datetime
+                deadline_dt = datetime.fromisoformat(deadline_str)
+            except ValueError:
+                return jsonify({'error': 'Invalid deadline format'}), 400
+
         new_task = add_task(
             session=db.session,
             name=data['name'],
@@ -66,7 +76,8 @@ def create_task():
             parent_id=data.get('parent_id'),
             category_id=data.get('category_id'),
             priority=data.get('priority'),
-            creation_date=creation_date_dt  # pass the parsed datetime
+            creation_date=creation_date_dt,  # pass the parsed datetime
+            deadline=deadline_dt
         )
 
         return jsonify(get_task_with_subtasks(db.session, new_task.id, user_id)), 201

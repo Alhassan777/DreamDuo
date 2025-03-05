@@ -50,6 +50,7 @@ const DayTasksModal: React.FC<DayTasksModalProps> = ({
     name: '',
     category_id: undefined as number | undefined,
     priority: undefined as string | undefined,
+    deadline: undefined as string | undefined,
   });
   const [editingTask, setEditingTask] = React.useState<{ id: number; name: string } | null>(null);
   const toast = useToast();
@@ -63,12 +64,14 @@ const DayTasksModal: React.FC<DayTasksModalProps> = ({
         category_id: newTask.category_id,
         priority: newTask.priority,
         parent_id: null,
+        deadline: newTask.deadline,
       });
 
       setNewTask({
         name: '',
         category_id: undefined,
         priority: undefined,
+        deadline: undefined,
       });
 
       toast({
@@ -151,6 +154,12 @@ const DayTasksModal: React.FC<DayTasksModalProps> = ({
                   </option>
                 ))}
               </Select>
+              <Input
+                type="datetime-local"
+                value={newTask.deadline || ''}
+                onChange={(e) => setNewTask({ ...newTask, deadline: e.target.value })}
+                placeholder="Set deadline"
+              />
               <Button colorScheme="blue" onClick={handleCreateTask}>
                 Add
               </Button>

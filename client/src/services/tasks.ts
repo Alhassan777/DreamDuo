@@ -15,6 +15,7 @@ export interface TaskCreateRequest {
   priority?: string;
   parent_id: number | null;
   creation_date?: string | null;  // ISO string (if provided)
+  deadline?: string | null;  // Optional ISO string for deadline
 }
 
 /**
@@ -29,6 +30,7 @@ export interface TaskResponse {
   category_id?: number;
   parent_id?: number | null;
   creation_date: string;          // An ISO date string from the backend
+  deadline?: string;             // Optional ISO string for deadline
   subtasks?: TaskResponse[];      // 'subtasks' are nested tasks
   category?: CategoryResponse;    // Additional info about the category
 }
@@ -52,6 +54,7 @@ export interface Task {
   category_id?: number;
   parent_id: number | null;
   creation_date: string; // Keep as ISO string
+  deadline?: string;    // Optional ISO string for deadline
   collapsed?: boolean;
   children: Task[]; 
   category?: string;
@@ -76,6 +79,7 @@ function mapTaskResponseToTask(taskRes: TaskResponse): Task {
     parent_id: taskRes.parent_id ?? null,
     category_id: taskRes.category_id,
     creation_date: taskRes.creation_date,         // Keep the ISO string 
+    deadline: taskRes.deadline,                   // Add deadline field
     collapsed: false,                             // Default UI preference
     children: (taskRes.subtasks || []).map(mapTaskResponseToTask),
     category: taskRes.category?.name,

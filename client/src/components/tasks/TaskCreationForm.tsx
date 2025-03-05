@@ -49,6 +49,7 @@ const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
         />
       </FormControl>
 
+      {/* Temporarily commented out description field
       <FormControl>
         <FormLabel color="white">Description</FormLabel>
         <Textarea
@@ -62,6 +63,7 @@ const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
           color="white"
         />
       </FormControl>
+      */}
 
       <FormControl>
         <FormLabel color="white">Category</FormLabel>
@@ -124,6 +126,21 @@ const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
             </Button>
           </>
         )}
+      </FormControl>
+
+      <FormControl>
+        <FormLabel color="white">Deadline</FormLabel>
+        <Input
+          type="datetime-local"
+          value={newTask.deadline ?? ''}
+          onChange={(e) =>
+            setNewTask((prev) => ({
+              ...prev,
+              deadline: e.target.value || undefined,
+            }))
+          }
+          color="white"
+        />
       </FormControl>
 
       {/* If you want to show a date picker or handle creation_date, 
