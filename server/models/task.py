@@ -16,7 +16,7 @@ class Task(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
     parent_id = db.Column(db.Integer, db.ForeignKey('tasks.id'), nullable=True)
-    creation_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    creation_date = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now().replace(hour=0, minute=0, second=0, microsecond=0))
 
     # Relationship for nesting subtasks
     subtasks = db.relationship('Task', backref=db.backref('parent', remote_side=[id]), lazy=True)

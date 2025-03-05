@@ -18,7 +18,7 @@ function App() {
           <Routes>
             <Route path="/" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
-            <Route path="/daily-tasks" element={<Navigate to={`/daily-tasks/${new Date().toISOString().split('T')[0]}`} replace />} />
+            <Route path="/daily-tasks" element={<Navigate to={`/daily-tasks/${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`} replace />} />
             <Route path="/daily-tasks/:date" element={<DailyTasksPage />} />
             <Route path="/edit-profile" element={<EditProfilePage />} />
             <Route path="/tags" element={<TagsPage />} />

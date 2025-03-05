@@ -20,7 +20,6 @@ def add_task(session: Session,
     """
 
     new_task = Task(
-
         name=name,
         description=description,
         parent_id=parent_id,
@@ -28,7 +27,7 @@ def add_task(session: Session,
         category_id=category_id,
         priority=priority,
         creation_date=creation_date)
-    creation_date=creation_date
+    
     session.add(new_task)
     session.flush()  # Acquire the new task ID
 
@@ -353,5 +352,80 @@ def toggle_task_completion(session: Session, task_id: int, user_id: int = None) 
     }
 
 
-# Second implementation of move_subtask removed to fix the function duplication issue
-# The implementation at lines 198-327 now handles both cases where new_parent_id can be None or a valid ID
+def get_tasks_stats_by_date_range(session: Session, user_id: int, start_date: datetime, end_date: datetime) -> List[Dict[str, Any]]:
+    """Get task statistics for each day in a date range, including parent tasks in calculations."""
+    stats = session.execute(
+        text("""
+            WITH RECURSIVE task_stats AS (
+                SELECT 
+                    t.id,
+                    t.parent_id,
+                    t.completed,
+                    DATE(t.creation_date) as task_date,
+                    CASE 
+                        WHEN EXISTS (SELECT 1 FROM tasks st WHERE st.parent_id = t.id) THEN true
+                        ELSE false
+                    END as has_subtasks
+                FROM tasks t
+                WHERE t.user_id = :user_id
+                AND DATE(t.creation_date) BETWEEN DATE(:start_date) AND DATE(:end_date)
+            ),
+            daily_stats AS (
+                SELECT 
+                    task_date,
+                    COUNT(DISTINCT id) as total_tasks,
+                    SUM(CASE 
+                        WHEN has_subtasks = false AND completed = true THEN 1
+                        WHEN has_subtasks = true AND (
+                            SELECT bool_and(completed)
+                            FROM tasks
+                            WHERE parent_id = task_stats.id
+                            AND DATE(creation_date AT TIME ZONE 'UTC' AT TIME ZONE current_setting('TIMEZONE')) = task_stats.task_date
+                        ) THEN 1
+                        ELSE 0
+                    END) as completed_tasks,
+                    SUM(CASE
+                        WHEN has_subtasks = false AND completed = false THEN 1
+                        WHEN has_subtasks = true AND (
+                            SELECT bool_or(completed) AND NOT bool_and(completed)
+                            FROM tasks
+                            WHERE parent_id = task_stats.id
+                            AND DATE(creation_date AT TIME ZONE 'UTC' AT TIME ZONE current_setting('TIMEZONE')) = task_stats.task_date
+                        ) THEN 1
+                        ELSE 0
+                    END) as in_progress_tasks
+                FROM task_stats
+                GROUP BY task_date
+            )
+            SELECT 
+                task_date,
+                total_tasks,
+                completed_tasks,
+                CASE 
+                    WHEN total_tasks = 0 THEN 'Free'
+                    WHEN completed_tasks = total_tasks THEN 'Completed'
+                    WHEN in_progress_tasks > 0 THEN 'inprogress'
+                    ELSE 'Not started'
+                END as status,
+                CASE 
+                    WHEN total_tasks > 0 THEN 
+                        CAST(ROUND(CAST(completed_tasks AS NUMERIC) / CAST(total_tasks AS NUMERIC) * 100, 2) AS NUMERIC)
+                    ELSE 0
+                END as completion_percentage
+            FROM daily_stats
+            ORDER BY task_date
+        """),
+        {
+            "user_id": user_id,
+            "start_date": start_date,
+            "end_date": end_date
+        }
+    )
+    
+    return [{
+        "date": str(row.task_date),
+        "total_tasks": row.total_tasks,
+        "completed_tasks": row.completed_tasks,
+        "status": row.status,
+        "completion_percentage": row.completion_percentage
+    } for row in stats]

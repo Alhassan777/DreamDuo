@@ -33,7 +33,13 @@ export const useTasks = () => {
       });
 
       // Fetch the updated list of tasks for the specific date
-      const updatedTasks = await tasksService.getTasksByDate(newTask.creation_date || new Date().toISOString());
+      // If creation_date is provided, use it; otherwise format today's date in local timezone
+      const today = new Date();
+      // Extract just the date part (YYYY-MM-DD) from the creation_date if it exists
+      // or format today's date in local timezone
+      const dateStr = newTask.creation_date ? newTask.creation_date.split('T')[0] : 
+        `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      const updatedTasks = await tasksService.getTasksByDate(dateStr);
       setTasks(updatedTasks);
     } catch (error) {
       console.error('Error creating task:', error);

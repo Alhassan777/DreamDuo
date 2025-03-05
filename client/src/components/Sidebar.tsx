@@ -95,7 +95,7 @@ const Sidebar = ({ onCollapse }: SidebarProps) => {
 
   const navItems = [
     {
-      label: "Today's Tasks",
+      label: "Daily Tasks",
       icon: FaTasks,
       path: '/daily-tasks',
       aotIcon: sidebarIcon1,

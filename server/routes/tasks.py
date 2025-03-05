@@ -3,7 +3,8 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import Task, db
 from models.task_utils import (
     add_task, get_root_tasks, get_task_with_subtasks,
-    delete_task, move_subtask, toggle_task_completion
+    delete_task, move_subtask, toggle_task_completion,
+    get_tasks_stats_by_date_range
 )
 from . import tasks_bp
 from datetime import datetime
@@ -19,10 +20,11 @@ def get_tasks():
     
     if date_str:
         try:
+            # Parse date without timezone information
             filter_date = datetime.strptime(date_str, '%Y-%m-%d').date()
             query = query.filter(db.func.date(Task.creation_date) == filter_date)
         except ValueError:
-            return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
+            return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD without timezone'}), 400
     
     # Get all tasks for the date and build hierarchy
     tasks = query.all()
@@ -45,10 +47,16 @@ def create_task():
         creation_date_dt = None
         if creation_date_str:
             try:
-                creation_date_dt = datetime.fromisoformat(creation_date_str)
+                # Assume the frontend sends local time, convert to UTC for storage
+                local_dt = datetime.fromisoformat(creation_date_str)
+                # Add UTC offset to convert to UTC
+                utc_offset = datetime.now().astimezone().utcoffset()
+                creation_date_dt = local_dt - utc_offset
             except ValueError:
-                # Fallback to strptime if not in ISO format
-                creation_date_dt = datetime.strptime(creation_date_str, '%Y-%m-%dT%H:%M:%S')
+                # Fallback to strptime if not in ISO format, still converting to UTC
+                local_dt = datetime.strptime(creation_date_str, '%Y-%m-%dT%H:%M:%S')
+                utc_offset = datetime.now().astimezone().utcoffset()
+                creation_date_dt = local_dt - utc_offset
 
         new_task = add_task(
             session=db.session,
@@ -145,3 +153,24 @@ def move_task_route(task_id):
 
     # Return the updated task with its subtasks
     return jsonify(get_task_with_subtasks(db.session, task_id, user_id))
+
+
+@tasks_bp.route('/stats', methods=['GET'])
+@jwt_required()
+def get_tasks_stats():
+    user_id = get_jwt_identity()
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+
+    if not start_date or not end_date:
+        return jsonify({'error': 'Both start_date and end_date are required'}), 400
+
+    try:
+        start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+        end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+        stats = get_tasks_stats_by_date_range(db.session, user_id, start_dt, end_dt)
+        return jsonify(stats)
+    except ValueError:
+        return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD without timezone'}), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

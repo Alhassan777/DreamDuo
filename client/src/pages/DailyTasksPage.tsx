@@ -180,7 +180,7 @@ const DailyTasksPage: React.FC = () => {
         category_id: newTask.category_id,
         priority: newTask.priority,
         parent_id: null, // root-level
-        creation_date: selectedDate.toISOString()
+        creation_date: `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`
       });
       
       setNewTask({
@@ -334,7 +334,8 @@ const DailyTasksPage: React.FC = () => {
                   category_id: categories.length > 0 ? categories[0].id : undefined,
                   priority: '',
                   parent_id: null,
-                  creation_date: selectedDate.toISOString().split('T')[0]
+                  // Format the creation date using local timezone
+                  creation_date: `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`
                 });
                 onOpen();
               }}

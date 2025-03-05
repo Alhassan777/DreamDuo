@@ -13,6 +13,7 @@ import {
 } from '@chakra-ui/react';
 import { ChevronLeftIcon, ChevronRightIcon, CalendarIcon } from '@chakra-ui/icons';
 import { useTheme } from '../contexts/ThemeContext';
+import CalendarDayIcon from '../components/calendar/CalendarDayIcon';
 import DashboardLayout from '../components/DashboardLayout';
 import DayTasksModal from '../components/tasks/DayTasksModal';
 import { tasksService, Task } from '../services/tasks';
@@ -29,19 +30,22 @@ const CalendarPage = () => {
   const [dayTasks, setDayTasks] = useState<Task[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [priorities, setPriorities] = useState<{level: string; color: string}[]>([]);
+  const [statusLogoMap, setStatusLogoMap] = useState<Record<string, string>>({});
   
-  // Fetch all tasks, categories, and priorities when component mounts
+  // Fetch all tasks, categories, priorities, and status logos when component mounts
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [tasksData, categoriesData, prioritiesData] = await Promise.all([
+        const [tasksData, categoriesData, prioritiesData, statusLogosData] = await Promise.all([
           tasksService.getTasks(),
           tagsService.getCategories(),
-          tagsService.getPriorities()
+          tagsService.getPriorities(),
+          tagsService.getStatusLogos()
         ]);
         setTasks(tasksData);
         setCategories(categoriesData);
         setPriorities(prioritiesData);
+        setStatusLogoMap(statusLogosData);
       } catch (error) {
         console.error('Error fetching data:', error);
       }
@@ -87,17 +91,16 @@ const CalendarPage = () => {
   // Get tasks for a specific day
   const getTasksForDay = async (date: Date) => {
     try {
-      // Filter tasks by the selected date, ensuring timezone consistency
-      const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-      startOfDay.setHours(0, 0, 0, 0);
-      
-      const endOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-      endOfDay.setHours(23, 59, 59, 999);
+      // Create dates in UTC for comparison
+      const localDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
       
       const tasksForDay = tasks.filter(task => {
-        const taskDate = new Date(task.creation_date);
-        const taskLocalDate = new Date(taskDate.getFullYear(), taskDate.getMonth(), taskDate.getDate());
-        return taskLocalDate.getTime() === startOfDay.getTime();
+        // Split the date string and construct a UTC Date object
+        const [year, month, day] = task.creation_date.split('-').map(Number);
+        // Create date object in UTC (month is 0-based in Date constructor)
+        const taskDate = new Date(Date.UTC(year, month, day));
+        
+        return taskDate.getTime() === localDate.getTime();
       });
       
       setDayTasks(tasksForDay);
@@ -111,8 +114,8 @@ const CalendarPage = () => {
   // Handle day click to navigate to DailyTasksPage with the selected date
   const handleDayClick = (day: number) => {
     const clickedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-    // Format date as YYYY-MM-DD for the URL
-    const formattedDate = clickedDate.toISOString().split('T')[0];
+    // Format date using UTC components to ensure consistent timezone handling
+    const formattedDate = `${clickedDate.getUTCFullYear()}-${String(clickedDate.getUTCMonth() + 1).padStart(2, '0')}-${String(clickedDate.getUTCDate()).padStart(2, '0')}`;
     // Navigate to DailyTasksPage with the selected date using React Router
     navigate(`/daily-tasks/${formattedDate}`);
   };
@@ -182,19 +185,69 @@ const CalendarPage = () => {
     }
   };
   
-  // Count tasks for each day in the current month
+  // State to store task statistics for the current month
+  const [monthStats, setMonthStats] = useState<Record<string, { totalTasks: number, completedTasks: number }>>({});
+
+  // Fetch task statistics for the current month
+  useEffect(() => {
+    const fetchMonthStats = async () => {
+      try {
+        // Calculate first and last day of the current month
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        const firstDay = new Date(Date.UTC(year, month, 1));
+        const lastDay = new Date(Date.UTC(year, month + 1, 0));
+        
+        // Format dates as YYYY-MM-DD using UTC components
+        const startDate = `${firstDay.getUTCFullYear()}-${String(firstDay.getUTCMonth() + 1).padStart(2, '0')}-${String(firstDay.getUTCDate()).padStart(2, '0')}`;
+        const endDate = `${lastDay.getUTCFullYear()}-${String(lastDay.getUTCMonth() + 1).padStart(2, '0')}-${String(lastDay.getUTCDate()).padStart(2, '0')}`;
+        
+        // Fetch task statistics for the month
+        const stats = await tasksService.getTaskStatsByDateRange(startDate, endDate);
+        
+        // Convert array of stats to a map keyed by date string
+        const statsMap: Record<string, { totalTasks: number, completedTasks: number }> = {};
+        stats.forEach(dayStat => {
+          // Create a UTC date object for comparison
+          const [year, month, day] = dayStat.date.split('-').map(Number);
+          const statDate = new Date(Date.UTC(year, month - 1, day));
+          
+          // Only add to statsMap if the month and year match current view
+          if (statDate.getUTCMonth() === currentDate.getMonth() && 
+              statDate.getUTCFullYear() === currentDate.getFullYear()) {
+            const day = statDate.getUTCDate();
+            statsMap[day] = {
+              totalTasks: dayStat.total_tasks,
+              completedTasks: dayStat.completed_tasks
+            };
+          }
+        });
+        
+        setMonthStats(statsMap);
+      } catch (error) {
+        console.error('Error fetching month statistics:', error);
+      }
+    };
+    
+    fetchMonthStats();
+  }, [currentDate]); // Re-fetch when month/year changes
+
+  // Get task stats for a specific day
+  const getTaskStatsForDay = (day: number) => {
+    // Check if we have stats for this day
+    if (monthStats[day]) {
+      return {
+        totalTasks: monthStats[day].totalTasks,
+        completedTasks: monthStats[day].completedTasks
+      };
+    }
+    // Return empty stats if no data for this day
+    return { totalTasks: 0, completedTasks: 0 };
+  };
+
+  // Get task count for a specific day
   const getTaskCountForDay = (day: number) => {
-    const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-    const startOfDay = new Date(date);
-    startOfDay.setHours(0, 0, 0, 0);
-    
-    const endOfDay = new Date(date);
-    endOfDay.setHours(23, 59, 59, 999);
-    
-    return tasks.filter(task => {
-      const taskDate = new Date(task.creation_date);
-      return taskDate >= startOfDay && taskDate <= endOfDay;
-    }).length;
+    return getTaskStatsForDay(day).totalTasks;
   };
 
   const renderCalendarDays = () => {
@@ -234,6 +287,10 @@ const CalendarPage = () => {
               {taskCount}
             </Badge>
           )}
+          <CalendarDayIcon 
+            {...getTaskStatsForDay(day)}
+            statusLogoMap={statusLogoMap}
+          />
         </Box>
       );
     }

@@ -152,7 +152,14 @@ export const tasksService = {
     try {
       // Optional: Provide a default date if none is supplied
       if (!task.creation_date) {
-        task.creation_date = new Date().toISOString();
+        // Use local timezone for default creation date with full ISO string
+        const now = new Date();
+        task.creation_date = now.toISOString();
+      } else if (!task.creation_date.includes('T')) {
+        // If only date part is provided (YYYY-MM-DD), convert to full ISO string
+        // This ensures timezone information is preserved
+        const date = new Date(task.creation_date);
+        task.creation_date = date.toISOString();
       }
       const response = await api.post('/tasks/', task);
       return response.data;
@@ -192,6 +199,24 @@ export const tasksService = {
   toggleTaskComplete: async (taskId: number, completed: boolean): Promise<TaskResponse> => {
     try {
       const response = await api.put(`/tasks/${taskId}/toggle`, {});
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Gets task statistics for a date range.
+   * Returns counts of total and completed tasks for each day in the range.
+   */
+  getTaskStatsByDateRange: async (startDate: string, endDate: string): Promise<Array<{
+    date: string;
+    total_tasks: number;
+    completed_tasks: number;
+    completion_percentage: number;
+  }>> => {
+    try {
+      const response = await api.get(`/tasks/stats?start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}`);
       return response.data;
     } catch (error) {
       throw error;
