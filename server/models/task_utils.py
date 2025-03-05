@@ -370,31 +370,41 @@ def get_tasks_stats_by_date_range(session: Session, user_id: int, start_date: da
                 WHERE t.user_id = :user_id
                 AND DATE(t.creation_date) BETWEEN DATE(:start_date) AND DATE(:end_date)
             ),
+            task_hierarchy AS (
+                SELECT 
+                    t.id,
+                    t.parent_id,
+                    t.completed,
+                    t.task_date,
+                    t.has_subtasks,
+                    CASE
+                        WHEN t.has_subtasks THEN (
+                            SELECT bool_and(COALESCE(st.completed, false))
+                            FROM tasks st
+                            WHERE st.parent_id = t.id
+                        )
+                        ELSE t.completed
+                    END as is_fully_completed
+                FROM task_stats t
+            ),
             daily_stats AS (
                 SELECT 
                     task_date,
                     COUNT(DISTINCT id) as total_tasks,
                     SUM(CASE 
-                        WHEN has_subtasks = false AND completed = true THEN 1
-                        WHEN has_subtasks = true AND (
-                            SELECT bool_and(completed)
-                            FROM tasks
-                            WHERE parent_id = task_stats.id
-                            AND DATE(creation_date AT TIME ZONE 'UTC' AT TIME ZONE current_setting('TIMEZONE')) = task_stats.task_date
-                        ) THEN 1
+                        WHEN parent_id IS NULL AND is_fully_completed THEN 1
+                        WHEN parent_id IS NOT NULL AND completed THEN 1
                         ELSE 0
                     END) as completed_tasks,
                     SUM(CASE
-                        WHEN has_subtasks = false AND completed = false THEN 1
-                        WHEN has_subtasks = true AND (
-                            SELECT bool_or(completed) AND NOT bool_and(completed)
-                            FROM tasks
-                            WHERE parent_id = task_stats.id
-                            AND DATE(creation_date AT TIME ZONE 'UTC' AT TIME ZONE current_setting('TIMEZONE')) = task_stats.task_date
+                        WHEN parent_id IS NULL AND NOT is_fully_completed AND EXISTS (
+                            SELECT 1 FROM tasks st 
+                            WHERE st.parent_id = task_hierarchy.id AND st.completed = true
                         ) THEN 1
+                        WHEN parent_id IS NOT NULL AND NOT completed THEN 1
                         ELSE 0
                     END) as in_progress_tasks
-                FROM task_stats
+                FROM task_hierarchy
                 GROUP BY task_date
             )
             SELECT 

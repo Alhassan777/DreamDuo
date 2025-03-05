@@ -104,7 +104,37 @@ export const useTasks = () => {
         parent_id: parentId
       };
       
-      // The actual API call should use the correct parent ID
+      // Optimistically update the UI
+      setTasks(prevTasks => {
+        return prevTasks.map(task => {
+          if (task.id === taskId) {
+            // Helper function to add subtask to a task or its children
+            const addSubtaskToTree = (parentTask: Task): Task => {
+              if (parentTask.id === parentId) {
+                return {
+                  ...parentTask,
+                  children: [...(parentTask.children || []), { 
+                    id: -Date.now(), // Temporary negative ID
+                    name: 'New Subtask',
+                    completed: false,
+                    parent_id: parentId,
+                    children: [],
+                    creation_date: task.creation_date
+                  }]
+                };
+              }
+              return {
+                ...parentTask,
+                children: (parentTask.children || []).map(child => addSubtaskToTree(child))
+              };
+            };
+            return addSubtaskToTree(task);
+          }
+          return task;
+        });
+      });
+
+      // Make the actual API call
       await tasksService.addSubtask(parentId, newSubtaskData);
       
       // Find the parent task to get its creation_date
@@ -121,14 +151,18 @@ export const useTasks = () => {
     }
   };
 
-  /**
-   * Toggle completion of a top-level task.
-   */
   const toggleComplete = async (taskId: number) => {
     try {
       // Find the local copy of the task
       const task = tasks.find(t => t.id === taskId);
       if (!task) return;
+
+      // Optimistically update the UI
+      setTasks(prevTasks =>
+        prevTasks.map(t =>
+          t.id === taskId ? { ...t, completed: !t.completed } : t
+        )
+      );
 
       // Call the backend route that toggles completion
       await tasksService.toggleTaskComplete(taskId, !task.completed);
@@ -142,22 +176,6 @@ export const useTasks = () => {
     }
   };
 
-  /**
-   * Toggle completion of a subtask.
-   */
-  const findSubtaskRecursively = (task: Task, subtaskId: number): Task | undefined => {
-    // Check direct children first
-    const directChild = task.children.find(s => s.id === subtaskId);
-    if (directChild) return directChild;
-
-    // If not found, recursively check children's children
-    for (const child of task.children) {
-      const found = findSubtaskRecursively(child, subtaskId);
-      if (found) return found;
-    }
-    return undefined;
-  };
-
   const toggleSubtaskComplete = async (taskId: number, subtaskId: number) => {
     try {
       // Find the parent task
@@ -168,6 +186,26 @@ export const useTasks = () => {
       const subtask = findSubtaskRecursively(parentTask, subtaskId);
       if (!subtask) return;
 
+      // Optimistically update the UI
+      setTasks(prevTasks => {
+        return prevTasks.map(task => {
+          if (task.id === taskId) {
+            // Helper function to toggle subtask completion
+            const toggleSubtaskInTree = (parentTask: Task): Task => {
+              if (parentTask.id === subtaskId) {
+                return { ...parentTask, completed: !parentTask.completed };
+              }
+              return {
+                ...parentTask,
+                children: (parentTask.children || []).map(child => toggleSubtaskInTree(child))
+              };
+            };
+            return toggleSubtaskInTree(task);
+          }
+          return task;
+        });
+      });
+
       await tasksService.toggleTaskComplete(subtaskId, !subtask.completed);
       // Find the creation date from the parent task
       const dateStr = parentTask.creation_date.split('T')[0];
@@ -177,6 +215,27 @@ export const useTasks = () => {
       console.error('Error toggling subtask completion:', error);
       throw error;
     }
+  };
+
+  /**
+   * Helper function to recursively find a subtask in the task tree.
+   * @param parentTask The task to search within
+   * @param subtaskId The ID of the subtask to find
+   * @returns The found subtask or undefined
+   */
+  const findSubtaskRecursively = (parentTask: Task, subtaskId: number): Task | undefined => {
+    // Check if the current task is the one we're looking for
+    if (parentTask.id === subtaskId) {
+      return parentTask;
+    }
+  
+    // Search through children recursively
+    for (const child of parentTask.children || []) {
+      const found = findSubtaskRecursively(child, subtaskId);
+      if (found) return found;
+    }
+  
+    return undefined;
   };
 
   /**
