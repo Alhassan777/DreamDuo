@@ -361,14 +361,19 @@ def get_tasks_stats_by_date_range(session: Session, user_id: int, start_date: da
                     t.id,
                     t.parent_id,
                     t.completed,
-                    DATE(t.creation_date) as task_date,
+                    DATE(CASE WHEN t.parent_id IS NULL THEN t.creation_date ELSE p.creation_date END) as task_date,
                     CASE 
                         WHEN EXISTS (SELECT 1 FROM tasks st WHERE st.parent_id = t.id) THEN true
                         ELSE false
                     END as has_subtasks
                 FROM tasks t
+                LEFT JOIN tasks p ON t.parent_id = p.id
                 WHERE t.user_id = :user_id
-                AND DATE(t.creation_date) BETWEEN DATE(:start_date) AND DATE(:end_date)
+                AND (
+                    (t.parent_id IS NULL AND DATE(t.creation_date) BETWEEN DATE(:start_date) AND DATE(:end_date))
+                    OR
+                    (t.parent_id IS NOT NULL AND DATE(p.creation_date) BETWEEN DATE(:start_date) AND DATE(:end_date))
+                )
             ),
             task_hierarchy AS (
                 SELECT 
@@ -399,7 +404,9 @@ def get_tasks_stats_by_date_range(session: Session, user_id: int, start_date: da
                     SUM(CASE
                         WHEN parent_id IS NULL AND NOT is_fully_completed AND EXISTS (
                             SELECT 1 FROM tasks st 
-                            WHERE st.parent_id = task_hierarchy.id AND st.completed = true
+                            WHERE st.parent_id = task_hierarchy.id 
+                            AND st.completed = true
+                            AND DATE(st.creation_date) = task_hierarchy.task_date
                         ) THEN 1
                         WHEN parent_id IS NOT NULL AND NOT completed THEN 1
                         ELSE 0
