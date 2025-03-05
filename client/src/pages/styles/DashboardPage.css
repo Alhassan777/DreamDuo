@@ -1,0 +1,153 @@
+:root {
+  --dashboard-bg: var(--chakra-colors-gray-900);
+  --dashboard-text: var(--chakra-colors-white);
+  --dashboard-border: var(--chakra-colors-gray-700);
+  --dashboard-accent: var(--chakra-colors-purple-500);
+  --dashboard-success: var(--chakra-colors-green-500);
+  --dashboard-chart-blue: #4299E1;
+  --dashboard-chart-purple: #9F7AEA;
+  --dashboard-chart-orange: #ED8936;
+  --dashboard-chart-gray: #718096;
+}
+
+.dashboard-page {
+  min-height: 100vh;
+  padding: 2rem;
+  background-color: var(--dashboard-bg);
+  color: var(--dashboard-text);
+  position: relative;
+}
+
+.dashboard-page[data-aot-mode="true"] {
+  background-color: var(--aot-background);
+  color: var(--aot-text);
+}
+
+.dashboard-page[data-aot-mode="true"]::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.8)),
+              url('../../assets/dashboard_bg.png') center/cover no-repeat;
+  opacity: 0.8;
+  z-index: 0;
+}
+
+.dashboard-content {
+  position: relative;
+  z-index: 1;
+}
+
+.productivity-card {
+  background: var(--chakra-colors-gray-800);
+  border-radius: var(--chakra-radii-lg);
+  padding: 2rem;
+  border: 1px solid var(--dashboard-border);
+  transition: all 0.3s ease;
+}
+
+.productivity-card[data-aot-mode="true"] {
+  background: rgba(39, 37, 45, 0.85);
+  border-color: var(--aot-primary);
+  backdrop-filter: blur(5px);
+}
+
+.productivity-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--dashboard-accent);
+}
+
+.productivity-card[data-aot-mode="true"]:hover {
+  border-color: var(--aot-accent);
+  box-shadow: 0 0 10px var(--aot-accent);
+}
+
+.stats-heading {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  color: var(--dashboard-text);
+}
+
+.stats-heading[data-aot-mode="true"] {
+  color: var(--aot-text);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.completion-circle {
+  width: 120px;
+  height: 120px;
+  margin: 1rem auto;
+  position: relative;
+}
+
+.completion-circle[data-aot-mode="true"] svg circle {
+  stroke: var(--aot-accent);
+  filter: drop-shadow(0 0 8px var(--aot-accent));
+}
+
+.streak-info {
+  text-align: center;
+  margin: 1.5rem 0;
+  color: var(--dashboard-text);
+}
+
+.streak-info[data-aot-mode="true"] {
+  color: var(--aot-text);
+}
+
+.weekly-chart {
+  margin-top: 2rem;
+}
+
+.weekly-chart[data-aot-mode="true"] .bar {
+  background: linear-gradient(to right, var(--aot-primary), var(--aot-accent));
+}
+
+.chart-bar {
+  height: 20px;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.chart-bar-blue { background-color: var(--dashboard-chart-blue); }
+.chart-bar-purple { background-color: var(--dashboard-chart-purple); }
+.chart-bar-orange { background-color: var(--dashboard-chart-orange); }
+.chart-bar-gray { background-color: var(--dashboard-chart-gray); }
+
+.chart-label {
+  min-width: 30px;
+  text-align: right;
+  padding-right: 1rem;
+  color: var(--dashboard-text);
+}
+
+.chart-label[data-aot-mode="true"] {
+  color: var(--aot-text);
+}
+
+.edit-goal-button {
+  color: var(--dashboard-accent);
+  font-size: 0.9rem;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.edit-goal-button[data-aot-mode="true"] {
+  color: var(--aot-accent);
+}
+
+.edit-goal-button:hover {
+  color: var(--dashboard-text);
+}
+
+.edit-goal-button[data-aot-mode="true"]:hover {
+  color: var(--aot-text);
+  text-shadow: 0 0 4px var(--aot-accent);
+}
