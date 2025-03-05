@@ -43,16 +43,33 @@ cd AOT To Do
    JWT_SECRET_KEY=your_secret_key_here
    ```
 
-5. Initialize the database:
+5. Start PostgreSQL service:
+   ```bash
+   # macOS (Homebrew)
+   brew services start postgresql
+   
+   # Linux (systemd)
+   sudo systemctl start postgresql
+   ```
+
+6. Create database manually (if needed):
+   ```bash
+   createdb <database_name>
+   ```
+
+7. Initialize the database:
    ```bash
    flask db upgrade
    ```
 
-6. Start the backend server:
+8. Start the backend server:
    ```bash
    python app.py
    ```
+
    The server will run on http://localhost:3001
+
+   > **Note**: Ensure PostgreSQL is running before database initialization. Check status with `brew services list` or `systemctl status postgresql`
 
 ### 3. Frontend Setup
 
