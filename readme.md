@@ -54,7 +54,8 @@ cd AOT To Do
 
 6. Create database manually (if needed):
    ```bash
-   createdb <database_name>
+   createdb aot_todo
+
    ```
 
 7. Initialize the database:
