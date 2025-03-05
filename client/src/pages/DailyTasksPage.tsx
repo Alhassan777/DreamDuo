@@ -304,6 +304,8 @@ const DailyTasksPage: React.FC = () => {
                 size="sm"
                 mt={2}
                 variant="outline"
+                className="back-to-today"
+                data-aot-mode={isAotMode}
               >
                 Back to Today's Tasks
               </Button>

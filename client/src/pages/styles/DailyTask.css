@@ -144,8 +144,10 @@
   
   .primary-button[data-aot-mode="true"]:hover {
     background-color: var(--aot-primary);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(139, 0, 0, 0.3);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 6px 12px rgba(139, 0, 0, 0.4);
+    filter: brightness(1.2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
   
   .secondary-button[data-aot-mode="true"] {
@@ -157,8 +159,10 @@
   .secondary-button[data-aot-mode="true"]:hover {
     background-color: var(--aot-accent);
     color: var(--aot-background);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 6px 12px rgba(220, 162, 83, 0.3);
+    border-color: transparent;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   /* =======================
@@ -167,26 +171,31 @@
   .primary-button[data-aot-mode="false"] {
     background-color: var(--default-primary-bg);
     color: var(--default-primary-text);
-    border: none;
+    border: 2px solid var(--chakra-colors-purple-700);
+    box-shadow: 0 2px 4px rgba(128, 90, 213, 0.1);
   }
   
   .primary-button[data-aot-mode="false"]:hover {
     background-color: var(--default-primary-bg-hover);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 15px rgba(128, 90, 213, 0.2);
+    filter: brightness(1.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .secondary-button[data-aot-mode="false"] {
-    background-color: white;
-    color: black;
-    border: 2px solid black;
+    background-color: var(--chakra-colors-gray-100);
+    color: var(--chakra-colors-gray-800);
+    border: 2px solid var(--chakra-colors-gray-400);
   }
   
   .secondary-button[data-aot-mode="false"]:hover {
-    background-color: white;
-    color: black;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-color: var(--chakra-colors-gray-50);
+    color: var(--chakra-colors-purple-600);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    border-color: var(--chakra-colors-purple-400);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   /* ===========================================================
@@ -261,3 +270,44 @@
   .daily-tasks-modal-cancel:hover {
     background-color: var(--chakra-colors-gray-600);
   }
+
+/* Back to Today's Tasks button */
+/* ===========================================================
+   2) BUTTON BASE STYLES
+   =========================================================== */
+.back-to-today {
+  padding: var(--button-padding);
+  font-size: var(--button-font-size);
+  border-radius: var(--button-border-radius);
+  transition: var(--button-transition);
+}
+
+/* ===========================================================
+   3) THEME-SPECIFIC STYLES
+   =========================================================== */
+/* Default Theme */
+.back-to-today[data-aot-mode="false"] {
+  background-color: var(--chakra-colors-purple-700);
+  color: white;
+  border: 1px solid var(--chakra-colors-gray-300);
+}
+
+.back-to-today[data-aot-mode="false"]:hover {
+  background-color: transparent;
+  transform: var(--button-hover-transform);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* AOT Theme */
+.back-to-today[data-aot-mode="true"] {
+  background-color: transparent;
+  color: var(--aot-secondary-text);
+  border: 2px solid var(--aot-secondary-border-color);
+}
+
+.back-to-today[data-aot-mode="true"]:hover {
+  background-color: var(--aot-secondary-bg-hover);
+  color: var(--aot-secondary-text-hover);
+  transform: var(--button-hover-transform);
+  box-shadow: 0 4px 8px rgba(139, 0, 0, 0.2);
+}
