@@ -32,8 +32,8 @@ export const useTasks = () => {
         creation_date: newTask.creation_date
       });
 
-      // Fetch the updated list of tasks (fully nested).
-      const updatedTasks = await tasksService.getTasks();
+      // Fetch the updated list of tasks for the specific date
+      const updatedTasks = await tasksService.getTasksByDate(newTask.creation_date || new Date().toISOString());
       setTasks(updatedTasks);
     } catch (error) {
       console.error('Error creating task:', error);
@@ -56,9 +56,14 @@ export const useTasks = () => {
 
       // Deleting a subtask
       await tasksService.deleteTask(subtaskId);
-      // Re-fetch to update the entire hierarchy
-      const updatedTasks = await tasksService.getTasks();
-      setTasks(updatedTasks);
+      // Re-fetch tasks for the current date
+      // Find a task to get its creation_date to use for filtering
+      const task = tasks.find(t => t.id === taskId);
+      if (task) {
+        const dateStr = task.creation_date.split('T')[0];
+        const updatedTasks = await tasksService.getTasksByDate(dateStr);
+        setTasks(updatedTasks);
+      }
     } catch (error) {
       console.error('Error deleting task:', error);
       throw error;
@@ -96,9 +101,14 @@ export const useTasks = () => {
       // The actual API call should use the correct parent ID
       await tasksService.addSubtask(parentId, newSubtaskData);
       
-      // Re-fetch tasks to refresh the nested structure
-      const updatedTasks = await tasksService.getTasks();
-      setTasks(updatedTasks);
+      // Find the parent task to get its creation_date
+      const parentTask = tasks.find(t => t.id === parentId || t.children.some(c => c.id === parentId));
+      if (parentTask) {
+        // Re-fetch tasks for the specific date
+        const dateStr = parentTask.creation_date.split('T')[0];
+        const updatedTasks = await tasksService.getTasksByDate(dateStr);
+        setTasks(updatedTasks);
+      }
     } catch (error) {
       console.error('Error adding subtask:', error);
       throw error;
@@ -116,8 +126,9 @@ export const useTasks = () => {
 
       // Call the backend route that toggles completion
       await tasksService.toggleTaskComplete(taskId, !task.completed);
-      // Re-fetch updated tasks
-      const updatedTasks = await tasksService.getTasks();
+      // Re-fetch tasks for the specific date
+      const dateStr = task.creation_date.split('T')[0];
+      const updatedTasks = await tasksService.getTasksByDate(dateStr);
       setTasks(updatedTasks);
     } catch (error) {
       console.error('Error toggling task completion:', error);
@@ -152,7 +163,9 @@ export const useTasks = () => {
       if (!subtask) return;
 
       await tasksService.toggleTaskComplete(subtaskId, !subtask.completed);
-      const updatedTasks = await tasksService.getTasks();
+      // Find the creation date from the parent task
+      const dateStr = parentTask.creation_date.split('T')[0];
+      const updatedTasks = await tasksService.getTasksByDate(dateStr);
       setTasks(updatedTasks);
     } catch (error) {
       console.error('Error toggling subtask completion:', error);
@@ -166,8 +179,13 @@ export const useTasks = () => {
   const updateTaskName = async (taskId: number, newName: string) => {
     try {
       await tasksService.updateTask(taskId, { name: newName });
-      const updatedTasks = await tasksService.getTasks();
-      setTasks(updatedTasks);
+      // Find the task to get its creation_date
+      const task = tasks.find(t => t.id === taskId);
+      if (task) {
+        const dateStr = task.creation_date.split('T')[0];
+        const updatedTasks = await tasksService.getTasksByDate(dateStr);
+        setTasks(updatedTasks);
+      }
     } catch (error) {
       console.error('Error updating task name:', error);
       throw error;
@@ -180,8 +198,13 @@ export const useTasks = () => {
   const updateSubtaskName = async (taskId: number, subtaskId: number, newName: string) => {
     try {
       await tasksService.updateTask(subtaskId, { name: newName });
-      const updatedTasks = await tasksService.getTasks();
-      setTasks(updatedTasks);
+      // Find the task to get its creation_date to use for filtering
+      const task = tasks.find(t => t.id === taskId);
+      if (task) {
+        const dateStr = task.creation_date.split('T')[0];
+        const updatedTasks = await tasksService.getTasksByDate(dateStr);
+        setTasks(updatedTasks);
+      }
     } catch (error) {
       console.error('Error updating subtask name:', error);
       throw error;

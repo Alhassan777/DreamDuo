@@ -87,16 +87,17 @@ const CalendarPage = () => {
   // Get tasks for a specific day
   const getTasksForDay = async (date: Date) => {
     try {
-      // Filter tasks by the selected date
-      const startOfDay = new Date(date);
+      // Filter tasks by the selected date, ensuring timezone consistency
+      const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
       startOfDay.setHours(0, 0, 0, 0);
       
-      const endOfDay = new Date(date);
+      const endOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
       endOfDay.setHours(23, 59, 59, 999);
       
       const tasksForDay = tasks.filter(task => {
         const taskDate = new Date(task.creation_date);
-        return taskDate >= startOfDay && taskDate <= endOfDay;
+        const taskLocalDate = new Date(taskDate.getFullYear(), taskDate.getMonth(), taskDate.getDate());
+        return taskLocalDate.getTime() === startOfDay.getTime();
       });
       
       setDayTasks(tasksForDay);

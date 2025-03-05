@@ -108,8 +108,9 @@ export const tasksService = {
    */
   getTasksByDate: async (isoString: string): Promise<Task[]> => {
     try {
-      // Pass the entire ISO string as a query parameter (the backend must accept it)
-      const response = await api.get<TaskResponse[]>(`/tasks/?date=${encodeURIComponent(isoString)}`);
+      // Ensure we're only sending the date part (YYYY-MM-DD) as the server expects
+      const dateOnly = isoString.split('T')[0];
+      const response = await api.get<TaskResponse[]>(`/tasks/?date=${encodeURIComponent(dateOnly)}`);
       const taskResponses = response.data;
       return taskResponses.map(mapTaskResponseToTask);
     } catch (error) {

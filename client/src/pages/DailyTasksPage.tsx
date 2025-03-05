@@ -51,16 +51,20 @@ const DailyTasksPage: React.FC = () => {
       const parsedDate = new Date(date);
       return isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
     }
-    navigate(`/daily-tasks/${new Date().toISOString().split('T')[0]}`);
+    const today = new Date();
+    const localDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const formattedDate = `${localDate.getFullYear()}-${String(localDate.getMonth() + 1).padStart(2, '0')}-${String(localDate.getDate()).padStart(2, '0')}`;
+    navigate(`/daily-tasks/${formattedDate}`);
     return new Date();
   });
 
   // Update selectedDate when URL parameter changes
   useEffect(() => {
     if (date) {
-      const parsedDate = new Date(date);
-      if (!isNaN(parsedDate.getTime())) {
-        setSelectedDate(parsedDate);
+      const [year, month, day] = date.split('-').map(Number);
+      const localDate = new Date(year, month - 1, day);
+      if (!isNaN(localDate.getTime())) {
+        setSelectedDate(localDate);
       }
     }
   }, [date]);
@@ -163,7 +167,7 @@ const DailyTasksPage: React.FC = () => {
       }
     };
     fetchTags();
-  }, [toast]);
+  }, [toast, selectedDate]); // Added selectedDate to dependency array
 
   const handleCreateTask = async () => {
     if (!newTask.name.trim()) return;
