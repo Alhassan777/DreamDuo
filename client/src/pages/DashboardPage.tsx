@@ -265,7 +265,7 @@ const DashboardPage: React.FC = () => {
                   value={completionPercentage}
                   size="120px"
                   thickness="8px"
-                  color={isAotMode ? 'var(--aot-accent)' : 'var(--dashboard-accent)'}
+                  color={isAotMode ? (stats.completedTasks === stats.totalTasks ? 'var(--aot-accent)' : 'var(--aot-primary)') : (stats.completedTasks === stats.totalTasks ? 'var(--dashboard-chart-purple)' : '#3182ce')}
                 >
                   <CircularProgressLabel>
                     {stats.completedTasks}/{stats.totalTasks}
@@ -295,7 +295,7 @@ const DashboardPage: React.FC = () => {
                   variant="outline"
                   data-aot-mode={isAotMode}
                 >
-                  {viewType === 'bar' ? 'Show Compound' : 'Show Simple'}
+                  {viewType === 'bar' ? 'Detailed View' : 'Summary View'}
                 </Button>
               </Flex>
               
@@ -319,7 +319,7 @@ const DashboardPage: React.FC = () => {
                             className="chart-bar"
                             bg={isAotMode
                               ? (day.completed === day.assigned ? 'var(--aot-accent)' : 'rgba(255, 59, 48, 0.7)')
-                              : (day.completed === day.assigned ? 'var(--dashboard-accent)' : 'var(--dashboard-chart-purple)')
+                              : (day.completed === day.assigned ? 'var(--dashboard-chart-purple)' : '#3182ce')
                             }
                             w={`${(day.assigned > 0 ? (day.completed / day.assigned) * 100 : 0)}%`}
                             h="20px"
@@ -341,7 +341,7 @@ const DashboardPage: React.FC = () => {
                         >
                           <Box
                             className="chart-bar-completed"
-                            bg={isAotMode ? 'var(--aot-accent)' : 'var(--dashboard-chart-purple)'}
+                            bg={isAotMode ? (day.completed === day.assigned ? 'var(--aot-accent)' : 'rgba(255, 59, 48, 0.7)') : (day.completed === day.assigned ? 'var(--dashboard-chart-purple)' : '#3182ce')}
 
                             w={`${(day.completed / day.assigned) * 100}%`}
                             h="20px"
@@ -384,7 +384,7 @@ const DashboardPage: React.FC = () => {
                       value={day.assigned > 0 ? (day.completed / day.assigned) * 100 : 0}
                       size="50px"
                       thickness="8px"
-                      color={isAotMode ? 'var(--aot-accent)' : 'var(--dashboard-accent)'}
+                      color={isAotMode ? (day.completed === day.assigned ? 'var(--aot-accent)' : 'var(--aot-primary)') : (day.completed === day.assigned ? 'var(--dashboard-chart-purple)' : '#3182ce')}
                     >
                       <CircularProgressLabel fontSize="xs">
                         {day.completed}
@@ -396,13 +396,13 @@ const DashboardPage: React.FC = () => {
                       <Box 
                         w="100%" 
                         h="8px" 
-                        bg={isAotMode ? 'rgba(255, 59, 48, 0.3)' : 'rgba(66, 153, 225, 0.3)'}
+                        bg={isAotMode ? 'var(--aot-primary)' : 'rgba(66, 153, 225, 0.3)'}
                         borderRadius="full"
                       >
                         <Box 
                           w={`${day.assigned > 0 ? (day.completed / day.assigned) * 100 : 0}%`} 
                           h="8px"
-                          bg={isAotMode ? 'var(--aot-accent)' : 'var(--dashboard-chart-purple)'}
+                          bg={isAotMode ? (day.completed === day.assigned ? 'var(--aot-accent)' : 'rgba(255, 59, 48, 0.7)') : (day.completed === day.assigned ? 'var(--dashboard-chart-purple)' : '#3182ce')}
                           borderRadius="full"
                         />
                       </Box>
