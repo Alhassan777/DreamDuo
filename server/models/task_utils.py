@@ -4,7 +4,7 @@ from .task_hierarchy import TaskHierarchy
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any, Optional
 from sqlalchemy import text
-from datetime import datetime
+from datetime import datetime, timedelta
 
 def add_task(session: Session,
              name: str,
@@ -365,6 +365,7 @@ def get_tasks_stats_by_date_range(session: Session, user_id: int, start_date: da
                     t.parent_id,
                     t.completed,
                     DATE(CASE WHEN t.parent_id IS NULL THEN t.creation_date ELSE p.creation_date END) as task_date,
+                    EXTRACT(DOW FROM CASE WHEN t.parent_id IS NULL THEN t.creation_date ELSE p.creation_date END) as weekday,
                     CASE 
                         WHEN EXISTS (SELECT 1 FROM tasks st WHERE st.parent_id = t.id) THEN true
                         ELSE false
@@ -384,6 +385,7 @@ def get_tasks_stats_by_date_range(session: Session, user_id: int, start_date: da
                     t.parent_id,
                     t.completed,
                     t.task_date,
+                    t.weekday,
                     t.has_subtasks,
                     CASE
                         WHEN t.has_subtasks THEN (
@@ -398,6 +400,7 @@ def get_tasks_stats_by_date_range(session: Session, user_id: int, start_date: da
             daily_stats AS (
                 SELECT 
                     task_date,
+                    weekday,
                     COUNT(DISTINCT id) as total_tasks,
                     SUM(CASE 
                         WHEN parent_id IS NULL AND is_fully_completed THEN 1
@@ -415,10 +418,11 @@ def get_tasks_stats_by_date_range(session: Session, user_id: int, start_date: da
                         ELSE 0
                     END) as in_progress_tasks
                 FROM task_hierarchy
-                GROUP BY task_date
+                GROUP BY task_date, weekday
             )
             SELECT 
                 task_date,
+                weekday,
                 total_tasks,
                 completed_tasks,
                 CASE 
@@ -442,10 +446,37 @@ def get_tasks_stats_by_date_range(session: Session, user_id: int, start_date: da
         }
     )
     
-    return [{
-        "date": str(row.task_date),
-        "total_tasks": row.total_tasks,
-        "completed_tasks": row.completed_tasks,
-        "status": row.status,
-        "completion_percentage": row.completion_percentage
-    } for row in stats]
+    # Convert query results to a dictionary for easier lookup
+    stats_dict = {}
+    for row in stats:
+        stats_dict[str(row.task_date)] = {
+            "date": str(row.task_date),
+            "weekday": row.weekday,  # 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+            "total_tasks": row.total_tasks,
+            "completed_tasks": row.completed_tasks,
+            "status": row.status,
+            "completion_percentage": row.completion_percentage
+        }
+    
+    # Generate a complete list of dates in the range
+    complete_stats = []
+    current_date = start_date.date()
+    end_date_only = end_date.date()
+    
+    while current_date <= end_date_only:
+        date_str = current_date.strftime('%Y-%m-%d')
+        if date_str in stats_dict:
+            complete_stats.append(stats_dict[date_str])
+        else:
+            # Add empty stats for dates with no tasks
+            complete_stats.append({
+                "date": date_str,
+                "weekday": current_date.weekday(),  # Add weekday for empty dates too
+                "total_tasks": 0,
+                "completed_tasks": 0,
+                "status": "Free",
+                "completion_percentage": 0
+            })
+        current_date += timedelta(days=1)
+    
+    return complete_stats
