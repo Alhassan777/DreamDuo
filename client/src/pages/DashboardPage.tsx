@@ -112,7 +112,19 @@ const DashboardPage: React.FC = () => {
         const startDate = `${firstDayOfMonth.getUTCFullYear()}-${String(firstDayOfMonth.getUTCMonth() + 1).padStart(2, '0')}-${String(firstDayOfMonth.getUTCDate()).padStart(2, '0')}`;
         const endDate = `${lastDayOfMonth.getUTCFullYear()}-${String(lastDayOfMonth.getUTCMonth() + 1).padStart(2, '0')}-${String(lastDayOfMonth.getUTCDate()).padStart(2, '0')}`;
 
+        // Format today's date for daily stats
+        const todayFormatted = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-${String(now.getUTCDate()).padStart(2, '0')}`;
+
+        // Get monthly data for the streak and monthly view
         const monthlyData = await tasksService.getTaskStatsByDateRange(startDate, endDate);
+        
+        // Get today's data for daily goal progress
+        const todayData = monthlyData.find(day => day.date === todayFormatted) || {
+          date: todayFormatted,
+          total_tasks: 0,
+          completed_tasks: 0,
+          completion_percentage: 0
+        };
         
         // Create a proper weekly data structure with all days of the week
         const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -122,25 +134,28 @@ const DashboardPage: React.FC = () => {
           completed: 0
         }));
         
-        // Get the last 7 days of data based on actual date range
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(now.getDate() - 6); // 6 days back + today = 7 days
+        // Calculate the start of the current week (Monday)
+        const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, ...
+        const daysFromMonday = currentDay === 0 ? 6 : currentDay - 1; // Convert to 0 = Monday, ..., 6 = Sunday
         
-        // Filter monthlyData to just the last 7 calendar days
-        const recentData = monthlyData.filter(entry => {
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() - daysFromMonday);
+        startOfWeek.setHours(0, 0, 0, 0);
+        
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        endOfWeek.setHours(23, 59, 59, 999);
+        
+        // Filter monthlyData to get the current week (Monday-Sunday)
+        const currentWeekData = monthlyData.filter(entry => {
           const [year, month, dayOfMonth] = entry.date.split('-').map(Number);
           const entryDate = new Date(year, month - 1, dayOfMonth);
-          // Set time to midnight for proper date comparison
           entryDate.setHours(0, 0, 0, 0);
-          const startDate = new Date(sevenDaysAgo);
-          startDate.setHours(0, 0, 0, 0);
-          const endDate = new Date(now);
-          endDate.setHours(23, 59, 59, 999);
-          return entryDate >= startDate && entryDate <= endDate;
+          return entryDate >= startOfWeek && entryDate <= endOfWeek;
         });
         
         // Map the filtered data to the correct weekday
-        recentData.forEach(day => {
+        currentWeekData.forEach(day => {
           const [year, month, dayOfMonth] = day.date.split('-').map(Number);
           const date = new Date(year, month - 1, dayOfMonth);
           const weekdayIndex = date.getDay(); // Get local weekday
@@ -150,15 +165,12 @@ const DashboardPage: React.FC = () => {
           weeklyStats[adjustedIndex].assigned += day.total_tasks;
           weeklyStats[adjustedIndex].completed += day.completed_tasks;
         });
-        
-        // If we don't have data for all 7 days, we might need to request it
-        if (recentData.length < 7) {
-          console.log(`Only found ${recentData.length} days of data in the last 7 days window`);
-        }
 
         setStats({
-          totalTasks: monthlyData.reduce((sum, day) => sum + day.total_tasks, 0),
-          completedTasks: monthlyData.reduce((sum, day) => sum + day.completed_tasks, 0),
+          // Use today's data for daily goal progress
+          totalTasks: todayData.total_tasks,
+          completedTasks: todayData.completed_tasks,
+          // Keep using monthly data for streaks
           streak: calculateStreak(monthlyData),
           longestStreak: calculateLongestStreak(monthlyData),
           weeklyStats,
@@ -202,7 +214,7 @@ const DashboardPage: React.FC = () => {
             {/* Daily Progress Card */}
             <Box className="productivity-card" data-aot-mode={isAotMode}>
               <Text className="stats-heading" data-aot-mode={isAotMode}>
-                Daily Goal Progress
+                Today's Goal Progress
               </Text>
               <Box className="completion-circle" data-aot-mode={isAotMode}>
                 <CircularProgress
