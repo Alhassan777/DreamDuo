@@ -317,7 +317,10 @@ const DashboardPage: React.FC = () => {
                         >
                           <Box
                             className="chart-bar"
-                            bg={day.completed === day.assigned ? 'var(--aot-accent)' : 'var(--dashboard-chart-purple)'}
+                            bg={isAotMode
+                              ? (day.completed === day.assigned ? 'var(--aot-accent)' : 'rgba(255, 59, 48, 0.7)')
+                              : (day.completed === day.assigned ? 'var(--dashboard-accent)' : 'var(--dashboard-chart-purple)')
+                            }
                             w={`${(day.assigned > 0 ? (day.completed / day.assigned) * 100 : 0)}%`}
                             h="20px"
                             borderRadius="4px"
