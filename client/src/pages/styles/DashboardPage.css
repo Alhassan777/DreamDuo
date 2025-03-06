@@ -1,13 +1,42 @@
 :root {
+  /* Base colors */
   --dashboard-bg: var(--chakra-colors-gray-900);
   --dashboard-text: var(--chakra-colors-white);
   --dashboard-border: var(--chakra-colors-gray-700);
   --dashboard-accent: var(--chakra-colors-purple-500);
   --dashboard-success: var(--chakra-colors-green-500);
+  
+  /* Chart colors with improved contrast */
   --dashboard-chart-blue: #4299E1;
   --dashboard-chart-purple: #9F7AEA;
   --dashboard-chart-orange: #ED8936;
   --dashboard-chart-gray: #718096;
+  
+  /* Spacing system */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-xxl: 3rem;
+  
+  /* Typography */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.5rem;
+  --font-size-xxl: 2rem;
+  
+  /* Transitions */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
 .dashboard-page {
@@ -31,7 +60,7 @@
   right: 0;
   bottom: 0;
   background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.8)),
-              url('../../assets/dashboard_bg.png') center/cover no-repeat;
+              url('../../assets/dashboard_wallpaper.jpg') center/cover no-repeat;
   opacity: 0.8;
   z-index: 0;
 }

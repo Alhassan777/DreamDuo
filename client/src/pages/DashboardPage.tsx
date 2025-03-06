@@ -48,21 +48,64 @@ const DashboardPage: React.FC = () => {
     let currentStreak = 0;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
-    // Sort data by date in descending order
+  
+    // Sort data by date in descending order (most recent first)
     const sortedData = [...data].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-    for (const day of sortedData) {
+    
+    // Check if today has any tasks and if they're all completed
+    const todayData = sortedData.find(day => {
       const dayDate = new Date(day.date);
       dayDate.setHours(0, 0, 0, 0);
-
-      // Break if we find a day that's not fully completed or if there's a gap in dates
+      return dayDate.getTime() === today.getTime();
+    });
+  
+    // If today has tasks but they're not all completed, streak is 0
+    if (todayData && todayData.total_tasks > 0 && todayData.total_tasks !== todayData.completed_tasks) {
+      return 0;
+    }
+    
+    // Start checking from yesterday (or today if no tasks today)
+    let lastCheckedDate = today;
+    if (!todayData || todayData.total_tasks === 0) {
+      // If no tasks today, start from today
+    } else {
+      // If tasks today and all completed, include today in streak
+      currentStreak = 1;
+      // Move to yesterday for next check
+      lastCheckedDate = new Date(today);
+      lastCheckedDate.setDate(lastCheckedDate.getDate() - 1);
+    }
+    
+    // Calculate streak by checking consecutive days backwards
+    for (let i = 0; i < sortedData.length; i++) {
+      const day = sortedData[i];
+      const dayDate = new Date(day.date);
+      dayDate.setHours(0, 0, 0, 0);
+      
+      // Skip today as we've already handled it
+      if (dayDate.getTime() === today.getTime()) {
+        continue;
+      }
+      
+      // Check if this day is consecutive with the last checked date
+      const expectedDate = new Date(lastCheckedDate);
+      expectedDate.setDate(expectedDate.getDate() - 1);
+      
+      if (dayDate.getTime() !== expectedDate.getTime()) {
+        // Not consecutive, break the streak
+        break;
+      }
+      
+      // Check if all tasks were completed for this day
       if (day.total_tasks === 0 || day.total_tasks !== day.completed_tasks) {
         break;
       }
+      
+      // This day counts toward the streak
       currentStreak++;
+      lastCheckedDate = dayDate;
     }
-
+  
     return currentStreak;
   };
 
@@ -100,6 +143,7 @@ const DashboardPage: React.FC = () => {
     setViewType(viewType === 'bar' ? 'compound' : 'bar');
   };
 
+  // Refresh stats every minute to keep streak updated
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -210,13 +254,13 @@ const DashboardPage: React.FC = () => {
             📊 Your Productivity Dashboard
           </Heading>
 
-          <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }} gap={6} mt={8}>
+          <Grid templateColumns={{ base: '1fr', md: '1fr 2fr' }} gap={6} mt={8}>
             {/* Daily Progress Card */}
-            <Box className="productivity-card" data-aot-mode={isAotMode}>
+            <Box className="productivity-card" data-aot-mode={isAotMode} maxW="400px">
               <Text className="stats-heading" data-aot-mode={isAotMode}>
                 Today's Goal Progress
               </Text>
-              <Box className="completion-circle" data-aot-mode={isAotMode}>
+              <Flex justify="center" align="center" className="completion-circle" data-aot-mode={isAotMode}>
                 <CircularProgress
                   value={completionPercentage}
                   size="120px"
@@ -227,14 +271,15 @@ const DashboardPage: React.FC = () => {
                     {stats.completedTasks}/{stats.totalTasks}
                   </CircularProgressLabel>
                 </CircularProgress>
-              </Box>
-              <Text className="streak-info" data-aot-mode={isAotMode}>
-                Current Streak: {stats.streak} days
-              </Text>
-              <Text className="streak-info" data-aot-mode={isAotMode}>
-                Longest Streak: {stats.longestStreak} days
-              </Text>
-
+              </Flex>
+              <Flex align="center" justify="center" className="streak-info" data-aot-mode={isAotMode}>
+                <Text mr={2}>Current Streak: {stats.streak} days</Text>
+                {stats.streak > 0 && <span role="img" aria-label="flame">🔥</span>}
+              </Flex>
+              <Flex align="center" justify="center" className="streak-info" data-aot-mode={isAotMode}>
+                <Text mr={2}>Longest Streak: {stats.longestStreak} days</Text>
+                {stats.longestStreak > 0 && <span role="img" aria-label="flame">🔥</span>}
+              </Flex>
             </Box>
 
             {/* Weekly Stats Card */}
@@ -256,42 +301,57 @@ const DashboardPage: React.FC = () => {
               
               <Box className="weekly-chart">
                 {stats.weeklyStats.map((day) => (
-                  <Flex key={day.day} align="center" mb={2}>
-                    <Text className="chart-label" data-aot-mode={isAotMode}>
+                  <Flex key={day.day} align="center" mb={2} width="100%">
+                    <Text className="chart-label" data-aot-mode={isAotMode} width="60px">
                       {day.day}
                     </Text>
                     
                     {viewType === 'bar' ? (
-                      /* Simple bar chart showing completed tasks */
-                      <Box
-                        className="chart-bar"
-                        bg={isAotMode ? 'var(--aot-primary)' : 'var(--dashboard-chart-blue)'}
-                        w={`${(day.completed / Math.max(...stats.weeklyStats.map(d => d.completed || 1))) * 100}%`}
-                      />
-                    ) : (
-                      /* Compound bar chart showing assigned vs completed */
-                      <Flex w="100%" h="20px" align="center">
+                      <Box flex="1" position="relative" ml={2}>
                         <Box
-                          className="chart-bar-assigned"
+                          className="chart-bar-background"
                           bg={isAotMode ? 'rgba(255, 59, 48, 0.3)' : 'rgba(66, 153, 225, 0.3)'}
-                          w={`${(day.assigned / Math.max(...stats.weeklyStats.map(d => d.assigned || 1))) * 100}%`}
+                          w="100%"
                           h="20px"
-                          position="relative"
+                          borderRadius="4px"
                         >
                           <Box
-                            className="chart-bar-completed"
-                            bg={isAotMode ? 'var(--aot-accent)' : 'var(--dashboard-chart-blue)'}
-                            w={`${(day.completed / day.assigned) * 100}%`}
+                            className="chart-bar"
+                            bg={day.completed === day.assigned ? 'var(--aot-accent)' : 'var(--dashboard-chart-purple)'}
+                            w={`${(day.assigned > 0 ? (day.completed / day.assigned) * 100 : 0)}%`}
                             h="20px"
+                            borderRadius="4px"
                             position="absolute"
                             top="0"
                             left="0"
                           />
                         </Box>
-                      </Flex>
+                      </Box>
+                    ) : (
+                      <Box flex="1" position="relative" ml={2}>
+                        <Box
+                          className="chart-bar-assigned"
+                          bg={isAotMode ? 'rgba(255, 59, 48, 0.3)' : 'rgba(66, 153, 225, 0.3)'}
+                          w="100%"
+                          h="20px"
+                          borderRadius="4px"
+                        >
+                          <Box
+                            className="chart-bar-completed"
+                            bg={isAotMode ? 'var(--aot-accent)' : 'var(--dashboard-chart-purple)'}
+
+                            w={`${(day.completed / day.assigned) * 100}%`}
+                            h="20px"
+                            borderRadius="4px"
+                            position="absolute"
+                            top="0"
+                            left="0"
+                          />
+                        </Box>
+                      </Box>
                     )}
                     
-                    <Text ml={2}>
+                    <Text ml={4} width="70px" textAlign="right">
                       {viewType === 'bar' ? 
                         day.completed : 
                         `${day.completed}/${day.assigned}`
@@ -311,15 +371,15 @@ const DashboardPage: React.FC = () => {
               </Text>
             </Flex>
             
-            <Grid templateColumns="repeat(7, 1fr)" gap={2} className="monthly-chart">
+            <Grid templateColumns="repeat(auto-fit, minmax(120px, 1fr))" gap={4} className="monthly-chart" maxW="100%" overflowX="auto" p={4}>
               {stats.monthlyStats.map((day) => (
-                <Box key={day.day} p={2} textAlign="center" className="monthly-day-box" data-aot-mode={isAotMode}>
-                  <Text fontSize="sm" fontWeight="bold">{day.day}</Text>
+                <Box key={day.day} p={3} textAlign="center" className="monthly-day-box" data-aot-mode={isAotMode} borderRadius="md" boxShadow="sm">
+                  <Text fontSize="sm" fontWeight="bold" mb={2}>{day.day}</Text>
                   
                   {viewType === 'bar' ? (
                     <CircularProgress 
                       value={day.assigned > 0 ? (day.completed / day.assigned) * 100 : 0}
-                      size="40px"
+                      size="50px"
                       thickness="8px"
                       color={isAotMode ? 'var(--aot-accent)' : 'var(--dashboard-accent)'}
                     >
@@ -328,19 +388,18 @@ const DashboardPage: React.FC = () => {
                       </CircularProgressLabel>
                     </CircularProgress>
                   ) : (
-                    <Flex direction="column" align="center">
-                      <Text fontSize="xs">{day.completed}/{day.assigned}</Text>
+                    <Flex direction="column" align="center" mt={2}>
+                      <Text fontSize="sm" mb={2}>{day.completed}/{day.assigned}</Text>
                       <Box 
                         w="100%" 
                         h="8px" 
                         bg={isAotMode ? 'rgba(255, 59, 48, 0.3)' : 'rgba(66, 153, 225, 0.3)'}
                         borderRadius="full"
-                        mt={1}
                       >
                         <Box 
                           w={`${day.assigned > 0 ? (day.completed / day.assigned) * 100 : 0}%`} 
                           h="8px"
-                          bg={isAotMode ? 'var(--aot-accent)' : 'var(--dashboard-chart-blue)'}
+                          bg={isAotMode ? 'var(--aot-accent)' : 'var(--dashboard-chart-purple)'}
                           borderRadius="full"
                         />
                       </Box>
