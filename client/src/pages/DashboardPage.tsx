@@ -122,8 +122,24 @@ const DashboardPage: React.FC = () => {
           completed: 0
         }));
         
-        // Get the last 7 days of data and map them to the correct weekday
-        const recentData = monthlyData.slice(-7);
+        // Get the last 7 days of data based on actual date range
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(now.getDate() - 6); // 6 days back + today = 7 days
+        
+        // Filter monthlyData to just the last 7 calendar days
+        const recentData = monthlyData.filter(entry => {
+          const [year, month, dayOfMonth] = entry.date.split('-').map(Number);
+          const entryDate = new Date(year, month - 1, dayOfMonth);
+          // Set time to midnight for proper date comparison
+          entryDate.setHours(0, 0, 0, 0);
+          const startDate = new Date(sevenDaysAgo);
+          startDate.setHours(0, 0, 0, 0);
+          const endDate = new Date(now);
+          endDate.setHours(23, 59, 59, 999);
+          return entryDate >= startDate && entryDate <= endDate;
+        });
+        
+        // Map the filtered data to the correct weekday
         recentData.forEach(day => {
           const [year, month, dayOfMonth] = day.date.split('-').map(Number);
           const date = new Date(year, month - 1, dayOfMonth);
@@ -134,6 +150,11 @@ const DashboardPage: React.FC = () => {
           weeklyStats[adjustedIndex].assigned += day.total_tasks;
           weeklyStats[adjustedIndex].completed += day.completed_tasks;
         });
+        
+        // If we don't have data for all 7 days, we might need to request it
+        if (recentData.length < 7) {
+          console.log(`Only found ${recentData.length} days of data in the last 7 days window`);
+        }
 
         setStats({
           totalTasks: monthlyData.reduce((sum, day) => sum + day.total_tasks, 0),
