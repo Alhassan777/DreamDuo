@@ -1,4 +1,4 @@
-# AOT To Do Application
+# AOT To-Do Application
 
 A modern task management application built with Flask (Backend) and React + TypeScript (Frontend).
 
@@ -6,89 +6,146 @@ A modern task management application built with Flask (Backend) and React + Type
 
 Before you begin, ensure you have the following installed:
 
-- Python 3.8 or higher
-- Node.js 16 or higher
-- PostgreSQL 12 or higher
+- **Python** 3.8 or higher
+- **Node.js** 16 or higher
+- **PostgreSQL** 12 or higher
 
 ## Getting Started
 
 ### 1. Clone the Repository
 
-```bash
+```sh
 git clone <repository-url>
-cd AOT To Do
+cd AOT-To-Do
 ```
 
-### 2. Backend Setup
+## Backend Setup
 
-1. Navigate to the server directory:
-   ```bash
-   cd server
-   ```
+### 2. Setup Virtual Environment
 
-2. Create and activate a virtual environment:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows use: venv\Scripts\activate
-   ```
+Navigate to the server directory:
 
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+```sh
+cd server
+```
 
-4. Create a `.env` file in the server directory with the following content:
-   ```
-   DATABASE_URL=postgresql://<username>:<password>@localhost:5432/<database_name>
-   JWT_SECRET_KEY=your_secret_key_here
-   ```
+Create and activate a virtual environment:
 
-5. Start PostgreSQL service:
-   ```bash
-   # macOS (Homebrew)
-   brew services start postgresql
-   
-   # Linux (systemd)
-   sudo systemctl start postgresql
-   ```
+```sh
+python -m venv venv
+source venv/bin/activate  # On macOS
+```
 
-6. Create database manually (if needed):
-   ```bash
-   createdb aot_todo
+Install dependencies:
 
-   ```
+```sh
+pip install -r requirements.txt
+```
 
-7. Initialize the database:
-   ```bash
-   flask db upgrade
-   ```
+### PostgreSQL Database Setup (macOS)
 
-8. Start the backend server:
-   ```bash
-   python app.py
-   ```
+### 3. Install and Start PostgreSQL
 
-   The server will run on http://localhost:3001
+Install PostgreSQL using Homebrew:
 
-   > **Note**: Ensure PostgreSQL is running before database initialization. Check status with `brew services list` or `systemctl status postgresql`
+```sh
+brew install postgresql
+```
 
-### 3. Frontend Setup
+Start PostgreSQL service:
 
-1. Open a new terminal and navigate to the client directory:
-   ```bash
-   cd client
-   ```
+```sh
+brew services start postgresql
+```
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+Verify PostgreSQL is running:
 
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
-   The application will be available at http://localhost:5173
+```sh
+brew services list
+```
+
+### 4. Create a PostgreSQL Database and User
+
+Access PostgreSQL interactive shell:
+
+```sh
+psql postgres
+```
+
+Create a new database:
+
+```sql
+CREATE DATABASE aot_todo;
+```
+
+Create a new user and set a password:
+
+```sql
+CREATE USER aot_user WITH ENCRYPTED PASSWORD 'yourpassword';
+```
+
+Grant privileges to the new user:
+
+```sql
+GRANT ALL PRIVILEGES ON DATABASE aot_todo TO aot_user;
+```
+
+Exit PostgreSQL:
+
+```sh
+\q
+```
+
+### 5. Configure Environment Variables
+
+Create a `.env` file in the `server` directory and add the following:
+
+```sh
+DATABASE_URL=postgresql://aot_user:yourpassword@localhost:5432/aot_todo
+JWT_SECRET_KEY=your_secret_key_here
+```
+
+### 6. Initialize the Database
+
+Apply database migrations:
+
+```sh
+flask db upgrade
+```
+
+### 7. Start the Backend Server
+
+```sh
+python app.py
+```
+
+The backend server will run on [http://localhost:3001](http://localhost:3001).
+
+**Note:** Ensure PostgreSQL is running before attempting to initialize or connect to the database.
+
+## Frontend Setup
+
+### 8. Install Dependencies
+
+Open a new terminal and navigate to the `client` directory:
+
+```sh
+cd client
+```
+
+Install required dependencies:
+
+```sh
+npm install
+```
+
+### 9. Start the Frontend Development Server
+
+```sh
+npm run dev
+```
+
+The application will be available at [http://localhost:5173](http://localhost:5173).
 
 ## Features
 
@@ -98,20 +155,21 @@ cd AOT To Do
 - Task hierarchies
 - User settings and preferences
 
-## Development
+## Development Notes
 
-- Backend API runs on port 3001
-- Frontend development server runs on port 5173
+- Backend API runs on port `3001`
+- Frontend development server runs on port `5173`
 - CORS is configured to allow communication between these ports
 
 ## Database Schema
 
 The application uses PostgreSQL with the following main models:
-- Users
-- Tasks
-- Categories
-- Task Hierarchies
-- User Settings
+
+- **Users**
+- **Tasks**
+- **Categories**
+- **Task Hierarchies**
+- **User Settings**
 
 ## Contributing
 
@@ -123,4 +181,4 @@ The application uses PostgreSQL with the following main models:
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the **MIT License** - see the `LICENSE` file for details.
