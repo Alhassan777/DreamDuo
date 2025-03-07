@@ -26,7 +26,7 @@ export interface TaskResponse {
   name: string;
   description?: string;
   completed: boolean;
-  priority?: string;
+  priority?: { color: string; level: string; } | string; // Support both new object format and legacy string format
   category_id?: number;
   parent_id?: number | null;
   creation_date: string;          // An ISO date string from the backend
@@ -50,7 +50,7 @@ export interface Task {
   name: string;
   description?: string;
   completed: boolean;
-  priority?: string;
+  priority?: { color: string; level: string; } | string; // Support both new object format and legacy string format
   category_id?: number;
   parent_id: number | null;
   creation_date: string; // Keep as ISO string

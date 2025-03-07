@@ -306,6 +306,15 @@
 }
 
 .back-to-today[data-aot-mode="true"]:hover {
+  background-color: var(--aot-accent);
+  color: var(--aot-background);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 6px 12px rgba(220, 162, 83, 0.3);
+  border-color: transparent;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.back-to-today[data-aot-mode="true"]:hover {
   background-color: var(--aot-secondary-bg-hover);
   color: var(--aot-secondary-text-hover);
   transform: var(--button-hover-transform);

@@ -39,7 +39,12 @@ def create_task():
     data = request.get_json()
 
     if not data.get('name'):
-        return jsonify({'error': 'Task name is required'}), 400
+        return jsonify({'success': False, 'message': 'Task name is required'}), 200
+
+    # Validate parent_id to prevent negative values
+    parent_id = data.get('parent_id')
+    if parent_id is not None and parent_id < 0:
+        return jsonify({'success': False, 'message': 'Invalid parent_id: cannot be negative'}), 200
 
     try:
         # Parse if your front-end sends an ISO string
@@ -66,7 +71,7 @@ def create_task():
                 # Convert deadline from ISO format to datetime
                 deadline_dt = datetime.fromisoformat(deadline_str)
             except ValueError:
-                return jsonify({'error': 'Invalid deadline format'}), 400
+                return jsonify({'success': False, 'message': 'Invalid deadline format'}), 200
 
         new_task = add_task(
             session=db.session,
@@ -80,10 +85,13 @@ def create_task():
             deadline=deadline_dt
         )
 
-        return jsonify(get_task_with_subtasks(db.session, new_task.id, user_id)), 201
+        return jsonify({
+            'success': True,
+            'data': get_task_with_subtasks(db.session, new_task.id, user_id)
+        }), 201
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'success': False, 'message': str(e)}), 200
 
 
 @tasks_bp.route('/<int:task_id>', methods=['PUT'])

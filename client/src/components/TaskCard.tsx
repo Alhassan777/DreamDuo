@@ -32,7 +32,7 @@ interface Task {
   name: string;
   completed: boolean;
   collapsed?: boolean;
-  priority?: string;
+  priority?: { color: string; level: string; } | string; // Support both new object format and legacy string format
   category?: string;
   categoryIcon?: string;
   parent_id: number | null;
@@ -222,9 +222,16 @@ const TaskCard: React.FC<TaskCardProps> = ({
             </Tag>
           )}
           {task.priority && (
-            <Circle size="24px" bg={task.priority} title="Priority Level" className="priority-indicator" data-aot-mode={isAotMode}>
-              <StarIcon color="white" boxSize={4} />
-            </Circle>
+            <Tooltip label={typeof task.priority === 'string' ? `Priority: ${task.priority}` : `Priority: ${task.priority.level}`}>
+              <Circle 
+                size="24px" 
+                bg={typeof task.priority === 'string' ? task.priority : task.priority.color}
+                className="priority-indicator" 
+                data-aot-mode={isAotMode}
+              >
+                <StarIcon color="white" boxSize={4} />
+              </Circle>
+            </Tooltip>
           )}
           {task.deadline && (() => {
             const deadlineDate = parseISO(task.deadline);

@@ -35,8 +35,18 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category, onDelete, onUpdat
   };
 
   const handleEmojiClick = (emojiData: EmojiClickData) => {
-    setSelectedIcon(emojiData.emoji);
+    const newIcon = emojiData.emoji;
+    setSelectedIcon(newIcon);
     setShowEmojiPicker(false);
+    
+    // Immediately update the category with the new emoji
+    if (!isEditing) {
+      onUpdate({
+        name: category.name,
+        description: category.description,
+        icon: newIcon
+      });
+    }
   };
 
   const handleCancel = () => {

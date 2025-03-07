@@ -303,6 +303,13 @@ const DailyTasksPage: React.FC = () => {
             {date && (
               <Button 
                 className='back-to-today'
+                data-aot-mode={isAotMode}
+                onClick={() => {
+                  const today = new Date();
+                  const localDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                  const formattedDate = `${localDate.getFullYear()}-${String(localDate.getMonth() + 1).padStart(2, '0')}-${String(localDate.getDate()).padStart(2, '0')}`;
+                  navigate(`/daily-tasks/${formattedDate}`);
+                }}
               >
                 Back to Today's Tasks
               </Button>
