@@ -3,6 +3,7 @@ import { Box, VStack, Avatar, Text, Button, Menu, MenuButton, MenuList, MenuItem
   import { useRef, useState, useEffect } from 'react';
   import api from '../services/api';
   import { useTheme } from '../contexts/ThemeContext';
+  import './styles/ProfileDropdown.css';
 
   interface ProfileDropdownProps {
     firstName?: string;

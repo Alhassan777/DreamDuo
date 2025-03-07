@@ -1,6 +1,6 @@
 import { Box, VStack, Text, Flex, IconButton, Input } from '@chakra-ui/react';
 import { AddIcon, CheckIcon, CloseIcon } from '@chakra-ui/icons';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import './styles/SubtaskCard.css';
 
@@ -49,6 +49,11 @@ const SubtaskCard = ({
   const { isAotMode } = useTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(subtask.name);
+
+  // Update local state when subtask prop changes
+  useEffect(() => {
+    setEditedName(subtask.name);
+  }, [subtask.name]);
 
   // Enter rename mode by double-click
   const handleDoubleClick = () => {

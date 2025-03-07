@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import {
   Box,
   VStack,
@@ -89,6 +89,11 @@ const TaskCard: React.FC<TaskCardProps> = ({
   // Local state for renaming this task
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(task.name);
+  
+  // Update local state when task prop changes
+  useEffect(() => {
+    setEditedName(task.name);
+  }, [task.name]);
 
   /** Double-click to start editing */
   const handleDoubleClick = () => {

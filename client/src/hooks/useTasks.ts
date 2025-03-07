@@ -244,6 +244,13 @@ export const useTasks = () => {
    */
   const updateTaskName = async (taskId: number, newName: string) => {
     try {
+      // Optimistically update the UI
+      setTasks(prevTasks =>
+        prevTasks.map(task =>
+          task.id === taskId ? { ...task, name: newName } : task
+        )
+      );
+
       await tasksService.updateTask(taskId, { name: newName });
       // Find the task to get its creation_date
       const task = tasks.find(t => t.id === taskId);
@@ -258,11 +265,28 @@ export const useTasks = () => {
     }
   };
 
-  /**
-   * Rename a subtask (convenience method).
-   */
   const updateSubtaskName = async (taskId: number, subtaskId: number, newName: string) => {
     try {
+      // Optimistically update the UI
+      setTasks(prevTasks => {
+        return prevTasks.map(task => {
+          if (task.id === taskId) {
+            // Helper function to update subtask name
+            const updateSubtaskInTree = (parentTask: Task): Task => {
+              if (parentTask.id === subtaskId) {
+                return { ...parentTask, name: newName };
+              }
+              return {
+                ...parentTask,
+                children: (parentTask.children || []).map(child => updateSubtaskInTree(child))
+              };
+            };
+            return updateSubtaskInTree(task);
+          }
+          return task;
+        });
+      });
+
       await tasksService.updateTask(subtaskId, { name: newName });
       // Find the task to get its creation_date to use for filtering
       const task = tasks.find(t => t.id === taskId);
