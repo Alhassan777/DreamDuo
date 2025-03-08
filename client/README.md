@@ -1,50 +1,167 @@
-# React + TypeScript + Vite
+# AOT To Do Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern, feature-rich task management application built with React, TypeScript, and Vite. This client application provides a robust user interface for managing hierarchical tasks with real-time updates and drag-and-drop functionality.
 
-Currently, two official plugins are available:
+## Architecture Overview
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+The application follows a modern React architecture with the following key features:
 
-## Expanding the ESLint configuration
+- **TypeScript**: Full TypeScript support for enhanced type safety and developer experience
+- **React Hooks**: Custom hooks for state management and business logic
+- **WebSocket Integration**: Real-time updates using WebSocket connections
+- **Component-Based Structure**: Modular components for maintainable and reusable code
+- **Chakra UI**: Comprehensive UI component library for consistent design
+- **React Router**: Client-side routing for seamless navigation
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+## Project Structure
 
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```
+src/
+├── components/     # Reusable UI components
+├── contexts/       # React contexts for state management
+├── hooks/          # Custom React hooks
+├── pages/          # Page components
+├── services/       # API and WebSocket services
+└── styles/         # Global styles and CSS modules
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+## Key Features
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+### Task Hierarchy System
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+The application implements a sophisticated task hierarchy system allowing:
+- Main tasks
+- Subtasks
+- Sub-subtasks
+- Infinite nesting capabilities
+
+### Drag and Drop Implementation
+
+The drag and drop functionality is implemented using the `useDragAndDrop` custom hook (`src/hooks/useDragAndDrop.ts`). Here's a detailed breakdown:
+
+#### State Management
+```typescript
+interface DragState {
+  type: 'task' | 'subtask' | 'sub-subtask';
+  sourceTaskId: number;
+  sourceParentId?: number;
+  itemId: number;
+}
 ```
+
+#### Key Functions
+
+1. **handleDragStart**:
+   - Initializes drag operation
+   - Captures source task information
+   - Sets visual feedback
+
+2. **handleDrop**:
+   - Validates drop target
+   - Prevents invalid operations (self-drop, same parent)
+   - Updates task hierarchy via API
+   - Refreshes task list with WebSocket sync
+
+3. **handleDragEnd**:
+   - Cleans up drag state
+   - Resets visual feedback
+
+### Real-time Updates
+
+WebSocket integration provides seamless real-time updates:
+
+#### Event Handling
+- Task Creation: Instant notification when new tasks are added
+- Task Updates: Real-time sync of task modifications
+- Task Deletion: Immediate removal of deleted tasks
+- Task Completion: Live status updates across clients
+
+#### WebSocket Service
+```typescript
+websocketService.onTaskCreated((newTask) => {
+  // Update local state
+  // Refresh task list
+});
+
+websocketService.onTaskUpdated((updatedTask) => {
+  // Sync changes
+  // Update UI
+});
+```
+
+## Component Architecture
+
+### TaskCard Component
+- Handles individual task rendering
+- Manages drag and drop events
+- Controls task collapse/expand
+- Handles inline editing
+
+### Task Management
+- Uses `useTasks` hook for CRUD operations
+- Implements optimistic updates
+- Handles error states
+- Maintains task hierarchy integrity
+
+## State Management
+
+### Custom Hooks
+1. **useTasks**:
+   - Manages task CRUD operations
+   - Handles WebSocket updates
+   - Maintains task hierarchy
+
+2. **useDragAndDrop**:
+   - Controls drag and drop state
+   - Validates operations
+   - Updates task positions
+
+3. **useTheme**:
+   - Manages application theme
+   - Handles AOT mode toggle
+
+## API Integration
+
+### Task Service
+```typescript
+tasksService.moveTask(taskId, newParentId);
+tasksService.getTasksByDate(date);
+tasksService.createTask(taskData);
+```
+
+## Development Setup
+
+1. Install dependencies:
+```bash
+npm install
+```
+
+2. Start development server:
+```bash
+npm run dev
+```
+
+3. Build for production:
+```bash
+npm run build
+```
+
+## Environment Configuration
+
+Create a `.env` file with:
+```
+VITE_API_URL=http://localhost:5000
+VITE_WS_URL=ws://localhost:5000
+```
+
+## Browser Support
+- Chrome (latest)
+- Firefox (latest)
+- Safari (latest)
+- Edge (latest)
+
+## Performance Considerations
+- Optimized re-renders using React.memo
+- Efficient task tree updates
+- Debounced real-time updates
+- Lazy loading of components
