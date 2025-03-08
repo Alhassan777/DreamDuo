@@ -91,14 +91,14 @@ const CalendarPage = () => {
   // Get tasks for a specific day
   const getTasksForDay = async (date: Date) => {
     try {
-      // Create dates in UTC for comparison
-      const localDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      // Use local date for comparison
+      const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
       
       const tasksForDay = tasks.filter(task => {
-        // Split the date string and construct a UTC Date object
+        // Split the date string and construct a local Date object
         const [year, month, day] = task.creation_date.split('-').map(Number);
-        // Create date object in UTC (month is 0-based in Date constructor)
-        const taskDate = new Date(Date.UTC(year, month, day));
+        // Create date object in local timezone (month is 0-based in Date constructor)
+        const taskDate = new Date(year, month - 1, day);
         
         return taskDate.getTime() === localDate.getTime();
       });
@@ -114,8 +114,8 @@ const CalendarPage = () => {
   // Handle day click to navigate to DailyTasksPage with the selected date
   const handleDayClick = (day: number) => {
     const clickedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-    // Format date using UTC components to ensure consistent timezone handling
-    const formattedDate = `${clickedDate.getUTCFullYear()}-${String(clickedDate.getUTCMonth() + 1).padStart(2, '0')}-${String(clickedDate.getUTCDate()).padStart(2, '0')}`;
+    // Format date using local components
+    const formattedDate = `${clickedDate.getFullYear()}-${String(clickedDate.getMonth() + 1).padStart(2, '0')}-${String(clickedDate.getDate()).padStart(2, '0')}`;
     // Navigate to DailyTasksPage with the selected date using React Router
     navigate(`/daily-tasks/${formattedDate}`);
   };

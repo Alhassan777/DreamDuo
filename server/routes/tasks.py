@@ -21,7 +21,7 @@ def get_tasks():
     
     if date_str:
         try:
-            # Parse date without timezone information
+            # Parse date without timezone information - treats date as local timezone
             filter_date = datetime.strptime(date_str, '%Y-%m-%d').date()
             query = query.filter(db.func.date(Task.creation_date) == filter_date)
         except ValueError:
@@ -48,28 +48,22 @@ def create_task():
         return jsonify({'success': False, 'message': 'Invalid parent_id: cannot be negative'}), 200
 
     try:
-        # Parse if your front-end sends an ISO string
+        # Parse creation date if provided, otherwise use current date
         creation_date_str = data.get('creation_date')
         creation_date_dt = None
         if creation_date_str:
             try:
-                # Assume the frontend sends local time, convert to UTC for storage
-                local_dt = datetime.fromisoformat(creation_date_str)
-                # Add UTC offset to convert to UTC
-                utc_offset = datetime.now().astimezone().utcoffset()
-                creation_date_dt = local_dt - utc_offset
+                # Treat the incoming date as local time, store it as-is
+                creation_date_dt = datetime.strptime(creation_date_str, '%Y-%m-%d')
             except ValueError:
-                # Fallback to strptime if not in ISO format, still converting to UTC
-                local_dt = datetime.strptime(creation_date_str, '%Y-%m-%dT%H:%M:%S')
-                utc_offset = datetime.now().astimezone().utcoffset()
-                creation_date_dt = local_dt - utc_offset
+                return jsonify({'success': False, 'message': 'Invalid date format. Use YYYY-MM-DD'}), 200
 
         # Parse deadline if provided
         deadline_str = data.get('deadline')
         deadline_dt = None
         if deadline_str:
             try:
-                # Convert deadline from ISO format to datetime
+                # Store deadline in local time as well
                 deadline_dt = datetime.fromisoformat(deadline_str)
             except ValueError:
                 return jsonify({'success': False, 'message': 'Invalid deadline format'}), 200
@@ -82,7 +76,7 @@ def create_task():
             parent_id=data.get('parent_id'),
             category_id=data.get('category_id'),
             priority=data.get('priority'),
-            creation_date=creation_date_dt,  # pass the parsed datetime
+            creation_date=creation_date_dt,
             deadline=deadline_dt
         )
 
@@ -98,7 +92,7 @@ def create_task():
         }), 201
     except Exception as e:
         db.session.rollback()
-        return jsonify({'success': False, 'message': str(e)}), 200
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 
 @tasks_bp.route('/<int:task_id>', methods=['PUT'])

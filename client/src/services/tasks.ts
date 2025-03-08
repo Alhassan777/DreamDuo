@@ -156,15 +156,14 @@ export const tasksService = {
     try {
       // Optional: Provide a default date if none is supplied
       if (!task.creation_date) {
-        // Use local timezone for default creation date with full ISO string
+        // Use local date string in YYYY-MM-DD format to preserve local timezone
         const now = new Date();
-        task.creation_date = now.toISOString();
-      } else if (!task.creation_date.includes('T')) {
-        // If only date part is provided (YYYY-MM-DD), convert to full ISO string
-        // This ensures timezone information is preserved
-        const date = new Date(task.creation_date);
-        task.creation_date = date.toISOString();
+        task.creation_date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
       }
+      
+      // If deadline is provided as a full ISO string, keep it as is
+      // The backend will handle it in local timezone
+      
       const response = await api.post('/tasks/', task);
       return response.data;
     } catch (error) {
