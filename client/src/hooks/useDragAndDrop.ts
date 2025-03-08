@@ -1,10 +1,8 @@
 import { useState } from 'react';
 import { Task } from '../services/tasks';
 import { tasksService } from '../services/tasks';
-// No need to import websocketService as the updates will come through useTasks
 
 interface DragState {
-  // Allow dragging for tasks, subtasks, or deeper
   type: 'task' | 'subtask' | 'sub-subtask';
   sourceTaskId: number;
   sourceParentId?: number;
@@ -17,7 +15,6 @@ export const useDragAndDrop = (
 ) => {
   const [dragState, setDragState] = useState<DragState | null>(null);
 
-  // Allow dragging tasks, subtasks, or deeper
   const handleDragStart = (
     type: 'task' | 'subtask' | 'sub-subtask',
     sourceTaskId: number,
@@ -32,19 +29,14 @@ export const useDragAndDrop = (
     });
   };
 
-  // Handles dropping a dragged subtask into a target task (or into a nested subtask).
-  // targetTaskId: the task into which you are dropping.
-  // targetParentId (optional): if provided, drop inside that subtask's children.
   const handleDrop = async (targetTaskId: number, targetParentId: number | null) => {
     if (!dragState) return;
 
-    // Don't allow dropping onto itself
     if (dragState.itemId === targetTaskId || dragState.itemId === targetParentId) {
       setDragState(null);
       return;
     }
     
-    // Don't allow dropping onto its current parent (no change needed)
     if ((targetParentId && targetParentId === dragState.sourceParentId) || 
         (!targetParentId && targetTaskId === dragState.sourceParentId)) {
       setDragState(null);
@@ -52,15 +44,17 @@ export const useDragAndDrop = (
     }
 
     try {
-      // Always use targetParentId if provided, otherwise use targetTaskId
       const newParentId = targetParentId || targetTaskId;
       
-      // Update the backend using moveTask
       await tasksService.moveTask(dragState.itemId, newParentId);
       
-      // Refetch all tasks after moving
-      const updatedTasks = await tasksService.getTasks();
-      setTasks(updatedTasks);
+      // Get the current date from the task's creation_date
+      const movedTask = tasks.find(t => t.id === dragState.itemId);
+      if (movedTask && movedTask.creation_date) {
+        // Fetch tasks for the specific date
+        const updatedTasks = await tasksService.getTasksByDate(movedTask.creation_date);
+        setTasks(updatedTasks);
+      }
     } catch (error) {
       console.error('Error moving task/subtask:', error);
     } finally {
