@@ -7,20 +7,34 @@ import { websocketService } from '../services/websocket';
  * 
  * Assumes tasksService.getTasks() returns Task[] objects 
  * already nested properly (children instead of subtasks).
+ * @param dateFilter Optional date filter in YYYY-MM-DD format
  */
-export const useTasks = () => {
+export const useTasks = (dateFilter?: string) => {
   /**
    * React state holding the entire tree of tasks.
    * Each `Task` can have `children: Task[]` for nested subtasks.
    */
   const [tasks, setTasks] = useState<Task[]>([]);
+  
+  // Store the current date filter
+  const [currentDateFilter, setCurrentDateFilter] = useState<string | undefined>(dateFilter);
+
+  // Update currentDateFilter when dateFilter prop changes
+  useEffect(() => {
+    setCurrentDateFilter(dateFilter);
+  }, [dateFilter]);
 
   // Load initial tasks and connect to WebSocket when the hook is initialized
   useEffect(() => {
     // Load initial tasks
     const loadInitialTasks = async () => {
       try {
-        const initialTasks = await tasksService.getTasks();
+        let initialTasks;
+        if (currentDateFilter) {
+          initialTasks = await tasksService.getTasksByDate(currentDateFilter);
+        } else {
+          initialTasks = await tasksService.getTasks();
+        }
         setTasks(initialTasks);
       } catch (error) {
         console.error('Error loading initial tasks:', error);
@@ -37,7 +51,12 @@ export const useTasks = () => {
       console.log('Task created via WebSocket:', newTask);
       // Refetch all tasks to ensure consistency
       try {
-        const updatedTasks = await tasksService.getTasks();
+        let updatedTasks;
+        if (currentDateFilter) {
+          updatedTasks = await tasksService.getTasksByDate(currentDateFilter);
+        } else {
+          updatedTasks = await tasksService.getTasks();
+        }
         setTasks(updatedTasks);
       } catch (error) {
         console.error('Error refetching tasks after WebSocket task creation:', error);
@@ -48,7 +67,12 @@ export const useTasks = () => {
       console.log('Task updated via WebSocket:', updatedTask);
       // Refetch all tasks to ensure consistency
       try {
-        const updatedTasks = await tasksService.getTasks();
+        let updatedTasks;
+        if (currentDateFilter) {
+          updatedTasks = await tasksService.getTasksByDate(currentDateFilter);
+        } else {
+          updatedTasks = await tasksService.getTasks();
+        }
         setTasks(updatedTasks);
       } catch (error) {
         console.error('Error refetching tasks after WebSocket task update:', error);
@@ -59,7 +83,12 @@ export const useTasks = () => {
       console.log('Task deleted via WebSocket:', taskId);
       // Refetch all tasks to ensure consistency
       try {
-        const updatedTasks = await tasksService.getTasks();
+        let updatedTasks;
+        if (currentDateFilter) {
+          updatedTasks = await tasksService.getTasksByDate(currentDateFilter);
+        } else {
+          updatedTasks = await tasksService.getTasks();
+        }
         setTasks(updatedTasks);
       } catch (error) {
         console.error('Error refetching tasks after WebSocket task deletion:', error);
@@ -70,7 +99,12 @@ export const useTasks = () => {
       console.log('Task completion toggled via WebSocket:', taskId, completed);
       // Refetch all tasks to ensure consistency
       try {
-        const updatedTasks = await tasksService.getTasks();
+        let updatedTasks;
+        if (currentDateFilter) {
+          updatedTasks = await tasksService.getTasksByDate(currentDateFilter);
+        } else {
+          updatedTasks = await tasksService.getTasks();
+        }
         setTasks(updatedTasks);
       } catch (error) {
         console.error('Error refetching tasks after WebSocket task completion toggle:', error);
@@ -85,7 +119,7 @@ export const useTasks = () => {
       taskCompletedUnsubscribe();
       websocketService.disconnect();
     };
-  }, []);
+  }, [currentDateFilter]);
 
   /**
    * Create a new task (top-level or subtask).
@@ -104,8 +138,13 @@ export const useTasks = () => {
         creation_date: newTask.creation_date
       });
 
-      // Refetch all tasks to ensure consistency
-      const updatedTasks = await tasksService.getTasks();
+      // Refetch tasks with date filter if available
+      let updatedTasks;
+      if (currentDateFilter) {
+        updatedTasks = await tasksService.getTasksByDate(currentDateFilter);
+      } else {
+        updatedTasks = await tasksService.getTasks();
+      }
       setTasks(updatedTasks);
 
       // Return the created task
@@ -125,7 +164,12 @@ export const useTasks = () => {
       }
       
       // Refetch all tasks after deletion
-      const updatedTasks = await tasksService.getTasks();
+      let updatedTasks;
+      if (currentDateFilter) {
+        updatedTasks = await tasksService.getTasksByDate(currentDateFilter);
+      } else {
+        updatedTasks = await tasksService.getTasks();
+      }
       setTasks(updatedTasks);
     } catch (error) {
       console.error('Error deleting task:', error);
@@ -141,7 +185,12 @@ export const useTasks = () => {
       await tasksService.toggleTaskComplete(taskId, !task.completed);
       
       // Refetch all tasks after toggling completion
-      const updatedTasks = await tasksService.getTasks();
+      let updatedTasks;
+      if (currentDateFilter) {
+        updatedTasks = await tasksService.getTasksByDate(currentDateFilter);
+      } else {
+        updatedTasks = await tasksService.getTasks();
+      }
       setTasks(updatedTasks);
     } catch (error) {
       console.error('Error toggling task completion:', error);
@@ -160,7 +209,12 @@ export const useTasks = () => {
       await tasksService.toggleTaskComplete(subtaskId, !subtask.completed);
       
       // Refetch all tasks after toggling completion
-      const updatedTasks = await tasksService.getTasks();
+      let updatedTasks;
+      if (currentDateFilter) {
+        updatedTasks = await tasksService.getTasksByDate(currentDateFilter);
+      } else {
+        updatedTasks = await tasksService.getTasks();
+      }
       setTasks(updatedTasks);
     } catch (error) {
       console.error('Error toggling subtask completion:', error);
@@ -173,7 +227,12 @@ export const useTasks = () => {
       await tasksService.updateTask(taskId, { name: newName });
       
       // Refetch all tasks after updating name
-      const updatedTasks = await tasksService.getTasks();
+      let updatedTasks;
+      if (currentDateFilter) {
+        updatedTasks = await tasksService.getTasksByDate(currentDateFilter);
+      } else {
+        updatedTasks = await tasksService.getTasks();
+      }
       setTasks(updatedTasks);
     } catch (error) {
       console.error('Error updating task name:', error);
@@ -186,7 +245,12 @@ export const useTasks = () => {
       await tasksService.updateTask(subtaskId, { name: newName });
       
       // Refetch all tasks after updating name
-      const updatedTasks = await tasksService.getTasks();
+      let updatedTasks;
+      if (currentDateFilter) {
+        updatedTasks = await tasksService.getTasksByDate(currentDateFilter);
+      } else {
+        updatedTasks = await tasksService.getTasks();
+      }
       setTasks(updatedTasks);
     } catch (error) {
       console.error('Error updating subtask name:', error);
@@ -212,8 +276,13 @@ export const useTasks = () => {
       // Make the API call
       await tasksService.addSubtask(parentId, newSubtaskData);
       
-      // Refetch all tasks to ensure consistency
-      const updatedTasks = await tasksService.getTasks();
+      // Refetch tasks with date filter if available
+      let updatedTasks;
+      if (currentDateFilter) {
+        updatedTasks = await tasksService.getTasksByDate(currentDateFilter);
+      } else {
+        updatedTasks = await tasksService.getTasks();
+      }
       setTasks(updatedTasks);
     } catch (error) {
       console.error('Error adding subtask:', error);

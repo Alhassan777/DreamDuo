@@ -68,7 +68,7 @@ const DailyTasksPage: React.FC = () => {
     }
   }, [date]);
 
-  // From your custom tasks hook
+  // From your custom tasks hook - pass the selected date as filter
   const {
     tasks,
     createTask,
@@ -80,7 +80,7 @@ const DailyTasksPage: React.FC = () => {
     updateTaskName,
     updateSubtaskName,
     setTasks,
-  } = useTasks();
+  } = useTasks(selectedDate.toISOString().split('T')[0]);
 
   // Category & Priority arrays
   const [categories, setCategories] = useState<Category[]>([]); // Changed from string[] to Category[]
@@ -185,7 +185,7 @@ const DailyTasksPage: React.FC = () => {
       }
     };
     fetchTasks();
-  }, [selectedDate, toast]); // Only fetch tasks when date changes
+  }, [selectedDate, toast, setTasks]); // Only fetch tasks when date changes
 
   const handleCreateTask = async () => {
     if (!newTask.name.trim()) return;
