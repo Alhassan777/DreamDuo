@@ -1,5 +1,8 @@
 # Advanced Task Management Application (AOT-Theme)
 
+### Loom Video: https://www.loom.com/share/cb17545f17f044a79f477a9870b872a1
+
+
 ## Project Overview
 
 This task management application is built on principles of strategy, discipline, and adaptability. It helps users organize their tasks with precision while maintaining the flexibility to adjust to changing priorities.
