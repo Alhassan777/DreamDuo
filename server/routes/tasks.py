@@ -8,6 +8,7 @@ from models.task_utils import (
 )
 from . import tasks_bp
 from datetime import datetime
+from socket_events import emit_task_created, emit_task_updated, emit_task_deleted, emit_task_completed
 
 @tasks_bp.route('/', methods=['GET'])
 @jwt_required()
@@ -85,9 +86,15 @@ def create_task():
             deadline=deadline_dt
         )
 
+        # Get the task with its subtasks for the response
+        task_data = get_task_with_subtasks(db.session, new_task.id, user_id)
+        
+        # Emit WebSocket event for real-time updates
+        emit_task_created(task_data, user_id)
+
         return jsonify({
             'success': True,
-            'data': get_task_with_subtasks(db.session, new_task.id, user_id)
+            'data': task_data
         }), 201
     except Exception as e:
         db.session.rollback()
@@ -127,16 +134,30 @@ def update_task(task_id):
 
     db.session.commit()
 
+    # Get the updated task with its subtasks
+    task_data = get_task_with_subtasks(db.session, task.id, user_id)
+    
+    # Emit WebSocket event for real-time updates
+    emit_task_updated(task_data, user_id)
+
     # Return the updated task with the full subtask tree
-    return jsonify(get_task_with_subtasks(db.session, task.id, user_id))
+    return jsonify(task_data)
 
 
 @tasks_bp.route('/<int:task_id>', methods=['DELETE'])
 @jwt_required()
 def delete_task_route(task_id):
     user_id = get_jwt_identity()
+    
+    # Get the task's creation date before deleting it
+    task = Task.query.filter_by(id=task_id, user_id=user_id).first()
+    date_str = None
+    if task and task.creation_date:
+        date_str = task.creation_date.strftime('%Y-%m-%d')
 
     if delete_task(db.session, task_id, user_id):
+        # Emit WebSocket event for real-time updates
+        emit_task_deleted(task_id, user_id, date_str)
         return jsonify({'message': 'Task and all subtasks deleted successfully'}), 200
     else:
         return jsonify({'error': 'Failed to delete task'}), 400
@@ -152,6 +173,15 @@ def toggle_task_completion_route(task_id):
     
     if not result:
         return jsonify({'error': 'Task not found'}), 404
+    
+    # Get the task's creation date and completed status
+    task = Task.query.filter_by(id=task_id, user_id=user_id).first()
+    date_str = None
+    if task and task.creation_date:
+        date_str = task.creation_date.strftime('%Y-%m-%d')
+    
+    # Emit WebSocket event for real-time updates
+    emit_task_completed(task_id, task.completed, user_id, date_str)
         
     return jsonify(result)
 
@@ -170,8 +200,14 @@ def move_task_route(task_id):
     if not move_subtask(db.session, task_id, new_parent_id, user_id):
         return jsonify({'error': 'Failed to move task'}), 400
 
+    # Get the updated task with its subtasks
+    task_data = get_task_with_subtasks(db.session, task_id, user_id)
+    
+    # Emit WebSocket event for real-time updates
+    emit_task_updated(task_data, user_id)
+
     # Return the updated task with its subtasks
-    return jsonify(get_task_with_subtasks(db.session, task_id, user_id))
+    return jsonify(task_data)
 
 
 @tasks_bp.route('/stats', methods=['GET'])

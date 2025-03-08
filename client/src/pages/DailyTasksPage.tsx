@@ -15,10 +15,9 @@ import {
   ModalBody,
   ModalCloseButton,
   useToast,
-  Text,
 } from '@chakra-ui/react';
 import { AddIcon } from '@chakra-ui/icons';
-import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
+import { EmojiClickData } from 'emoji-picker-react';
 
 import DashboardLayout from '../components/DashboardLayout';
 import TaskCard from '../components/TaskCard';
@@ -28,7 +27,7 @@ import { useTasks } from '../hooks/useTasks';
 import { useDragAndDrop } from '../hooks/useDragAndDrop';
 import { useTheme } from '../contexts/ThemeContext';
 import { tagsService, Category } from '../services/tags';
-import { tasksService } from '../services/tasks';
+import { tasksService, Task } from '../services/tasks';
 import './styles/DailyTask.css';
 import { TaskCreateRequest } from '../services/tasks';
 
@@ -118,7 +117,7 @@ const DailyTasksPage: React.FC = () => {
   // Drag-and-drop from your custom hook
   const { dragState, handleDragStart, handleDrop } = useDragAndDrop(tasks, setTasks);
 
-  // Load categories, priorities, and tasks
+  // Load categories and priorities
   useEffect(() => {
     const fetchTags = async () => {
       setIsLoading(true);
@@ -130,10 +129,6 @@ const DailyTasksPage: React.FC = () => {
 
         setCategories(fetchedCats); // Store the full Category objects
         setPriorities(fetchedPriorities);
-        
-        // Always fetch tasks based on selectedDate
-        const fetchedTasks = await tasksService.getTasksByDate(selectedDate.toISOString().split('T')[0]);
-        setTasks(fetchedTasks); // Initialize tasks when component mounts
 
         if (fetchedCats.length === 0) {
           toast({
@@ -167,23 +162,54 @@ const DailyTasksPage: React.FC = () => {
       }
     };
     fetchTags();
-  }, [toast, selectedDate]); // Added selectedDate to dependency array
+  }, [toast]); // Remove selectedDate from dependency array
+
+  // Load tasks when selectedDate changes
+  useEffect(() => {
+    const fetchTasks = async () => {
+      setIsLoading(true);
+      try {
+        const fetchedTasks = await tasksService.getTasksByDate(selectedDate.toISOString().split('T')[0]);
+        setTasks(fetchedTasks); // Initialize tasks when date changes
+      } catch (error) {
+        console.error('Error fetching tasks:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load tasks',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchTasks();
+  }, [selectedDate, toast]); // Only fetch tasks when date changes
 
   const handleCreateTask = async () => {
     if (!newTask.name.trim()) return;
     setIsLoading(true);
-
+  
     try {
+      // Create the date string in YYYY-MM-DD format for the selected date
+      const dateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
+    
+      // Make the API call
       await createTask({
         name: newTask.name,
         description: newTask.description,
         category_id: newTask.category_id,
         priority: newTask.priority,
         deadline: newTask.deadline,
-        parent_id: null, // root-level
-        creation_date: `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`
+        parent_id: newTask.parent_id,
+        creation_date: dateStr
       });
-      
+
+      // Fetch the updated task list
+      const fetchedTasks = await tasksService.getTasksByDate(selectedDate.toISOString().split('T')[0]);
+      setTasks(fetchedTasks);
+  
       setNewTask({
         name: '',
         description: '',
@@ -192,7 +218,7 @@ const DailyTasksPage: React.FC = () => {
         parent_id: null,
         deadline: undefined
       });
-      
+  
       toast({
         title: 'Task Created',
         status: 'success',
@@ -255,26 +281,30 @@ const DailyTasksPage: React.FC = () => {
   /**
    * Delete Task or Subtask, then show a toast
    */
-  const handleDeleteTask = (taskId: number, subtaskId?: number) => {
-    deleteTask(taskId, subtaskId)
-      .then(() => {
-        toast({
-          title: 'Task Deleted',
-          status: 'success',
-          duration: 2000,
-          isClosable: true,
-        });
-      })
-      .catch((error) => {
-        console.error('Error deleting task:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to delete task',
-          status: 'error',
-          duration: 3000,
-          isClosable: true,
-        });
+  const handleDeleteTask = async (taskId: number, subtaskId?: number) => {
+    try {
+      await deleteTask(taskId, subtaskId);
+      
+      // Fetch the updated task list
+      const fetchedTasks = await tasksService.getTasksByDate(selectedDate.toISOString().split('T')[0]);
+      setTasks(fetchedTasks);
+      
+      toast({
+        title: 'Task Deleted',
+        status: 'success',
+        duration: 2000,
+        isClosable: true,
       });
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete task',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   };
 
   return (

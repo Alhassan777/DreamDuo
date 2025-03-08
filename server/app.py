@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 import os
 from models.db import db
 import secrets
+from socket_events import socketio
 # Initialize extensions
 migrate = Migrate()
 jwt = JWTManager()
@@ -55,6 +56,7 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
+    socketio.init_app(app, cors_allowed_origins="http://localhost:5173")
 
     with app.app_context():
         try:
@@ -79,4 +81,4 @@ def create_app():
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=True, port=3001)
+    socketio.run(app, debug=True, port=3001)

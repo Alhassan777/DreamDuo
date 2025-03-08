@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { tasksService, Task, TaskCreateRequest } from '../services/tasks';
+import { useState, useEffect } from 'react';
+import { tasksService, Task, TaskCreateRequest, mapTaskResponseToTask } from '../services/tasks';
+import { websocketService } from '../services/websocket';
 
 /**
  * Hook for managing tasks in a hierarchical system (with nesting).
@@ -14,17 +15,87 @@ export const useTasks = () => {
    */
   const [tasks, setTasks] = useState<Task[]>([]);
 
+  // Load initial tasks and connect to WebSocket when the hook is initialized
+  useEffect(() => {
+    // Load initial tasks
+    const loadInitialTasks = async () => {
+      try {
+        const initialTasks = await tasksService.getTasks();
+        setTasks(initialTasks);
+      } catch (error) {
+        console.error('Error loading initial tasks:', error);
+      }
+    };
+    
+    loadInitialTasks();
+
+    // Initialize WebSocket connection
+    websocketService.connect();
+    
+    // Set up listeners for real-time updates
+    const taskCreatedUnsubscribe = websocketService.onTaskCreated(async (newTask) => {
+      console.log('Task created via WebSocket:', newTask);
+      // Refetch all tasks to ensure consistency
+      try {
+        const updatedTasks = await tasksService.getTasks();
+        setTasks(updatedTasks);
+      } catch (error) {
+        console.error('Error refetching tasks after WebSocket task creation:', error);
+      }
+    });
+    
+    const taskUpdatedUnsubscribe = websocketService.onTaskUpdated(async (updatedTask) => {
+      console.log('Task updated via WebSocket:', updatedTask);
+      // Refetch all tasks to ensure consistency
+      try {
+        const updatedTasks = await tasksService.getTasks();
+        setTasks(updatedTasks);
+      } catch (error) {
+        console.error('Error refetching tasks after WebSocket task update:', error);
+      }
+    });
+    
+    const taskDeletedUnsubscribe = websocketService.onTaskDeleted(async (taskId) => {
+      console.log('Task deleted via WebSocket:', taskId);
+      // Refetch all tasks to ensure consistency
+      try {
+        const updatedTasks = await tasksService.getTasks();
+        setTasks(updatedTasks);
+      } catch (error) {
+        console.error('Error refetching tasks after WebSocket task deletion:', error);
+      }
+    });
+    
+    const taskCompletedUnsubscribe = websocketService.onTaskCompleted(async (taskId, completed) => {
+      console.log('Task completion toggled via WebSocket:', taskId, completed);
+      // Refetch all tasks to ensure consistency
+      try {
+        const updatedTasks = await tasksService.getTasks();
+        setTasks(updatedTasks);
+      } catch (error) {
+        console.error('Error refetching tasks after WebSocket task completion toggle:', error);
+      }
+    });
+    
+    // Clean up WebSocket listeners when the component unmounts
+    return () => {
+      taskCreatedUnsubscribe();
+      taskUpdatedUnsubscribe();
+      taskDeletedUnsubscribe();
+      taskCompletedUnsubscribe();
+      websocketService.disconnect();
+    };
+  }, []);
+
   /**
    * Create a new task (top-level or subtask).
    * The backend automatically sets `creation_date`.
+   * Uses WebSockets for real-time updates instead of re-fetching tasks.
+   * Returns the created task from the server for ID remapping.
    */
-  const createTask = async (
-    newTask: TaskCreateRequest
-  ) => {
+  const createTask = async (newTask: TaskCreateRequest): Promise<Task> => {
     try {
-      // Build the request body for the backend.
-      // If parent_id is null or undefined, pass null to create a root task.
-      await tasksService.createTask({
+      const createdTaskResponse = await tasksService.createTask({
         name: newTask.name,
         priority: newTask.priority,
         parent_id: newTask.parent_id ?? null,
@@ -33,143 +104,44 @@ export const useTasks = () => {
         creation_date: newTask.creation_date
       });
 
-      // Fetch the updated list of tasks for the specific date
-      // If creation_date is provided, use it; otherwise format today's date in local timezone
-      const today = new Date();
-      // Extract just the date part (YYYY-MM-DD) from the creation_date if it exists
-      // or format today's date in local timezone
-      const dateStr = newTask.creation_date ? newTask.creation_date.split('T')[0] : 
-        `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-      const updatedTasks = await tasksService.getTasksByDate(dateStr);
+      // Refetch all tasks to ensure consistency
+      const updatedTasks = await tasksService.getTasks();
       setTasks(updatedTasks);
+
+      // Return the created task
+      return mapTaskResponseToTask(createdTaskResponse);
     } catch (error) {
       console.error('Error creating task:', error);
       throw error;
     }
   };
 
-  /**
-   * Delete a task (either root or subtask).
-   */
   const deleteTask = async (taskId: number, subtaskId?: number) => {
     try {
       if (subtaskId === undefined) {
-        // Deleting a root task
         await tasksService.deleteTask(taskId);
-        // Optionally do an optimistic update for root-level tasks:
-        setTasks(prev => prev.filter(t => t.id !== taskId));
-        return;
+      } else {
+        await tasksService.deleteTask(subtaskId);
       }
-
-      // Deleting a subtask
-      await tasksService.deleteTask(subtaskId);
-      // Re-fetch tasks for the current date
-      // Find a task to get its creation_date to use for filtering
-      const task = tasks.find(t => t.id === taskId);
-      if (task) {
-        const dateStr = task.creation_date.split('T')[0];
-        const updatedTasks = await tasksService.getTasksByDate(dateStr);
-        setTasks(updatedTasks);
-      }
+      
+      // Refetch all tasks after deletion
+      const updatedTasks = await tasksService.getTasks();
+      setTasks(updatedTasks);
     } catch (error) {
       console.error('Error deleting task:', error);
       throw error;
     }
   };
 
-  /**
-   * Toggle a task's collapse/expand state in the UI only.
-   * No server call needed — purely local UI state.
-   */
-  const toggleCollapse = (taskId: number) => {
-    setTasks(prevTasks =>
-      prevTasks.map(task =>
-        task.id === taskId
-          ? { ...task, collapsed: !task.collapsed }
-          : task
-      )
-    );
-  };
-
-  /**
-   * Add a new subtask (or sub-subtask) under a given parent.
-   */
-  const addSubtask = async (taskId: number, parentSubtaskId?: number) => {
-    try {
-      // If parentSubtaskId is provided, create a subtask under that subtask
-      // Otherwise, create a subtask directly under the task
-      const parentId = parentSubtaskId !== undefined ? parentSubtaskId : taskId;
-      
-      const newSubtaskData = {
-        name: 'New Subtask',
-        parent_id: parentId
-      };
-      
-      // Optimistically update the UI
-      setTasks(prevTasks => {
-        return prevTasks.map(task => {
-          if (task.id === taskId) {
-            // Helper function to add subtask to a task or its children
-            const addSubtaskToTree = (parentTask: Task): Task => {
-              if (parentTask.id === parentId) {
-                return {
-                  ...parentTask,
-                  children: [...(parentTask.children || []), { 
-                    id: -Date.now(), // Temporary negative ID
-                    name: 'New Subtask',
-                    completed: false,
-                    parent_id: parentId,
-                    children: [],
-                    creation_date: task.creation_date
-                  }]
-                };
-              }
-              return {
-                ...parentTask,
-                children: (parentTask.children || []).map(child => addSubtaskToTree(child))
-              };
-            };
-            return addSubtaskToTree(task);
-          }
-          return task;
-        });
-      });
-
-      // Make the actual API call
-      await tasksService.addSubtask(parentId, newSubtaskData);
-      
-      // Find the parent task to get its creation_date
-      const parentTask = tasks.find(t => t.id === parentId || t.children.some(c => c.id === parentId));
-      if (parentTask) {
-        // Re-fetch tasks for the specific date
-        const dateStr = parentTask.creation_date.split('T')[0];
-        const updatedTasks = await tasksService.getTasksByDate(dateStr);
-        setTasks(updatedTasks);
-      }
-    } catch (error) {
-      console.error('Error adding subtask:', error);
-      throw error;
-    }
-  };
-
   const toggleComplete = async (taskId: number) => {
     try {
-      // Find the local copy of the task
       const task = tasks.find(t => t.id === taskId);
       if (!task) return;
 
-      // Optimistically update the UI
-      setTasks(prevTasks =>
-        prevTasks.map(t =>
-          t.id === taskId ? { ...t, completed: !t.completed } : t
-        )
-      );
-
-      // Call the backend route that toggles completion
       await tasksService.toggleTaskComplete(taskId, !task.completed);
-      // Re-fetch tasks for the specific date
-      const dateStr = task.creation_date.split('T')[0];
-      const updatedTasks = await tasksService.getTasksByDate(dateStr);
+      
+      // Refetch all tasks after toggling completion
+      const updatedTasks = await tasksService.getTasks();
       setTasks(updatedTasks);
     } catch (error) {
       console.error('Error toggling task completion:', error);
@@ -179,41 +151,72 @@ export const useTasks = () => {
 
   const toggleSubtaskComplete = async (taskId: number, subtaskId: number) => {
     try {
-      // Find the parent task
       const parentTask = tasks.find(t => t.id === taskId);
       if (!parentTask) return;
 
-      // Find the subtask recursively through all levels
       const subtask = findSubtaskRecursively(parentTask, subtaskId);
       if (!subtask) return;
 
-      // Optimistically update the UI
-      setTasks(prevTasks => {
-        return prevTasks.map(task => {
-          if (task.id === taskId) {
-            // Helper function to toggle subtask completion
-            const toggleSubtaskInTree = (parentTask: Task): Task => {
-              if (parentTask.id === subtaskId) {
-                return { ...parentTask, completed: !parentTask.completed };
-              }
-              return {
-                ...parentTask,
-                children: (parentTask.children || []).map(child => toggleSubtaskInTree(child))
-              };
-            };
-            return toggleSubtaskInTree(task);
-          }
-          return task;
-        });
-      });
-
       await tasksService.toggleTaskComplete(subtaskId, !subtask.completed);
-      // Find the creation date from the parent task
-      const dateStr = parentTask.creation_date.split('T')[0];
-      const updatedTasks = await tasksService.getTasksByDate(dateStr);
+      
+      // Refetch all tasks after toggling completion
+      const updatedTasks = await tasksService.getTasks();
       setTasks(updatedTasks);
     } catch (error) {
       console.error('Error toggling subtask completion:', error);
+      throw error;
+    }
+  };
+
+  const updateTaskName = async (taskId: number, newName: string) => {
+    try {
+      await tasksService.updateTask(taskId, { name: newName });
+      
+      // Refetch all tasks after updating name
+      const updatedTasks = await tasksService.getTasks();
+      setTasks(updatedTasks);
+    } catch (error) {
+      console.error('Error updating task name:', error);
+      throw error;
+    }
+  };
+
+  const updateSubtaskName = async (taskId: number, subtaskId: number, newName: string) => {
+    try {
+      await tasksService.updateTask(subtaskId, { name: newName });
+      
+      // Refetch all tasks after updating name
+      const updatedTasks = await tasksService.getTasks();
+      setTasks(updatedTasks);
+    } catch (error) {
+      console.error('Error updating subtask name:', error);
+      throw error;
+    }
+  };
+
+  /**
+   * Add a new subtask (or sub-subtask) under a given parent.
+   * Uses WebSockets for real-time updates instead of optimistic updates with negative IDs.
+   */
+  const addSubtask = async (taskId: number, parentSubtaskId?: number) => {
+    try {
+      // If parentSubtaskId is provided, create a subtask under that subtask
+      // Otherwise, create a subtask directly under the task
+      const parentId = parentSubtaskId !== undefined ? parentSubtaskId : taskId;
+      
+      const newSubtaskData = {
+        name: 'New Subtask'
+        // Don't include parent_id here as it's passed directly to addSubtask
+      };
+      
+      // Make the API call
+      await tasksService.addSubtask(parentId, newSubtaskData);
+      
+      // Refetch all tasks to ensure consistency
+      const updatedTasks = await tasksService.getTasks();
+      setTasks(updatedTasks);
+    } catch (error) {
+      console.error('Error adding subtask:', error);
       throw error;
     }
   };
@@ -240,65 +243,29 @@ export const useTasks = () => {
   };
 
   /**
-   * Rename a task (root or otherwise).
+   * Toggle collapse state for a task.
+   * This is a UI-only operation that doesn't need backend persistence.
    */
-  const updateTaskName = async (taskId: number, newName: string) => {
-    try {
-      // Optimistically update the UI
-      setTasks(prevTasks =>
-        prevTasks.map(task =>
-          task.id === taskId ? { ...task, name: newName } : task
-        )
-      );
-
-      await tasksService.updateTask(taskId, { name: newName });
-      // Find the task to get its creation_date
-      const task = tasks.find(t => t.id === taskId);
-      if (task) {
-        const dateStr = task.creation_date.split('T')[0];
-        const updatedTasks = await tasksService.getTasksByDate(dateStr);
-        setTasks(updatedTasks);
-      }
-    } catch (error) {
-      console.error('Error updating task name:', error);
-      throw error;
-    }
-  };
-
-  const updateSubtaskName = async (taskId: number, subtaskId: number, newName: string) => {
-    try {
-      // Optimistically update the UI
-      setTasks(prevTasks => {
-        return prevTasks.map(task => {
-          if (task.id === taskId) {
-            // Helper function to update subtask name
-            const updateSubtaskInTree = (parentTask: Task): Task => {
-              if (parentTask.id === subtaskId) {
-                return { ...parentTask, name: newName };
+  const toggleCollapse = (taskId: number) => {
+    setTasks(prevTasks => {
+      return prevTasks.map(task => {
+        if (task.id === taskId) {
+          return { ...task, collapsed: !task.collapsed };
+        }
+        if (task.children) {
+          return {
+            ...task,
+            children: task.children.map(child => {
+              if (child.id === taskId) {
+                return { ...child, collapsed: !child.collapsed };
               }
-              return {
-                ...parentTask,
-                children: (parentTask.children || []).map(child => updateSubtaskInTree(child))
-              };
-            };
-            return updateSubtaskInTree(task);
-          }
-          return task;
-        });
+              return child;
+            })
+          };
+        }
+        return task;
       });
-
-      await tasksService.updateTask(subtaskId, { name: newName });
-      // Find the task to get its creation_date to use for filtering
-      const task = tasks.find(t => t.id === taskId);
-      if (task) {
-        const dateStr = task.creation_date.split('T')[0];
-        const updatedTasks = await tasksService.getTasksByDate(dateStr);
-        setTasks(updatedTasks);
-      }
-    } catch (error) {
-      console.error('Error updating subtask name:', error);
-      throw error;
-    }
+    });
   };
 
   return {

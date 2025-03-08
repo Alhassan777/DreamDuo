@@ -69,14 +69,14 @@ export interface Task {
  * Recursively converts the backend's TaskResponse (which may have nested subtasks)
  * into the front-end Task structure with 'children'.
  */
-function mapTaskResponseToTask(taskRes: TaskResponse): Task {
+export function mapTaskResponseToTask(taskRes: TaskResponse): Task {
   return {
     id: taskRes.id,
     name: taskRes.name,
     description: taskRes.description,
     completed: taskRes.completed,
     priority: taskRes.priority, 
-    parent_id: taskRes.parent_id ?? null,
+    parent_id: taskRes.parent_id ? Number(taskRes.parent_id) : null,
     category_id: taskRes.category_id,
     creation_date: taskRes.creation_date,         // Keep the ISO string 
     deadline: taskRes.deadline,                   // Add deadline field
@@ -230,12 +230,14 @@ export const tasksService = {
   /**
    * Adds a new subtask under a given parent task.
    */
-  addSubtask: async (parentId: number, subtask: { name: string }): Promise<TaskResponse> => {
+  addSubtask: async (parentId: number, subtask: { name: string, parent_id?: number }): Promise<TaskResponse> => {
     try {
-      const response = await api.post('/tasks/', {
+      // Always use the parentId parameter directly, ignoring any parent_id in the subtask object
+      const taskData = {
         name: subtask.name,
-        parent_id: parentId
-      });
+        parent_id: parentId  // Use the parentId parameter directly
+      };
+      const response = await api.post('/tasks/', taskData);
       return response.data;
     } catch (error) {
       throw error;
