@@ -9,21 +9,6 @@ This task management application is built on principles of strategy, discipline,
 
 The application's powerful infinite hierarchical structure helps break down massive goals into manageable pieces with no limit to nesting depth. Each task becomes a small step in your larger campaign for productivity, and the intuitive drag and drop interface makes reorganizing your workflow effortless.
 
-## Core Features
-
-| Feature | Description |
-|---------|-------------|
-| Infinite Task Hierarchies | Organize tasks in unlimited parent-child relationships for better structure |
-| Drag & Drop Interface | Intuitively reorder tasks and manage hierarchies with simple drag and drop actions |
-| Priority Levels | Set task importance with visual indicators for better focus |
-| Categories | Group related tasks with custom tags for improved organization |
-| Progress Tracking | Monitor completion status and history to measure productivity |
-| Real-time Updates | Instant task status changes for seamless collaboration |
-| User Authentication | Secure account management for personalized experience |
-| Profile Customization | Edit your profile settings, preferences, and personalization options |
-
-A modern task management application built with Flask (Backend) and React + TypeScript (Frontend).
-
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
@@ -445,15 +430,3 @@ User profile customization is implemented with:
 - **Theme Engine**: Dynamic CSS variable system for real-time theme switching
 - **Preference Persistence**: User settings synchronized across devices and sessions
 - **Notification System**: Event-driven architecture for customizable alerts and reminders
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a new Pull Request
-
-## License
-
-This project is licensed under the **MIT License** - see the `LICENSE` file for details.
