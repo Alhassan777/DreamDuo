@@ -254,4 +254,50 @@ export const tasksService = {
       throw error;
     }
   },
+
+  /**
+   * Search tasks with comprehensive filters
+   */
+  searchTasksWithFilters: async (params: {
+    timeScope: 'daily' | 'weekly' | 'monthly' | 'yearly';
+    anchorDate: string;
+    searchQuery?: string;
+    categoryIds?: number[];
+    priorityLevels?: string[];
+    deadlineBefore?: string;
+    deadlineAfter?: string;
+    completionStatus?: 'all' | 'completed' | 'incomplete';
+  }): Promise<Task[]> => {
+    try {
+      // Build query parameters
+      const queryParams = new URLSearchParams();
+      queryParams.append('time_scope', params.timeScope);
+      queryParams.append('anchor_date', params.anchorDate);
+      
+      if (params.searchQuery) {
+        queryParams.append('search_query', params.searchQuery);
+      }
+      if (params.categoryIds && params.categoryIds.length > 0) {
+        queryParams.append('category_ids', params.categoryIds.join(','));
+      }
+      if (params.priorityLevels && params.priorityLevels.length > 0) {
+        queryParams.append('priority_levels', params.priorityLevels.join(','));
+      }
+      if (params.deadlineBefore) {
+        queryParams.append('deadline_before', params.deadlineBefore);
+      }
+      if (params.deadlineAfter) {
+        queryParams.append('deadline_after', params.deadlineAfter);
+      }
+      if (params.completionStatus) {
+        queryParams.append('completion_status', params.completionStatus);
+      }
+
+      const response = await api.get<TaskResponse[]>(`/tasks/search?${queryParams.toString()}`);
+      const taskResponses = response.data;
+      return taskResponses.map(mapTaskResponseToTask);
+    } catch (error) {
+      throw error;
+    }
+  },
 };
