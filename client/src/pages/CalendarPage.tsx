@@ -111,13 +111,10 @@ const CalendarPage = () => {
     }
   };
   
-  // Handle day click to navigate to DailyTasksPage with the selected date
+  // Handle day click to navigate to TasksPage
   const handleDayClick = (day: number) => {
-    const clickedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-    // Format date using local components
-    const formattedDate = `${clickedDate.getFullYear()}-${String(clickedDate.getMonth() + 1).padStart(2, '0')}-${String(clickedDate.getDate()).padStart(2, '0')}`;
-    // Navigate to DailyTasksPage with the selected date using React Router
-    navigate(`/daily-tasks/${formattedDate}`);
+    // Just navigate to tasks page - the TasksPage will handle showing tasks for the selected date
+    navigate('/tasks');
   };
   
   // Task CRUD operations
