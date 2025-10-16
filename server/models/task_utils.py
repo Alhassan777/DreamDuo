@@ -366,6 +366,135 @@ def toggle_task_completion(session: Session, task_id: int, user_id: int = None) 
     }
 
 
+def get_tasks_with_filters(
+    session: Session,
+    user_id: int,
+    start_date: datetime,
+    end_date: datetime,
+    search_query: Optional[str] = None,
+    category_ids: Optional[List[int]] = None,
+    priority_levels: Optional[List[str]] = None,
+    deadline_before: Optional[datetime] = None,
+    deadline_after: Optional[datetime] = None,
+    completion_status: str = 'all'
+) -> List[Dict[str, Any]]:
+    """
+    Get tasks with comprehensive filtering support.
+    Returns root tasks with nested subtask structure, expanding parent tasks when subtasks match search.
+    """
+    from sqlalchemy import or_, and_
+    from models.category import Category
+    
+    # Build base query for root tasks within date range
+    query = session.query(Task).filter(
+        Task.user_id == user_id,
+        Task.parent_id == None,
+        db.func.date(Task.creation_date) >= start_date.date(),
+        db.func.date(Task.creation_date) <= end_date.date()
+    )
+    
+    # Apply completion status filter
+    if completion_status == 'completed':
+        # Subquery: find parent task IDs where parent OR any subtask is completed
+        completed_subtasks_subquery = session.query(Task.parent_id).filter(
+            Task.parent_id != None,
+            Task.completed == True
+        ).distinct()
+        
+        query = query.filter(
+            or_(
+                Task.completed == True,  # Parent itself is completed
+                Task.id.in_(completed_subtasks_subquery)  # Has completed subtask
+            )
+        )
+    elif completion_status == 'incomplete':
+        # Subquery: find parent task IDs where parent OR any subtask is incomplete
+        incomplete_subtasks_subquery = session.query(Task.parent_id).filter(
+            Task.parent_id != None,
+            Task.completed == False
+        ).distinct()
+        
+        query = query.filter(
+            or_(
+                Task.completed == False,  # Parent itself is incomplete
+                Task.id.in_(incomplete_subtasks_subquery)  # Has incomplete subtask
+            )
+        )
+    
+    # Apply category filter
+    if category_ids:
+        query = query.filter(Task.category_id.in_(category_ids))
+    
+    # Apply priority filter
+    if priority_levels:
+        query = query.filter(Task.priority.in_(priority_levels))
+    
+    # Apply deadline filters
+    if deadline_before:
+        query = query.filter(Task.deadline <= deadline_before)
+    if deadline_after:
+        query = query.filter(Task.deadline >= deadline_after)
+    
+    root_tasks = query.all()
+    
+    # If there's a search query, we need to check both root tasks and subtasks
+    if search_query:
+        search_pattern = f"%{search_query.lower()}%"
+        matching_task_ids = set()
+        
+        # Find all tasks (root and subtasks) matching the search
+        all_tasks_query = session.query(Task).filter(
+            Task.user_id == user_id,
+            or_(
+                db.func.lower(Task.name).like(search_pattern),
+                db.func.lower(Task.description).like(search_pattern)
+            )
+        )
+        
+        # Also search category names
+        category_matching_tasks = session.query(Task).join(Category).filter(
+            Task.user_id == user_id,
+            db.func.lower(Category.name).like(search_pattern)
+        ).all()
+        
+        # Collect all matching task IDs
+        for task in all_tasks_query.all():
+            matching_task_ids.add(task.id)
+        for task in category_matching_tasks:
+            matching_task_ids.add(task.id)
+        
+        # Get root task IDs for matching tasks (including parents of matching subtasks)
+        def get_root_task_id(task_id):
+            """Recursively find the root task ID for a given task."""
+            task = session.query(Task).filter(Task.id == task_id).first()
+            if not task:
+                return None
+            if task.parent_id is None:
+                return task.id
+            return get_root_task_id(task.parent_id)
+        
+        root_task_ids_to_include = set()
+        for task_id in matching_task_ids:
+            root_id = get_root_task_id(task_id)
+            if root_id:
+                root_task_ids_to_include.add(root_id)
+        
+        # Filter root tasks to only those that match or have matching subtasks
+        root_tasks = [t for t in root_tasks if t.id in root_task_ids_to_include]
+    
+    # Build the full task structure with subtasks
+    result = []
+    for task in root_tasks:
+        task_data = get_task_with_subtasks(session, task.id, user_id)
+        if task_data:
+            # Add creation_date to the task data
+            task_data['creation_date'] = task.creation_date.isoformat() if task.creation_date else None
+            task_data['parent_id'] = task.parent_id
+            result.append(task_data)
+    
+    return result
+
+
 def get_tasks_stats_by_date_range(session: Session, user_id: int, start_date: datetime, end_date: datetime) -> List[Dict[str, Any]]:
     """Get task statistics for each day in a date range, including parent tasks in calculations."""
     stats = session.execute(
