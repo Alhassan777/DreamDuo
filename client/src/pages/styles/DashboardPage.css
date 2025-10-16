@@ -1,68 +1,11 @@
-:root {
-  /* Base colors */
-  --dashboard-bg: var(--chakra-colors-gray-900);
-  --dashboard-text: var(--chakra-colors-white);
-  --dashboard-border: var(--chakra-colors-gray-700);
-  --dashboard-accent: var(--chakra-colors-purple-500);
-  --dashboard-success: var(--chakra-colors-green-500);
-  
-  /* Chart colors with improved contrast */
-  --dashboard-chart-blue: #4299E1;
-  --dashboard-chart-purple: #9F7AEA;
-  --dashboard-chart-orange: #ED8936;
-  --dashboard-chart-gray: #718096;
-  
-  /* Spacing system */
-  --space-xs: 0.25rem;
-  --space-sm: 0.5rem;
-  --space-md: 1rem;
-  --space-lg: 1.5rem;
-  --space-xl: 2rem;
-  --space-xxl: 3rem;
-  
-  /* Typography */
-  --font-size-xs: 0.75rem;
-  --font-size-sm: 0.875rem;
-  --font-size-md: 1rem;
-  --font-size-lg: 1.25rem;
-  --font-size-xl: 1.5rem;
-  --font-size-xxl: 2rem;
-  
-  /* Transitions */
-  --transition-fast: 0.2s ease;
-  --transition-normal: 0.3s ease;
-  --transition-slow: 0.5s ease;
-  
-  /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
-}
+/* Dashboard uses global theme variables */
 
 .dashboard-page {
   min-height: 100vh;
   padding: 2rem;
-  background-color: var(--dashboard-bg);
-  color: var(--dashboard-text);
+  background-color: var(--color-background);
+  color: var(--color-text);
   position: relative;
-}
-
-.dashboard-page[data-aot-mode="true"] {
-  background-color: var(--aot-background);
-  color: var(--aot-text);
-}
-
-.dashboard-page[data-aot-mode="true"]::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.8)),
-              url('../../assets/dashboard_wallpaper.jpg') center/cover no-repeat;
-  opacity: 0.8;
-  z-index: 0;
 }
 
 .dashboard-content {
@@ -71,22 +14,18 @@
 }
 
 .productivity-card {
-  background: var(--chakra-colors-gray-800);
-  border-radius: var(--chakra-radii-lg);
-  padding: 2rem;
-  border: 1px solid var(--dashboard-border);
-  transition: all 0.3s ease;
-}
-
-.productivity-card[data-aot-mode="true"] {
-  background: rgba(39, 37, 45, 0.85);
-  border-color: var(--aot-primary);
-  backdrop-filter: blur(5px);
+  background: var(--color-card-background);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-xl);
+  border: 1px solid var(--color-border);
+  transition: all var(--animation-duration) ease;
+  opacity: var(--opacity-card);
 }
 
 .productivity-card:hover {
   transform: translateY(-2px);
-  border-color: var(--dashboard-accent);
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .productivity-card[data-aot-mode="true"]:hover {
@@ -139,39 +78,28 @@
 }
 
 .monthly-day-box {
-  background: rgba(50, 50, 50, 0.2);
-  border-radius: 8px;
-  transition: all 0.3s ease;
+  background: var(--color-surface);
+  border-radius: var(--border-radius-md);
+  transition: all var(--animation-duration) ease;
+  border: 1px solid var(--color-border);
 }
 
 .monthly-day-box:hover {
-  background: rgba(70, 70, 70, 0.3);
+  background: var(--color-card-background);
   transform: translateY(-2px);
+  border-color: var(--color-primary);
 }
 
-.monthly-day-box[data-aot-mode="true"] {
-  background: rgba(39, 37, 45, 0.5);
-  border: 1px solid rgba(255, 59, 48, 0.2);
-}
-
-.monthly-day-box[data-aot-mode="true"]:hover {
-  border-color: var(--aot-accent);
-  box-shadow: 0 0 5px rgba(255, 59, 48, 0.3);
-}
-.chart-bar-green { background-color: var(--dashboard-success); }
-.chart-bar-purple { background-color: var(--dashboard-chart-purple); }
-.chart-bar-orange { background-color: var(--dashboard-chart-orange); }
-.chart-bar-gray { background-color: var(--dashboard-chart-gray); }
+.chart-bar-green { background-color: var(--color-success); }
+.chart-bar-purple { background-color: var(--color-primary); }
+.chart-bar-orange { background-color: var(--color-warning); }
+.chart-bar-gray { background-color: var(--color-border); }
 
 .chart-label {
   min-width: 30px;
   text-align: right;
   padding-right: 1rem;
-  color: var(--dashboard-text);
-}
-
-.chart-label[data-aot-mode="true"] {
-  color: var(--aot-text);
+  color: var(--color-text);
 }
 
 /* Compound chart styles */
@@ -183,42 +111,29 @@
 }
 
 .compound-chart-completed {
-  background-color: var(--dashboard-success);
+  background-color: var(--color-success);
   height: 100%;
-  transition: width 0.3s ease;
+  transition: width var(--animation-duration) ease;
 }
 
 .compound-chart-remaining {
-  background-color: var(--dashboard-chart-gray);
+  background-color: var(--color-border);
   height: 100%;
-  transition: width 0.3s ease;
-}
-
-.compound-chart[data-aot-mode="true"] .compound-chart-completed {
-  background: linear-gradient(to right, var(--aot-primary), var(--aot-accent));
-}
-
-.compound-chart[data-aot-mode="true"] .compound-chart-remaining {
-  background-color: rgba(100, 100, 100, 0.3);
+  transition: width var(--animation-duration) ease;
 }
 
 /* View type selector */
 .view-type-selector {
-  background-color: var(--dashboard-bg);
-  color: var(--dashboard-text);
-  border-color: var(--dashboard-border);
-  font-size: 0.9rem;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  border-color: var(--color-border);
+  font-size: var(--font-size-base);
 }
 
-.view-type-selector[data-aot-mode="true"] {
-  background-color: rgba(30, 30, 35, 0.7);
-  color: var(--aot-text);
-  border-color: var(--aot-primary);
-}
 
 .edit-goal-button {
-  color: var(--dashboard-accent);
-  font-size: 0.9rem;
+  color: var(--color-primary);
+  font-size: var(--font-size-base);
   text-decoration: underline;
   background: none;
   border: none;

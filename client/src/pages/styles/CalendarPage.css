@@ -13,7 +13,7 @@
   .calendar-page-wrapper[data-aot-mode="false"] {
     width: 100%;
     height: 100%;
-    background-color: var(--chakra-colors-gray-700);
+    background-color: var(--color-background);
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -51,21 +51,21 @@
   .calendar-flex-left {
     display: flex;
     align-items: center;
-    gap: var(--chakra-space-6); /* slightly bigger gap */
+    gap: var(--spacing-lg);
   }
   
   /* Right side of header (buttons) */
   .calendar-flex-right {
     display: flex;
-    gap: var(--chakra-space-2);
+    gap: var(--spacing-sm);
   }
   
   /* Title styling */
   .calendar-heading {
-    color: var(--chakra-colors-white);
-    margin-left: var(--chakra-space-5);
-    margin-right: var(--chakra-space-5);
-    font-size: var(--chakra-fontSizes-xl);
+    color: var(--color-text);
+    margin-left: var(--spacing-md);
+    margin-right: var(--spacing-md);
+    font-size: calc(var(--font-size-base) * 1.25);
     white-space: nowrap;
     display: inline-block;
     box-sizing: border-box;
@@ -75,11 +75,11 @@
   /* Month/Year Selects (Default Mode) */
   select.calendar-select-month,
   select.calendar-select-year {
-    background-color: var(--chakra-colors-gray-700) !important;
-    color: var(--chakra-colors-white) !important;
-    border: 1px solid var(--chakra-colors-gray-600) !important;
-    border-radius: var(--chakra-radii-md) !important;
-    padding: var(--chakra-space-3) !important;
+    background-color: var(--color-surface) !important;
+    color: var(--color-text) !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: var(--border-radius-md) !important;
+    padding: var(--spacing-sm) !important;
     text-align: center !important;
     appearance: none !important;
     background-repeat: no-repeat;
@@ -99,105 +99,111 @@
   
   .calendar-select-month:hover,
   .calendar-select-year:hover {
-    border-color: var(--chakra-colors-purple-500);
+    border-color: var(--color-primary);
   }
   
   /* Today button (Default Mode) */
   .calendar-button-today {
-    background-color: var(--chakra-colors-purple-500);
-    color: var(--chakra-colors-white);
-    font-weight: var(--chakra-fontWeights-bold);
+    background-color: var(--color-primary);
+    color: var(--color-text);
+    font-weight: 700;
     border: none;
-    border-radius: var(--chakra-radii-md);
-    padding: var(--chakra-space-2) var(--chakra-space-4);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-sm) var(--spacing-md);
     display: inline-flex;
     align-items: center;
-    gap: var(--chakra-space-2);
+    gap: var(--spacing-sm);
     cursor: pointer;
+    transition: all var(--animation-duration);
   } 
   
   .calendar-button-today:hover {
-    background-color: var(--chakra-colors-purple-600);
-    transform: translateY(-2px) !important ;
-    box-shadow: 0 4px 8px rgba(139, 0, 0, 0.3)!important ;
+    background-color: var(--color-secondary);
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
   }
   
   /* Icon Buttons (Default Mode) */
   .calendar-icon-button {
-    background-color: var(--chakra-colors-purple-500)!important;
-    border: 1px solid var(--chakra-colors-purple-500);
-    color: var(--chakra-colors-purple-500);
-    border-radius: var(--chakra-radii-md);
+    background-color: var(--color-primary) !important;
+    border: 1px solid var(--color-primary);
+    color: var(--color-text);
+    border-radius: var(--border-radius-md);
     cursor: pointer;
+    transition: all var(--animation-duration);
   }
   
   .calendar-icon-button:hover {
-    background-color: var(--chakra-colors-white)! important ;
-    color: black;
-    transform: translateY(-2px) !important ;
-    box-shadow: 0 4px 8px rgba(139, 0, 0, 0.3)!important ;
+    background-color: var(--color-secondary) !important;
+    color: var(--color-text);
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
   }
   
   /* Grid (7 columns) that expands */
   .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: var(--chakra-space-4);
+    gap: var(--spacing-md);
   }
   
   /* Day-of-week labels */
   .calendar-day-name {
     text-align: center;
-    font-weight: var(--chakra-fontWeights-bold);
-    color: var(--chakra-colors-gray-400);
-    padding: var(--chakra-space-4);
+    font-weight: 700;
+    color: var(--color-text-secondary);
+    padding: var(--spacing-md);
   }
   
   /* Empty boxes before the 1st of the month */
   .calendar-day-empty {
-    background-color: rgba(45, 55, 72, 0.85); /* Slightly transparent version of gray-800 */
-    border: 1px solid var(--chakra-colors-gray-700);
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
     min-height: 120px;
-    border-radius: 4px;
+    border-radius: var(--border-radius-sm);
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    opacity: var(--opacity-card);
   }
   
   /* Regular days */
   .calendar-day {
-    background-color: rgba(45, 55, 72, 0.85); /* Slightly transparent version of gray-800 */
-    border: 1px solid var(--chakra-colors-gray-700);
+    background-color: var(--color-card-background);
+    border: 1px solid var(--color-border);
     position: relative;
     min-height: 120px;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: transform var(--animation-duration), box-shadow var(--animation-duration);
     cursor: pointer;
-    border-radius: 4px;               /* softer corners */
+    border-radius: var(--border-radius-sm);
     box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    opacity: var(--opacity-card);
   }
   
   .calendar-day:hover {
     transform: scale(1.02) !important;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.4)!important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.4) !important;
     z-index: 1;
+    border-color: var(--color-primary);
   }
   
   /* 'today' styling */
   .calendar-day.today {
-    border-color: var(--chakra-colors-purple-500);
+    border-color: var(--color-primary);
+    border-width: 2px;
   }
   
   /* Day number in top-right corner */
   .calendar-day-number {
     position: absolute;
-    top: var(--chakra-space-2);
-    right: var(--chakra-space-2);
-    font-size: var(--chakra-fontSizes-sm);
-    font-weight: var(--chakra-fontWeights-normal);
-    color: var(--chakra-colors-gray-400);
+    top: var(--spacing-sm);
+    right: var(--spacing-sm);
+    font-size: var(--font-size-base);
+    font-weight: 400;
+    color: var(--color-text-secondary);
   }
   
   .calendar-day.today .calendar-day-number {
-    font-weight: var(--chakra-fontWeights-bold);
-    color: var(--chakra-colors-purple-500);
+    font-weight: 700;
+    color: var(--color-primary);
   }
   
   /* ===========================================================
@@ -250,8 +256,8 @@
     border: 1px solid var(--aot-border) !important;
     color: var(--aot-secondary-text) !important;
     text-align: center !important;
-    font-weight: var(--chakra-fontWeights-medium);
-    transition: all 0.2s ease-in-out;
+    font-weight: 500;
+    transition: all var(--animation-duration) ease-in-out;
   }
   
   /* Hover state for dropdowns */
@@ -328,7 +334,7 @@
   
   .calendar-page-wrapper[data-aot-mode="true"] .calendar-day.today .calendar-day-number {
     color: var(--aot-accent) !important;
-    font-weight: var(--chakra-fontWeights-bold);
+    font-weight: 700;
   }
   
   /* Subtle hover effect */

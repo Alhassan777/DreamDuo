@@ -2,7 +2,7 @@
   position: relative;
   min-height: 100vh;
   width: 100%;
-  background-color: var(--chakra-colors-gray-700);
+  background-color: var(--color-background);
 }
 
 .tags-page-wrapper[data-aot-mode="true"] {
@@ -28,14 +28,12 @@
 }
 
 .heading_text {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-  transition: color 0.3s ease;
-  color: white;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+  font-size: calc(var(--font-size-base) * 1.5);
+  margin-bottom: var(--spacing-md);
+  transition: color var(--animation-duration) ease;
+  color: var(--color-text);
 }
 
 .heading_text[data-aot-mode="true"] {
   color: var(--aot-text);
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
 }

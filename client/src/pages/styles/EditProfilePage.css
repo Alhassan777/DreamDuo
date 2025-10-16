@@ -17,15 +17,15 @@
   --aot-secondary-bg-hover: var(--aot-accent);
   --aot-secondary-text-hover: var(--aot-background);
 
-  /* DEFAULT THEME (Chakra) */
-  --default-primary-bg: var(--chakra-colors-purple-600);
-  --default-primary-bg-hover: var(--chakra-colors-purple-700);
-  --default-primary-text: white;
+  /* Default theme now uses global CSS variables */
+  --default-primary-bg: var(--color-primary);
+  --default-primary-bg-hover: var(--color-secondary);
+  --default-primary-text: var(--color-text);
   --default-secondary-bg: transparent;
-  --default-secondary-border: var(--chakra-colors-purple-400);
-  --default-secondary-text: var(--chakra-colors-purple-500);
-  --default-secondary-bg-hover: var(--chakra-colors-purple-400);
-  --default-secondary-text-hover: white;
+  --default-secondary-border: var(--color-primary);
+  --default-secondary-text: var(--color-primary);
+  --default-secondary-bg-hover: var(--color-primary);
+  --default-secondary-text-hover: var(--color-text);
 }
 
 /* General page layout with AOT theme support */
@@ -36,7 +36,7 @@
   z-index: 1;
   min-height: 100vh;
   width: 100%;
-  background-color: var(--chakra-colors-gray-700);
+  background-color: var(--color-background);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -231,18 +231,18 @@
 
 /* Submit button */
 .submit-button {
-  background-color: var(--chakra-colors-purple-500);
-  color: white;
+  background-color: var(--color-primary);
+  color: var(--color-text);
   width: 100%;
   padding: 1rem;
   border-radius: 0.5rem;
   font-weight: bold;
-  transition: all 0.3s ease;
-  border-color: var(--chakra-colors-purple-500);
+  transition: all var(--animation-duration) ease;
+  border-color: var(--color-primary);
 }
 
 .submit-button:hover {
-  background-color: var(--chakra-colors-purple-600);
+  background-color: var(--color-secondary);
   transform: translateY(-2px);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }

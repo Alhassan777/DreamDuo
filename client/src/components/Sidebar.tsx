@@ -11,11 +11,10 @@ import {
 } from '@chakra-ui/react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
-import { FaTasks, FaHashtag, FaChartPie, FaCalendar } from 'react-icons/fa';
+import { FaTasks, FaHashtag, FaChartPie, FaCalendar, FaPalette } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 import { ComponentWithAs } from '@chakra-ui/react';
 import ProfileDropdown from './ProfileDropdown';
-import attackingTitanIcon from '../assets/attacking_titan.png';
 import sidebarIcon1 from '../assets/sidebar_icon1.png';
 import sidebarIcon2 from '../assets/sidebar_icon2.png';
 import sidebarIcon3 from '../assets/sidebar_icon3.png';
@@ -64,7 +63,7 @@ const Sidebar = ({ onCollapse }: SidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { isCollapsed, setSidebarCollapsed } = useSidebar();
-  const { isAotMode, toggleAotMode } = useTheme();
+  const { isAotMode } = useTheme();
   const [userData, setUserData] = useState<{ firstName?: string; lastName?: string; profilePhoto?: string }>({});
 
   useEffect(() => {
@@ -89,15 +88,11 @@ const Sidebar = ({ onCollapse }: SidebarProps) => {
     fetchUserData();
   }, [navigate]);
 
-  const handleThemeToggle = () => {
-    toggleAotMode();
-  };
-
   const navItems = [
     {
-      label: "Daily Tasks",
+      label: "Tasks",
       icon: FaTasks,
-      path: '/daily-tasks',
+      path: '/tasks',
       aotIcon: sidebarIcon1,
     },
     {
@@ -118,6 +113,12 @@ const Sidebar = ({ onCollapse }: SidebarProps) => {
       path: '/tags',
       aotIcon: sidebarIcon4,
     },
+    {
+      label: 'Theme',
+      icon: FaPalette,
+      path: '/theme',
+      aotIcon: undefined, // Can add a theme-specific icon if needed
+    },
   ];
 
   return (
@@ -133,31 +134,6 @@ const Sidebar = ({ onCollapse }: SidebarProps) => {
             lastName={userData.lastName}
             userPhoto={userData.profilePhoto}
           />
-        </Box>
-    
-        <Box px={isCollapsed ? 4 : 8}>
-          <Flex justify="center" align="center">
-            <Tooltip
-              label={isAotMode ? "Disable Attack On Titan Theme" : "Launch Attack On Titan Theme"}
-              placement="right"
-              hasArrow
-            >
-              <IconButton
-                aria-label="Toggle Theme"
-                icon={
-                  <img
-                    src={attackingTitanIcon}
-                    alt="Attack Titan"
-                    width="48"
-                    height="48"
-                    style={{ maxWidth: '100%', maxHeight: '100%' }}
-                  />
-                }
-                onClick={handleThemeToggle}
-                className={`theme-toggle ${isAotMode ? 'aot-mode' : ''}`}
-              />
-            </Tooltip>
-          </Flex>
         </Box>
     
         {navItems.map((item) => {
