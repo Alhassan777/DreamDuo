@@ -1,0 +1,116 @@
+/* Default theme CSS variables */
+:root {
+  /* Base Colors */
+  --color-primary: #646cff;
+  --color-secondary: #535bf2;
+  --color-background: #242424;
+  --color-surface: #1a1a1a;
+  --color-text: #ffffff;
+  --color-text-secondary: rgba(255, 255, 255, 0.87);
+  --color-accent: #61dafb;
+  --color-border: #404040;
+  --color-card-background: #2a2a2a;
+  
+  /* Semantic Colors */
+  --color-success: #4ade80;
+  --color-warning: #fbbf24;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+  
+  /* Button Colors */
+  --color-button-primary: #646cff;
+  --color-button-primary-hover: #535bf2;
+  --color-button-primary-text: #ffffff;
+  --color-button-secondary: #3f3f46;
+  --color-button-secondary-hover: #52525b;
+  --color-button-secondary-text: #ffffff;
+  --color-button-danger: #ef4444;
+  --color-button-danger-hover: #dc2626;
+  --color-button-danger-text: #ffffff;
+  
+  /* Status Colors */
+  --color-status-pending: #fbbf24;
+  --color-status-in-progress: #3b82f6;
+  --color-status-completed: #4ade80;
+  --color-status-cancelled: #9ca3af;
+  
+  /* Interactive States */
+  --color-hover-overlay: rgba(100, 108, 255, 0.1);
+  --color-focus-ring: #646cff;
+  --color-active-state: #535bf2;
+  
+  /* Dashboard/Chart Colors */
+  --color-chart-primary: #646cff;
+  --color-chart-secondary: #61dafb;
+  --color-chart-tertiary: #fbbf24;
+
+  /* Typography */
+  --font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  --font-family-heading: var(--font-family);
+  --font-size-base: 16px;
+  --font-weight-base: 400;
+  --line-height-base: 1.5;
+
+  /* Shapes (Border Radius) */
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 16px;
+
+  /* Spacing */
+  --spacing-unit: 8px;
+  --spacing-scale: 1.0;
+  --spacing-xs: calc(var(--spacing-unit) * 0.5 * var(--spacing-scale));
+  --spacing-sm: calc(var(--spacing-unit) * 1 * var(--spacing-scale));
+  --spacing-md: calc(var(--spacing-unit) * 2 * var(--spacing-scale));
+  --spacing-lg: calc(var(--spacing-unit) * 3 * var(--spacing-scale));
+  --spacing-xl: calc(var(--spacing-unit) * 4 * var(--spacing-scale));
+  --spacing-2xl: calc(var(--spacing-unit) * 6 * var(--spacing-scale));
+  --spacing-3xl: calc(var(--spacing-unit) * 8 * var(--spacing-scale));
+
+  /* Effects */
+  --animation-duration: 250ms;
+  --animation-timing: ease-in-out;
+  --opacity-card: 1.0;
+  --opacity-overlay: 0.5;
+  --reduced-motion: 0; /* 0 = false, 1 = true */
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Apply reduced motion when enabled */
+@media (prefers-reduced-motion: reduce), (--reduced-motion: 1) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Light mode overrides (for dyslexia theme, etc.) */
+.theme-light {
+  --color-background: #fafafa;
+  --color-surface: #ffffff;
+  --color-text: #2c2c2c;
+  --color-text-secondary: #5a5a5a;
+}
+
+/* Theme-specific body classes for special handling */
+body.theme-aot {
+  /* Attack on Titan specific overrides can go here */
+}
+
+body.theme-high-contrast {
+  /* High contrast specific overrides */
+}
+
+body.theme-dyslexia {
+  /* Dyslexia specific overrides */
+}
+
