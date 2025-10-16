@@ -1,51 +1,57 @@
 .task-categories-section {
   width: 100%;
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  transition: all 0.3s ease;
-}
-.create-button-primary:hover,  .create-button-secondary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(139, 69, 19, 0.3);
-  background-color: var(--chakra-colors-purple-600);
-}
-.create-button-primary, .create-button-secondary {
-  background-color: var(--chakra-colors-purple-600) !important;
-  color: white !important;
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-lg);
+  transition: all var(--animation-duration) ease;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
 }
 
-.cancel-button{
-    background-color: white;
-    color: black;
+.create-button-primary:hover, .create-button-secondary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  background-color: var(--color-secondary);
+}
+
+.create-button-primary, .create-button-secondary {
+  background-color: var(--color-primary) !important;
+  color: var(--color-text) !important;
+  transition: all var(--animation-duration) ease;
+}
+
+.cancel-button {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
 }
 
 .task-categories-section[data-aot-mode="true"] {
   background-color: rgba(89, 55, 48, 0.2) !important;
   border: 2px solid #8B4513 !important;
-  border-radius: 0.5rem;
+  border-radius: var(--border-radius-md);
   box-shadow: 0 0 15px rgba(139, 69, 19, 0.3);
 }
 
 .task-categories-section .chakra-heading {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-  transition: color 0.3s ease;
+  font-size: calc(var(--font-size-base) * 1.5);
+  margin-bottom: var(--spacing-md);
+  transition: color var(--animation-duration) ease;
+  color: var(--color-text);
 }
 
 .task-categories-section[data-aot-mode="true"] .chakra-heading {
   color: var(--aot-text);
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
 }
 
 .task-categories-section .chakra-button {
-  transition: all 0.3s ease;
+  transition: all var(--animation-duration) ease;
 }
 
 .create-button-primary[data-aot-mode="true"], .create-button-secondary[data-aot-mode="true"] {
-  background-color: var(--aot-primary)!important;
-  color: var(--aot-accent)!important;
+  background-color: var(--aot-primary) !important;
+  color: var(--aot-accent) !important;
   border: 1px solid var(--aot-accent);
-  transition: all 0.3s ease;
+  transition: all var(--animation-duration) ease;
 }
 
 .task-categories-section[data-aot-mode="true"] .create-button-primary:hover, .create-button-secondary:hover {
@@ -58,7 +64,7 @@
   background-color: var(--aot-accent);
   color: var(--aot-background);
   border: none;
-  transition: all 0.3s ease;
+  transition: all var(--animation-duration) ease;
 }
 
 .task-categories-section[data-aot-mode="true"] .chakra-button.accent:hover {
@@ -72,7 +78,7 @@
   background-color: var(--aot-primary);
   color: var(--aot-text);
   border: none;
-  transition: all 0.3s ease;
+  transition: all var(--animation-duration) ease;
 }
 
 .task-categories-section[data-aot-mode="true"] .chakra-button.secondary:hover {
@@ -83,7 +89,9 @@
 }
 
 .task-categories-section .chakra-modal__content {
-  transition: all 0.3s ease;
+  transition: all var(--animation-duration) ease;
+  background-color: var(--color-card-background);
+  border: 1px solid var(--color-border);
 }
 
 .task-categories-section[data-aot-mode="true"] .chakra-modal__content {
@@ -99,6 +107,19 @@
 
 .task-categories-section[data-aot-mode="true"] .chakra-modal__close-button {
   color: #ffd700;
+}
+
+.task-categories-section .chakra-input,
+.task-categories-section .chakra-textarea {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.task-categories-section .chakra-input:focus,
+.task-categories-section .chakra-textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 4px var(--color-primary);
 }
 
 .task-categories-section[data-aot-mode="true"] .chakra-input,
@@ -117,14 +138,17 @@
 .task-categories-section .chakra-grid {
   width: 100%;
   min-height: 200px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
 }
 
 .task-categories-section[data-aot-mode="true"] .chakra-grid {
   background-color: rgba(139, 69, 19, 0.15);
   border: 2px solid #8B4513;
-  border-radius: 8px;
+  border-radius: var(--border-radius-md);
   box-shadow: 0 0 15px rgba(139, 69, 19, 0.3);
-  transition: transform 0.3s ease;
+  transition: transform var(--animation-duration) ease;
 }
 
 .task-categories-section[data-aot-mode="true"] .chakra-grid:hover {
@@ -135,7 +159,7 @@
 
 /* Draggable item styles */
 .task-categories-section .draggable-item {
-  transition: transform 0.2s ease;
+  transition: transform var(--animation-duration) ease;
 }
 
 .task-categories-section .draggable-item:hover {
@@ -148,34 +172,35 @@
 }
 
 /* Cancel button styles */
-.cancel-button[data-aot-mode="true"] {
-  background-color: var(--aot-primary);
-  color: var(--aot-accent);
-  border: 1px solid var(--aot-accent);
-  transition: all 0.3s ease;
-}
-
-.cancel-button[data-aot-mode="true"]:hover {
-  background-color:  var(--aot-primary);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(139, 69, 19, 0.3);
-}
-
-
 .cancel-button {
-  background-color: transparent;
-  color: gray.300;
-  transition: all 0.3s ease;
+  background-color: var(--color-surface);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  transition: all var(--animation-duration) ease;
 }
 
 .cancel-button:hover {
   transform: translateY(-2px);
+  background-color: var(--color-card-background);
+  border-color: var(--color-primary);
+}
+
+.cancel-button[data-aot-mode="true"] {
+  background-color: var(--aot-primary);
+  color: var(--aot-accent);
+  border: 1px solid var(--aot-accent);
+  transition: all var(--animation-duration) ease;
+}
+
+.cancel-button[data-aot-mode="true"]:hover {
+  background-color: var(--aot-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(139, 69, 19, 0.3);
 }
 
 .heading-text {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-  transition: color 0.3s ease;
-  color: var(--aot-text);
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+  font-size: calc(var(--font-size-base) * 1.5);
+  margin-bottom: var(--spacing-md);
+  transition: color var(--animation-duration) ease;
+  color: var(--color-text);
 }

@@ -58,11 +58,11 @@
 .toggle-icon {
   width: 40px;
   height: 40px;
-  background-color: #8b0000;
+  background-color: var(--color-primary);
   padding: 6px;
-  border-radius: 6px;
+  border-radius: var(--border-radius-sm);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  transition: transform 0.6s ease;
+  transition: transform var(--animation-duration) ease;
   transform-origin: center;
 }
 
@@ -134,14 +134,9 @@
   position: relative;
 }
 
-.theme-toggle.aot-mode {
-  background-color: #8B0000;
-  color: #E5D5B7;
-}
-
-.theme-toggle:not(.aot-mode) {
-  background-color: var(--chakra-colors-gray-700);
-  color: var(--chakra-colors-gray-400);
+.theme-toggle {
+  background-color: var(--color-surface);
+  color: var(--color-text);
 }
 
 /* Icon Wrapper Styles */
@@ -157,41 +152,28 @@
 }
 
 /* Navigation Item States */
-.nav-item.active.aot-mode {
-  background-color: #2A1F1A;
-  color: #E5D5B7;
+.nav-item.active {
+  background-color: var(--color-card-background);
+  color: var(--color-text);
 }
 
-.nav-item.active:not(.aot-mode) {
-  background-color: var(--chakra-colors-gray-700);
-  color: white;
+.nav-item:not(.active) {
+  color: var(--color-text-secondary);
 }
 
-.nav-item:not(.active).aot-mode {
-  color: #C1A173;
-}
-
-.nav-item:not(.active):not(.aot-mode) {
-  color: var(--chakra-colors-gray-400);
+.nav-item:hover {
+  background-color: var(--color-surface);
 }
 
 /* Sidebar Toggle Button States */
-.sidebar-toggle-button.aot-mode {
-  background-color: #2A1F1A;
-  color: #C1A173;
+.sidebar-toggle-button {
+  background-color: var(--color-surface);
+  color: var(--color-text);
 }
 
-.sidebar-toggle-button:not(.aot-mode) {
-  background-color: var(--chakra-colors-gray-700);
-  color: white;
-}
-
-.sidebar-toggle-button.aot-mode:hover {
-  background-color: #463A2E;
-}
-
-.sidebar-toggle-button:not(.aot-mode):hover {
-  background-color: var(--chakra-colors-gray-600);
+.sidebar-toggle-button:hover {
+  background-color: var(--color-card-background);
+  opacity: 0.9;
 }
 
 /* Profile and Theme Toggle Container */
@@ -215,21 +197,12 @@
   font-weight: 700;
 }
 
-/* CSS Variables for theme colors */
+/* Use global theme CSS variables */
 :root {
-  --sidebar-bg: #1D1D1D;
-  --sidebar-border: #463A2E;
-  --sidebar-hover-bg: #2A1F1A;
-  --sidebar-text: #C1A173;
-  --sidebar-text-active: #E5D5B7;
-}
-
-/* Default theme colors */
-.sidebar:not(.aot-mode) {
-  --sidebar-bg: var(--chakra-colors-gray-800);
-  --sidebar-border: var(--chakra-colors-gray-700);
-  --sidebar-hover-bg: var(--chakra-colors-gray-700);
-  --sidebar-text: var(--chakra-colors-gray-400);
-  --sidebar-text-active: white;
+  --sidebar-bg: var(--color-surface);
+  --sidebar-border: var(--color-border);
+  --sidebar-hover-bg: var(--color-card-background);
+  --sidebar-text: var(--color-text-secondary);
+  --sidebar-text-active: var(--color-text);
 }
   

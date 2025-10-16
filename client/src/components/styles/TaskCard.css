@@ -1,19 +1,21 @@
 .task-card {
   position: relative;
   height: fit-content;
-  transition: all 0.2s ease-in-out;
+  transition: all var(--animation-duration) ease-in-out;
   cursor: default;
-  background: var(--chakra-colors-gray-800);
-  padding: var(--chakra-space-5);
-  border-radius: var(--chakra-radii-lg);
+  background: var(--color-card-background);
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius-lg);
   border-width: 1px;
-  border-color: var(--chakra-colors-gray-700);
+  border-color: var(--color-border);
+  color: var(--color-text);
+  opacity: var(--opacity-card);
 }
 
 .deadline-tag {
-  background: #3182ce;
-  color: white;
-  transition: all 0.3s ease;
+  background: var(--color-primary);
+  color: var(--color-text);
+  transition: all var(--animation-duration) ease;
 }
 
 .deadline-tag:hover {
@@ -35,31 +37,17 @@
   filter: drop-shadow(0 0 2px var(--aot-accent));
 }
 
-.task-card[data-aot-mode="true"] {
-  background: rgba(39, 37, 45, 0.85);
-  border-color: var(--aot-primary);
-  backdrop-filter: blur(5px);
-}
-
 .task-card:hover {
-  border-color: var(--chakra-colors-purple-500);
+  border-color: var(--color-primary);
   transform: translateY(-2px);
-}
-
-.task-card[data-aot-mode="true"]:hover {
-  border-color: var(--aot-accent);
-  box-shadow: 0 0 10px var(--aot-accent);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .task-card.completed {
   transform: scale(0.98);
-  background: var(--chakra-colors-gray-700);
-  border-color: var(--chakra-colors-green-500);
-}
-
-.task-card[data-aot-mode="true"].completed {
-  background: rgba(39, 37, 45, 0.75);
-  border-color: var(--aot-accent);
+  background: var(--color-surface);
+  border-color: var(--color-success);
+  opacity: 0.85;
 }
 
 .task-card.completed::after {
@@ -69,11 +57,11 @@
   right: -1px;
   bottom: -1px;
   left: -1px;
-  background: var(--chakra-colors-green-500);
+  background: var(--color-success);
   opacity: 0.1;
-  border-radius: var(--chakra-radii-lg);
+  border-radius: var(--border-radius-lg);
   z-index: -1;
-  transition: opacity 0.3s ease-in-out;
+  transition: opacity var(--animation-duration) ease-in-out;
 }
 
 .task-name {
@@ -81,12 +69,12 @@
 }
 
 .task-name:hover {
-  background: var(--chakra-colors-gray-700);
-  border-radius: var(--chakra-radii-md);
-  padding-left: var(--chakra-space-2);
-  padding-right: var(--chakra-space-2);
-  margin-left: var(--chakra-space-2);
-  margin-right: var(--chakra-space-2);
+  background: var(--color-surface);
+  border-radius: var(--border-radius-md);
+  padding-left: var(--spacing-sm);
+  padding-right: var(--spacing-sm);
+  margin-left: var(--spacing-sm);
+  margin-right: var(--spacing-sm);
 }
 
 .task-name.completed {
@@ -95,8 +83,8 @@
 }
 
 .task-input:focus {
-  border-color: var(--chakra-colors-purple-500);
-  box-shadow: 0 0 0 1px var(--chakra-colors-purple-500);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
 }
 
 .priority-indicator {
@@ -119,29 +107,24 @@
 }
 
 .task-card.drag-over {
-  box-shadow: 0 0 0 2px var(--chakra-colors-purple-500);
-  transition: box-shadow 0.2s ease-in-out;
+  box-shadow: 0 0 0 2px var(--color-primary);
+  transition: box-shadow var(--animation-duration) ease-in-out;
 }
 
 .task-name {
-  color: white;
-  font-size: var(--chakra-fontSizes-lg);
+  color: var(--color-text);
+  font-size: var(--font-size-base);
   flex: 1;
-  margin-left: var(--chakra-space-4);
-  margin-right: var(--chakra-space-4);
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
-}
-
-.task-name[data-aot-mode="true"] {
-  color: var(--aot-text);
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7), 0 0 5px var(--aot-accent);
+  margin-left: var(--spacing-md);
+  margin-right: var(--spacing-md);
 }
 
 .task-input {
-  color: white;
-  background: var(--chakra-colors-gray-700);
-  font-size: var(--chakra-fontSizes-lg);
+  color: var(--color-text);
+  background: var(--color-surface);
+  font-size: var(--font-size-base);
   flex: 1;
-  margin-left: var(--chakra-space-4);
-  margin-right: var(--chakra-space-4);
+  margin-left: var(--spacing-md);
+  margin-right: var(--spacing-md);
+  border-color: var(--color-border);
 }

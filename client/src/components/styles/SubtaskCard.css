@@ -3,10 +3,6 @@
   width: 100%;
 }
 
-.subtask-card[data-aot-mode="true"] {
-  transition: all 0.2s ease-in-out;
-}
-
 .subtask-card:hover {
   transform: translateY(-2px);
 }
@@ -15,26 +11,19 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--chakra-colors-gray-700);
-  padding: var(--chakra-space-2);
-  border-radius: var(--chakra-radii-md);
-  transition: all 0.3s ease-in-out;
+  background: var(--color-surface);
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-md);
+  transition: all var(--animation-duration) ease-in-out;
   position: relative;
   width: 100%;
-}
-
-.subtask-card-content[data-aot-mode="true"] {
-  background: rgba(39, 37, 45, 0.85);
-  border: 1px solid var(--aot-primary);
-  backdrop-filter: blur(5px);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
 }
 
 .subtask-card-content.completed {
   transform: scale(0.98);
-}
-
-.subtask-card-content[data-aot-mode="true"].completed {
-  border-color: var(--aot-accent);
+  opacity: 0.8;
 }
 
 .subtask-card-content.completed::after {
@@ -44,22 +33,22 @@
   right: -1px;
   bottom: -1px;
   left: -1px;
-  background: var(--chakra-colors-green-500);
+  background: var(--color-success);
   opacity: 0.1;
-  border-radius: var(--chakra-radii-md);
+  border-radius: var(--border-radius-md);
   z-index: -1;
-  transition: opacity 0.3s ease-in-out;
+  transition: opacity var(--animation-duration) ease-in-out;
 }
 
 .subtask-card-left {
   display: flex;
   align-items: center;
-  gap: var(--chakra-space-2);
+  gap: var(--spacing-sm);
 }
 
 .subtask-card-right {
   display: flex;
-  gap: var(--chakra-space-2);
+  gap: var(--spacing-sm);
 }
 
 .subtask-complete-button {
@@ -71,15 +60,10 @@
 }
 
 .subtask-text {
-  color: white;
-  font-size: var(--chakra-fontSizes-sm);
+  color: var(--color-text);
+  font-size: var(--font-size-base);
   cursor: text;
-  transition: all 0.3s ease-in-out;
-}
-
-.subtask-text[data-aot-mode="true"] {
-  color: var(--aot-text);
-  text-shadow: 0 0 3px var(--aot-accent);
+  transition: all var(--animation-duration) ease-in-out;
 }
 
 .subtask-text.completed {
@@ -89,35 +73,32 @@
 }
 
 .subtask-text:hover {
-  background: var(--chakra-colors-gray-700);
-  border-radius: var(--chakra-radii-sm);
-  padding-left: var(--chakra-space-2);
-  padding-right: var(--chakra-space-2);
-  margin-left: calc(-1 * var(--chakra-space-2));
-  margin-right: calc(-1 * var(--chakra-space-2));
+  background: var(--color-card-background);
+  border-radius: var(--border-radius-sm);
+  padding-left: var(--spacing-sm);
+  padding-right: var(--spacing-sm);
+  margin-left: calc(-1 * var(--spacing-sm));
+  margin-right: calc(-1 * var(--spacing-sm));
 }
 
 .subtask-input {
-  color: white;
-  background: var(--chakra-colors-gray-700);
-  font-size: var(--chakra-fontSizes-sm);
+  color: var(--color-text);
+  background: var(--color-surface);
+  font-size: var(--font-size-base);
   flex: 1;
+  border-color: var(--color-border);
 }
 
 .subtask-input:focus {
-  border-color: var(--chakra-colors-purple-500);
-  box-shadow: 0 0 0 1px var(--chakra-colors-purple-500);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
 }
 
 .subtask-nested {
-  padding-left: var(--chakra-space-4);
-  margin-top: var(--chakra-space-2);
+  padding-left: var(--spacing-md);
+  margin-top: var(--spacing-sm);
 }
 
 .subtask-card.drag-over {
-  box-shadow: 0 0 0 2px var(--chakra-colors-purple-500);
-}
-
-.subtask-card[data-aot-mode="true"].drag-over {
-  box-shadow: 0 0 0 2px var(--aot-accent);
+  box-shadow: 0 0 0 2px var(--color-primary);
 }
