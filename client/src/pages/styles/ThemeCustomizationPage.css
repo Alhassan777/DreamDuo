@@ -1,0 +1,49 @@
+.theme-customization-page {
+  max-width: 1600px;
+  margin: 0 auto;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Ensure color inputs are styled properly */
+.theme-customization-page input[type="color"] {
+  cursor: pointer;
+  border: 1px solid var(--color-border);
+}
+
+.theme-customization-page input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.theme-customization-page input[type="color"]::-webkit-color-swatch {
+  border: none;
+  border-radius: var(--border-radius-sm);
+}
+
+/* Tab panel spacing */
+.theme-customization-page .chakra-tabs__tab-panel {
+  padding-top: 1.5rem;
+}
+
+/* Slider styling */
+.theme-customization-page .chakra-slider {
+  cursor: pointer;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .theme-customization-page {
+    padding: 1rem;
+  }
+}
+
