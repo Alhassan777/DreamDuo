@@ -20,8 +20,10 @@ import {
   Input
 } from '@chakra-ui/react';
 import DashboardLayout from '../components/DashboardLayout';
+import DashboardFilters from '../components/dashboard/DashboardFilters';
 import { useTheme } from '../contexts/ThemeContext';
 import { tasksService } from '../services/tasks';
+import { tagsService, Category } from '../services/tags';
 import './styles/DashboardPage.css';
 
 interface TaskStats {
@@ -41,9 +43,21 @@ interface TaskStats {
   }[];
 }
 
+interface PriorityColor {
+  level: string;
+  color: string;
+}
+
 const DashboardPage: React.FC = () => {
   const { isAotMode } = useTheme();
   const toast = useToast();
+  
+  // Filter state
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [priorities, setPriorities] = useState<PriorityColor[]>([]);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
+  const [selectedPriorityLevels, setSelectedPriorityLevels] = useState<string[]>([]);
+  
   const calculateStreak = (data: any[]) => {
     let currentStreak = 0;
     const today = new Date();
@@ -142,6 +156,24 @@ const DashboardPage: React.FC = () => {
   const toggleViewType = () => {
     setViewType(viewType === 'bar' ? 'compound' : 'bar');
   };
+
+  // Load categories and priorities
+  useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        const [fetchedCats, fetchedPriorities] = await Promise.all([
+          tagsService.getCategories(),
+          tagsService.getPriorities(),
+        ]);
+
+        setCategories(fetchedCats);
+        setPriorities(fetchedPriorities);
+      } catch (error) {
+        console.error('Error fetching categories/priorities:', error);
+      }
+    };
+    fetchTags();
+  }, []);
 
   // Refresh stats every minute to keep streak updated
   useEffect(() => {
@@ -253,6 +285,22 @@ const DashboardPage: React.FC = () => {
           <Heading className="stats-heading" data-aot-mode={isAotMode}>
             📊 Your Productivity Dashboard
           </Heading>
+
+          {/* Dashboard Filters */}
+          <Box mt={6}>
+            <DashboardFilters
+              categories={categories}
+              priorities={priorities}
+              selectedCategoryIds={selectedCategoryIds}
+              selectedPriorityLevels={selectedPriorityLevels}
+              onCategoryChange={setSelectedCategoryIds}
+              onPriorityChange={setSelectedPriorityLevels}
+              onClearAll={() => {
+                setSelectedCategoryIds([]);
+                setSelectedPriorityLevels([]);
+              }}
+            />
+          </Box>
 
           <Grid templateColumns={{ base: '1fr', md: '1fr 2fr' }} gap={6} mt={8}>
             {/* Daily Progress Card */}
