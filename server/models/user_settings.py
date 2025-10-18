@@ -26,6 +26,8 @@ class UserSettings(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     status_logos = db.Column(JSONEncodedDict, default={})
+    theme_preferences = db.Column(JSONEncodedDict, default={})
+    custom_themes = db.Column(JSONEncodedDict, default={})  # Store multiple custom themes
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
