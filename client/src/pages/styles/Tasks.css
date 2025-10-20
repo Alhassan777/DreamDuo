@@ -1,0 +1,342 @@
+/* ===========================================================
+   1) THEME COLOR VARIABLES
+   =========================================================== */
+   :root {
+    /* -------------------------
+       AOT THEME
+       ------------------------- */
+    --aot-primary: #8B0000;
+    --aot-secondary: #2A1F1A;
+    --aot-accent: #dca253;
+    --aot-text: #c89a5a;
+    --aot-background: #1D1D1D;
+    --aot-border: #463A2E;
+    --aot-secondary-text: #f3f2f0;
+    /* AOT Button-Specific Variables */
+    --aot-primary-bg: var(--aot-primary);
+    --aot-primary-bg-hover: #CD5C5C;
+    --aot-primary-text-color: #FFFFFF;
+  
+    --aot-secondary-bg: transparent;
+    --aot-secondary-border-color: var(--aot-accent);
+    --aot-secondary-text-color: var(--aot-accent);
+    --aot-secondary-bg-hover: var(--aot-accent);
+    --aot-secondary-text-hover: var(--aot-background);
+  
+    /* Default theme now uses global CSS variables from theme-variables.css */
+    --default-primary-bg: var(--color-primary);
+    --default-primary-bg-hover: var(--color-secondary);
+    --default-primary-text: var(--color-text);
+  
+    --default-secondary-bg: transparent;
+    --default-secondary-border: var(--color-primary);
+    --default-secondary-text: var(--color-primary);
+    --default-secondary-bg-hover: var(--color-primary);
+    --default-secondary-text-hover: var(--color-text);
+  }
+  
+  /* ===========================================================
+     2) TASKS PAGE LAYOUT & HEADERS
+     =========================================================== */
+  .tasks-page {
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    padding: 0.3rem 0.5rem;
+  }
+  
+  /* Toggle background for each mode */
+  .tasks-page[data-aot-mode="true"] {
+    background-color: var(--aot-background);
+  }
+  
+  .tasks-page[data-aot-mode="false"] {
+    background-color: var(--color-background);
+  }
+  
+  /* AOT background image */
+  .tasks-page[data-aot-mode="true"]::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url("/src/assets/daily_tasks_page_2.jpg");
+    background-size: cover;
+    background-position: center;
+    opacity: 0.85;
+    z-index: 0;
+    transition: all 0.3s ease-in-out;
+    transform: scale(1.2);
+    transform-origin: left center;
+  }
+  
+  /* Header / Title / Buttons container */
+  .tasks-header {
+    padding: 1.5rem;
+    margin-bottom: 0.5rem;
+    position: relative;
+    z-index: 10;
+  }
+
+  /* Mobile responsive padding */
+  @media (max-width: 768px) {
+    .tasks-header {
+      padding: 1rem;
+    }
+  }
+  
+  .tasks-title {
+    font-size: 1.75rem;
+    margin-bottom: 0;
+    margin-top: 0;
+  }
+
+  @media (max-width: 768px) {
+    .tasks-title {
+      font-size: 1.5rem;
+    }
+  }
+  
+  /* AOT vs Default Title Colors */
+  .tasks-title[data-aot-mode="true"] {
+    color: var(--aot-text);
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+  }
+  
+  .tasks-title[data-aot-mode="false"] {
+    color: white;
+    text-shadow: none;
+  }
+  
+  /* Subtitle showing time scope */
+  .tasks-subtitle {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin-top: 0.5rem;
+  }
+  
+  /* Buttons row (Add Category, Create Task, etc.) */
+  .tasks-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+  }
+  
+  /* Search and filter controls */
+  .tasks-controls {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  
+  .tasks-container {
+    padding: 2rem;
+    position: relative;
+    z-index: 1;
+    margin-top: 0.5rem;
+  }
+  
+  /* Empty state */
+  .tasks-empty-state {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    margin-top: 2rem;
+  }
+
+  @media (max-width: 768px) {
+    .tasks-empty-state {
+      padding: 2rem 1rem;
+      margin-top: 1rem;
+    }
+  }
+  
+  .tasks-empty-state[data-aot-mode="true"] {
+    color: var(--aot-secondary-text);
+  }
+  
+  .tasks-empty-state[data-aot-mode="false"] {
+    color: var(--color-text-secondary);
+  }
+  
+  /* ===========================================================
+     3) PRIMARY & SECONDARY BUTTONS
+     =========================================================== */
+  
+  /* Common base styles for each button type */
+  .secondary-button,
+  .primary-button {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+  }
+
+  @media (max-width: 768px) {
+    .secondary-button,
+    .primary-button {
+      font-size: 0.8rem;
+      padding: 0.4rem 0.6rem;
+    }
+  }
+  
+  .primary-button {
+    margin-left: 0.75rem;
+  }
+
+  @media (max-width: 768px) {
+    .primary-button {
+      margin-left: 0.5rem;
+    }
+  }
+  
+  /* =======================
+     AOT MODE
+     ======================= */
+  .primary-button[data-aot-mode="true"] {
+    background-color: var(--aot-primary);
+    color: #FFFFFF;
+    border: none;
+  }
+  
+  .primary-button[data-aot-mode="true"]:hover {
+    background-color: var(--aot-primary);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 6px 12px rgba(139, 0, 0, 0.4);
+    filter: brightness(1.2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+  
+  .secondary-button[data-aot-mode="true"] {
+    background-color: var(--aot-secondary-bg-hover);
+    color: var(--aot-secondary-text-hover);
+    border: 2px solid var(--aot-secondary-border-color);
+  }
+  
+  .secondary-button[data-aot-mode="true"]:hover {
+    background-color: var(--aot-accent);
+    color: var(--aot-background);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 6px 12px rgba(220, 162, 83, 0.3);
+    border-color: transparent;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  /* =======================
+     DEFAULT MODE
+     ======================= */
+  .primary-button[data-aot-mode="false"] {
+    background-color: var(--default-primary-bg);
+    color: var(--default-primary-text);
+    border: 2px solid var(--color-primary);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .primary-button[data-aot-mode="false"]:hover {
+    background-color: var(--default-primary-bg-hover);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 15px rgba(128, 90, 213, 0.2);
+    filter: brightness(1.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .secondary-button[data-aot-mode="false"] {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    border: 2px solid var(--color-border);
+  }
+  
+  .secondary-button[data-aot-mode="false"]:hover {
+    background-color: var(--color-card-background);
+    color: var(--color-primary);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    border-color: var(--color-primary);
+    transition: all var(--animation-duration) cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  /* ===========================================================
+     4) MODAL & FORM CONTROLS
+     =========================================================== */
+  .tasks-modal {
+    position: relative;
+    z-index: 1;
+  }
+  
+  .tasks-modal[data-aot-mode="true"] {
+    background-color: var(--aot-secondary);
+  }
+  
+  .tasks-modal[data-aot-mode="false"] {
+    background-color: var(--color-card-background);
+  }
+  
+  .tasks-modal-header[data-aot-mode="true"],
+  .tasks-modal-close[data-aot-mode="true"] {
+    color: var(--aot-secondary-text);
+  }
+  
+  .tasks-modal-header[data-aot-mode="false"],
+  .tasks-modal-close[data-aot-mode="false"] {
+    color: var(--color-text);
+  }
+  
+  .tasks-form-label {
+    color: var(--color-text);
+  }
+  
+  .tasks-form-input {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    border-color: var(--color-border);
+  }
+  
+  /* Emoji picker in the form */
+  .tasks-emoji-picker {
+    width: 60px;
+    height: 60px;
+    background-color: var(--color-surface);
+    border-radius: 9999px;
+    cursor: pointer;
+    transition: all var(--animation-duration);
+    border: 1px solid var(--color-border);
+  }
+  
+  .tasks-emoji-picker:hover {
+    transform: scale(1.1);
+    background-color: var(--color-card-background);
+    border-color: var(--color-primary);
+  }
+  
+  /* Modal Footer Button */
+  .tasks-modal-cancel[data-aot-mode="true"] {
+    color: var(--aot-accent);
+    background-color: var(--aot-primary);
+    border: 2px solid var(--aot-accent);
+    transition: all 0.3s ease;
+  }
+
+  .tasks-modal-cancel[data-aot-mode="true"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .tasks-modal-cancel[data-aot-mode="false"] {
+    color: var(--color-text);
+    background-color: var(--color-surface);
+    transition: all var(--animation-duration) ease;
+    border-color: var(--color-border);
+  }
+  
+  .tasks-modal-cancel:hover {
+    background-color: var(--color-card-background);
+    border-color: var(--color-primary);
+  }
+
