@@ -1,29 +1,32 @@
 .category-card {
   border-width: 1px;
-  border-radius: var(--chakra-radii-lg);
-  background-color: var(--chakra-colors-gray-800);
-  padding: var(--chakra-space-6);
+  border-radius: var(--border-radius-lg);
+  background-color: var(--color-card-background);
+  padding: var(--spacing-lg);
   position: relative;
-  transition: all 0.2s;
-  box-shadow: var(--chakra-shadows-lg);
+  transition: all var(--animation-duration);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   width: 100%;
+  border-color: var(--color-border);
+  opacity: var(--opacity-card);
 }
 
 .category-card:hover {
   transform: translateY(-2px);
-  box-shadow: var(--chakra-shadows-xl);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  border-color: var(--color-primary);
 }
 
 .category-card.editing {
   border-width: 2px;
-  background-color: var(--chakra-colors-gray-700);
+  background-color: var(--color-surface);
+  border-color: var(--color-primary);
 }
 
 .category-card-title {
-  font-size: var(--chakra-fontSizes-2xl);
-  font-weight: var(--chakra-fontWeights-bold);
-  color: var(--chakra-colors-white);
-  text-shadow: 0 0 10px rgba(255,255,255,0.3);
+  font-size: calc(var(--font-size-base) * 1.5);
+  font-weight: 700;
+  color: var(--color-text);
   flex: 1;
 }
 
@@ -37,34 +40,37 @@
 }
 
 .category-card-description {
-  color: var(--chakra-colors-gray-400);
-  font-size: var(--chakra-fontSizes-sm);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
   width: 100%;
 }
 
 .category-card-description textarea {
-  background-color: var(--chakra-colors-gray-600);
-  color: var(--chakra-colors-white);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  border-color: var(--color-border);
 }
 
 .category-card-emoji-picker {
   width: 60px;
   height: 60px;
-  background-color: var(--chakra-colors-gray-700);
-  border-radius: var(--chakra-radii-full);
+  background-color: var(--color-surface);
+  border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  border: 1px solid var(--color-border);
 }
 
 .category-card-emoji-picker:hover {
   transform: scale(1.1);
-  background-color: var(--chakra-colors-gray-600);
+  background-color: var(--color-card-background);
+  border-color: var(--color-primary);
 }
 
 .category-card-button {
-  transition: transform 0.2s;
+  transition: transform var(--animation-duration);
 }
 
 .category-card-button:hover {
@@ -72,21 +78,21 @@
 }
 
 .category-card-button.delete {
-  color: var(--chakra-colors-red-500);
+  color: var(--color-error);
 }
 
 .category-card-button.edit {
-  color: var(--chakra-colors-blue-500);
+  color: var(--color-primary);
 }
 
 .category-card-button.save {
-  color: white;
-  background-color: var(--chakra-colors-green-500);
+  color: var(--color-text);
+  background-color: var(--color-success);
 }
 
 .category-card-button.cancel {
-  color: white;
-  background-color: var(--chakra-colors-red-500);
+  color: var(--color-text);
+  background-color: var(--color-error);
 }
 
 .category-card-emoji-content {
@@ -94,8 +100,9 @@
   width: 320px;
   max-height: 400px;
   overflow-y: auto;
-  box-shadow: var(--chakra-shadows-xl);
-  background-color: var(--chakra-colors-gray-700);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
 }
 
 .category-card-actions {
@@ -116,98 +123,18 @@
 }
 
 .category-card-title-input {
-  font-size: var(--chakra-fontSizes-lg);
-  padding: var(--chakra-space-2);
+  font-size: calc(var(--font-size-base) * 1.125);
+  padding: var(--spacing-sm);
 }
 
 .category-card-description-textarea {
-  font-size: var(--chakra-fontSizes-sm);
-  padding: var(--chakra-space-2);
+  font-size: var(--font-size-base);
+  padding: var(--spacing-sm);
   min-height: 100px;
 }
 
 .category-card-buttons {
-  gap: var(--chakra-space-2);
+  gap: var(--spacing-sm);
 }
 
-/* AOT Titan Mode Styles */
-[data-aot-mode="true"] .category-card {
-  background-color: rgba(89, 55, 48, 0.9);
-  border: 2px solid #8B4513;
-  box-shadow: 0 0 15px rgba(139, 69, 19, 0.3);
-  transition: all 0.3s ease;
-}
-
-[data-aot-mode="true"] .category-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 0 20px rgba(139, 69, 19, 0.5);
-}
-
-[data-aot-mode="true"] .category-card.editing {
-  background-color: rgba(120, 81, 69, 0.9);
-  border-color: #CD853F;
-}
-
-[data-aot-mode="true"] .category-card-title {
-  color: #FFE4B5;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-[data-aot-mode="true"] .category-card-description {
-  color: #DEB887;
-}
-
-[data-aot-mode="true"] .category-card-description textarea {
-  background-color: rgba(139, 69, 19, 0.3);
-  color: #FFE4B5;
-}
-
-[data-aot-mode="true"] .category-card-emoji-picker {
-  background-color: rgba(139, 69, 19, 0.5);
-  border: 2px solid #8B4513;
-  transition: all 0.3s ease;
-}
-
-[data-aot-mode="true"] .category-card-emoji-picker:hover {
-  background-color: rgba(139, 69, 19, 0.7);
-  box-shadow: 0 0 10px rgba(139, 69, 19, 0.5);
-  transform: translateY(-2px);
-}
-
-/* Primary buttons (Delete, Cancel) - Red */
-[data-aot-mode="true"] .category-card-button.delete,
-[data-aot-mode="true"] .category-card-button.cancel {
-  background-color: var(--aot-primary);
-  color: #FFFFFF;
-  border: none;
-  transition: all 0.3s ease;
-}
-
-[data-aot-mode="true"] .category-card-button.delete:hover,
-[data-aot-mode="true"] .category-card-button.cancel:hover {
-  background-color: var(--aot-primary);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(139, 0, 0, 0.3);
-}
-
-/* Accent buttons (Edit, Save) - Gold */
-[data-aot-mode="true"] .category-card-button.edit,
-[data-aot-mode="true"] .category-card-button.save {
-  background-color: var(--aot-accent);
-  color: var(--aot-background);
-  border: 2px solid var(--aot-secondary-border-color);
-  transition: all 0.3s ease;
-}
-
-[data-aot-mode="true"] .category-card-button.edit:hover,
-[data-aot-mode="true"] .category-card-button.save:hover {
-  background-color: var(--aot-accent);
-  color: var(--aot-background);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(139, 69, 19, 0.3);
-}
-
-[data-aot-mode="true"] .category-card-emoji-content {
-  background-color: rgba(89, 55, 48, 0.95);
-  border: 2px solid #8B4513;
-}
+/* Theme-aware styles are now applied globally via CSS variables */

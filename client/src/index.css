@@ -1,86 +1,107 @@
+@import './styles/theme-variables.css';
+
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  font-family: var(--font-family);
+  line-height: var(--line-height-base);
+  font-weight: var(--font-weight-base);
 
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  color: var(--color-text-secondary);
+  background-color: var(--color-background);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  font-family: var(--font-family) !important;
+  font-size: var(--font-size-base) !important;
+  line-height: var(--line-height-base) !important;
+  color: var(--color-text) !important;
+  background-color: var(--color-background) !important;
 }
 
-:root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* Apply font and colors to all elements */
+* {
+  font-family: var(--font-family);
 }
 
+/* Force Chakra UI to use theme colors */
+.chakra-ui-light,
+.chakra-ui-dark {
+  background-color: var(--color-background) !important;
+  color: var(--color-text) !important;
+}
+
+/* Apply theme colors to common Chakra components */
+.chakra-card,
+.chakra-modal__content,
+.chakra-popover__content {
+  background-color: var(--color-surface) !important;
+  color: var(--color-text) !important;
+  border-color: var(--color-border) !important;
+}
+
+.chakra-input,
+.chakra-select,
+.chakra-textarea {
+  background-color: var(--color-surface) !important;
+  color: var(--color-text) !important;
+  border-color: var(--color-border) !important;
+}
+
+.chakra-input::placeholder,
+.chakra-select::placeholder,
+.chakra-textarea::placeholder {
+  color: var(--color-text-secondary) !important;
+}
+
+/* Button default styles */
+.chakra-button {
+  border-radius: var(--border-radius-md) !important;
+  transition: all var(--animation-duration) ease !important;
+}
+
+.chakra-button:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* Links */
 a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
+  color: var(--color-primary);
+  transition: color var(--animation-duration) ease;
 }
 
 a:hover {
-  color: #535bf2;
+  color: var(--color-secondary);
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
+/* Ensure Chakra UI respects theme font size */
+#root,
+#root > div,
+.chakra-portal,
+.chakra-portal > div {
+  font-family: var(--font-family) !important;
 }
 
-button:hover {
-  border-color: #646cff;
+/* Apply base font size to common elements */
+p, span, div, li, td, th, label, input, textarea, select, button {
+  font-size: inherit;
+  line-height: var(--line-height-base);
 }
 
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
+/* Scale headings based on base font size */
+h1 { font-size: calc(var(--font-size-base) * 2); }
+h2 { font-size: calc(var(--font-size-base) * 1.5); }
+h3 { font-size: calc(var(--font-size-base) * 1.25); }
+h4 { font-size: calc(var(--font-size-base) * 1.1); }
+h5 { font-size: var(--font-size-base); }
+h6 { font-size: calc(var(--font-size-base) * 0.9); }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-}
+/* Theme colors are controlled by ThemeContext, not media queries */
