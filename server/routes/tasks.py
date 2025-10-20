@@ -4,7 +4,7 @@ from models import Task, db
 from models.task_utils import (
     add_task, get_root_tasks, get_task_with_subtasks,
     delete_task, move_subtask, toggle_task_completion,
-    get_tasks_stats_by_date_range
+    get_tasks_stats_by_date_range, get_tasks_with_filters
 )
 from . import tasks_bp
 from datetime import datetime
@@ -204,12 +204,115 @@ def move_task_route(task_id):
     return jsonify(task_data)
 
 
+@tasks_bp.route('/search', methods=['GET'])
+@jwt_required()
+def search_tasks():
+    """
+    Search and filter tasks with comprehensive parameters.
+    Query params:
+    - time_scope: 'daily' | 'weekly' | 'monthly' | 'yearly'
+    - anchor_date: YYYY-MM-DD (default: today)
+    - search_query: text search
+    - category_ids: comma-separated IDs
+    - priority_levels: comma-separated levels
+    - deadline_before: ISO date
+    - deadline_after: ISO date
+    - completion_status: 'all' | 'completed' | 'incomplete'
+    """
+    user_id = get_jwt_identity()
+    
+    # Get time scope and anchor date
+    time_scope = request.args.get('time_scope', 'daily')
+    anchor_date_str = request.args.get('anchor_date')
+    
+    try:
+        # Parse anchor date or use today
+        if anchor_date_str:
+            anchor_date = datetime.strptime(anchor_date_str, '%Y-%m-%d')
+        else:
+            anchor_date = datetime.now()
+        
+        # Calculate date range based on time scope
+        from datetime import timedelta
+        
+        if time_scope == 'daily':
+            start_date = anchor_date.replace(hour=0, minute=0, second=0, microsecond=0)
+            end_date = anchor_date.replace(hour=23, minute=59, second=59, microsecond=999999)
+        elif time_scope == 'weekly':
+            # Get start of week (Monday)
+            days_from_monday = anchor_date.weekday()
+            start_date = (anchor_date - timedelta(days=days_from_monday)).replace(hour=0, minute=0, second=0, microsecond=0)
+            end_date = (start_date + timedelta(days=6)).replace(hour=23, minute=59, second=59, microsecond=999999)
+        elif time_scope == 'monthly':
+            # Get start and end of month
+            start_date = anchor_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            # Get last day of month
+            if anchor_date.month == 12:
+                end_date = anchor_date.replace(month=12, day=31, hour=23, minute=59, second=59, microsecond=999999)
+            else:
+                next_month = anchor_date.replace(month=anchor_date.month + 1, day=1)
+                end_date = (next_month - timedelta(days=1)).replace(hour=23, minute=59, second=59, microsecond=999999)
+        elif time_scope == 'yearly':
+            # Get start and end of year
+            start_date = anchor_date.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+            end_date = anchor_date.replace(month=12, day=31, hour=23, minute=59, second=59, microsecond=999999)
+        else:
+            return jsonify({'error': 'Invalid time_scope. Use: daily, weekly, monthly, or yearly'}), 400
+        
+        # Get filter parameters
+        search_query = request.args.get('search_query')
+        category_ids_str = request.args.get('category_ids')
+        priority_levels_str = request.args.get('priority_levels')
+        deadline_before_str = request.args.get('deadline_before')
+        deadline_after_str = request.args.get('deadline_after')
+        completion_status = request.args.get('completion_status', 'all')
+        
+        # Parse filter parameters
+        category_ids = None
+        if category_ids_str:
+            category_ids = [int(id.strip()) for id in category_ids_str.split(',') if id.strip()]
+        
+        priority_levels = None
+        if priority_levels_str:
+            priority_levels = [level.strip() for level in priority_levels_str.split(',') if level.strip()]
+        
+        deadline_before = None
+        if deadline_before_str:
+            deadline_before = datetime.fromisoformat(deadline_before_str)
+        
+        deadline_after = None
+        if deadline_after_str:
+            deadline_after = datetime.fromisoformat(deadline_after_str)
+        
+        # Get filtered tasks
+        tasks = get_tasks_with_filters(
+            session=db.session,
+            user_id=user_id,
+            start_date=start_date,
+            end_date=end_date,
+            search_query=search_query,
+            category_ids=category_ids,
+            priority_levels=priority_levels,
+            deadline_before=deadline_before,
+            deadline_after=deadline_after,
+            completion_status=completion_status
+        )
+        
+        return jsonify(tasks)
+    except ValueError as e:
+        return jsonify({'error': f'Invalid date format: {str(e)}'}), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @tasks_bp.route('/stats', methods=['GET'])
 @jwt_required()
 def get_tasks_stats():
     user_id = get_jwt_identity()
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
+    category_ids_str = request.args.get('category_ids')
+    priority_levels_str = request.args.get('priority_levels')
 
     if not start_date or not end_date:
         return jsonify({'error': 'Both start_date and end_date are required'}), 400
@@ -217,7 +320,14 @@ def get_tasks_stats():
     try:
         start_dt = datetime.strptime(start_date, '%Y-%m-%d')
         end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+        
+        # For now, get all stats - filtering will be applied on frontend
+        # TODO: Implement backend filtering for stats if needed for performance
         stats = get_tasks_stats_by_date_range(db.session, user_id, start_dt, end_dt)
+        
+        # If filters are provided, we could filter the stats here
+        # This is a simplified implementation - full filtering would require updating the SQL query
+        
         return jsonify(stats)
     except ValueError:
         return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD without timezone'}), 400
