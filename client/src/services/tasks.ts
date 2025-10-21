@@ -33,6 +33,10 @@ export interface TaskResponse {
   deadline?: string;             // Optional ISO string for deadline
   subtasks?: TaskResponse[];      // 'subtasks' are nested tasks
   category?: CategoryResponse;    // Additional info about the category
+  position_x?: number | null;     // Canvas X position
+  position_y?: number | null;     // Canvas Y position
+  canvas_color?: string | null;   // Custom canvas color
+  canvas_shape?: string | null;   // Canvas shape: 'rectangle', 'rounded', 'circle'
 }
 
 export interface CategoryResponse {
@@ -40,6 +44,13 @@ export interface CategoryResponse {
   name: string;
   description?: string;
   icon?: string;
+}
+
+export interface TaskDependency {
+  id: number;
+  source_task_id: number;
+  target_task_id: number;
+  user_id: number;
 }
 
 /**
@@ -59,6 +70,10 @@ export interface Task {
   children: Task[]; 
   category?: string;
   categoryIcon?: string;
+  position_x?: number | null;     // Canvas X position
+  position_y?: number | null;     // Canvas Y position
+  canvas_color?: string | null;   // Custom canvas color
+  canvas_shape?: string | null;   // Canvas shape: 'rectangle', 'rounded', 'circle'
 }
 
 // ------------------
@@ -83,7 +98,11 @@ export function mapTaskResponseToTask(taskRes: TaskResponse): Task {
     collapsed: false,                             // Default UI preference
     children: (taskRes.subtasks || []).map(mapTaskResponseToTask),
     category: taskRes.category?.name,
-    categoryIcon: taskRes.category?.icon
+    categoryIcon: taskRes.category?.icon,
+    position_x: taskRes.position_x,
+    position_y: taskRes.position_y,
+    canvas_color: taskRes.canvas_color,
+    canvas_shape: taskRes.canvas_shape
   };
 }
 
@@ -297,6 +316,88 @@ export const tasksService = {
       const taskResponses = response.data;
       return taskResponses.map(mapTaskResponseToTask);
     } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Updates the position of a task on the canvas
+   */
+  updateTaskPosition: async (taskId: number, x: number, y: number): Promise<void> => {
+    try {
+      await api.post(`/tasks/${taskId}/position`, { x, y });
+    } catch (error) {
+      console.error('Failed to update task position:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Updates the appearance (color, shape) of a task on the canvas
+   */
+  updateTaskAppearance: async (
+    taskId: number,
+    color?: string | null,
+    shape?: string | null
+  ): Promise<void> => {
+    try {
+      await api.post(`/tasks/${taskId}/customize`, { color, shape });
+    } catch (error) {
+      console.error('Failed to update task appearance:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get all task dependencies for the current user
+   */
+  getDependencies: async (): Promise<TaskDependency[]> => {
+    try {
+      const response = await api.get('/tasks/dependencies');
+      return response.data.data || [];
+    } catch (error) {
+      console.error('Failed to fetch dependencies:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Create a new task dependency
+   */
+  createDependency: async (sourceTaskId: number, targetTaskId: number): Promise<TaskDependency> => {
+    try {
+      const response = await api.post('/tasks/dependencies', {
+        source_task_id: sourceTaskId,
+        target_task_id: targetTaskId,
+      });
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to create dependency:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Delete a task dependency
+   */
+  deleteDependency: async (dependencyId: number): Promise<void> => {
+    try {
+      await api.delete(`/tasks/dependencies/${dependencyId}`);
+    } catch (error) {
+      console.error('Failed to delete dependency:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get dependencies for a specific task
+   */
+  getTaskDependencies: async (taskId: number): Promise<{ outgoing: TaskDependency[], incoming: TaskDependency[] }> => {
+    try {
+      const response = await api.get(`/tasks/${taskId}/dependencies`);
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to fetch task dependencies:', error);
       throw error;
     }
   },

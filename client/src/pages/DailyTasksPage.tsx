@@ -23,6 +23,8 @@ import DashboardLayout from '../components/DashboardLayout';
 import TaskCard from '../components/TaskCard';
 import TaskCreationForm from '../components/tasks/TaskCreationForm';
 import CategoryCreationForm from '../components/tasks/CategoryCreationForm';
+import ViewToggleButton, { ViewMode } from '../components/ViewToggleButton';
+import TaskCanvasView from '../components/canvas/TaskCanvasView';
 import { useTasks } from '../hooks/useTasks';
 import { useDragAndDrop } from '../hooks/useDragAndDrop';
 import { useTheme } from '../contexts/ThemeContext';
@@ -81,6 +83,9 @@ const DailyTasksPage: React.FC = () => {
     updateSubtaskName,
     setTasks,
   } = useTasks(selectedDate.toISOString().split('T')[0]);
+
+  // View mode state
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
 
   // Category & Priority arrays
   const [categories, setCategories] = useState<Category[]>([]); // Changed from string[] to Category[]
@@ -359,6 +364,7 @@ const DailyTasksPage: React.FC = () => {
             >
               Add Category
             </Button>
+            <ViewToggleButton viewMode={viewMode} onToggle={setViewMode} />
             <Button
               leftIcon={<AddIcon />}
               ml={4}
@@ -386,26 +392,30 @@ const DailyTasksPage: React.FC = () => {
 
         {/* MAIN CONTENT */}
         <Box className="daily-tasks-container" flex="1" overflow="auto" mt={6}>
-          <Grid templateColumns="repeat(3, 1fr)" gap={6}>
-            {tasks.map((task) => (
-              <TaskCard
-                key={task.id}
-                // This 'task' prop is correct for <TaskCard>, not for <TaskCreationForm>.
-                task={task}
-                onDelete={handleDeleteTask}
-                onToggleCollapse={toggleCollapse}
-                onAddSubtask={addSubtask}
-                onToggleComplete={toggleComplete}
-                onToggleSubtaskComplete={toggleSubtaskComplete}
-                onUpdateName={updateTaskName}
-                onUpdateSubtaskName={updateSubtaskName}
-                // Drag
-                onDragStart={handleDragStart}
-                onDrop={handleDrop}
-                dragState={dragState}
-              />
-            ))}
-          </Grid>
+          {viewMode === 'list' ? (
+            <Grid templateColumns="repeat(3, 1fr)" gap={6}>
+              {tasks.map((task) => (
+                <TaskCard
+                  key={task.id}
+                  // This 'task' prop is correct for <TaskCard>, not for <TaskCreationForm>.
+                  task={task}
+                  onDelete={handleDeleteTask}
+                  onToggleCollapse={toggleCollapse}
+                  onAddSubtask={addSubtask}
+                  onToggleComplete={toggleComplete}
+                  onToggleSubtaskComplete={toggleSubtaskComplete}
+                  onUpdateName={updateTaskName}
+                  onUpdateSubtaskName={updateSubtaskName}
+                  // Drag
+                  onDragStart={handleDragStart}
+                  onDrop={handleDrop}
+                  dragState={dragState}
+                />
+              ))}
+            </Grid>
+          ) : (
+            <TaskCanvasView tasks={tasks} setTasks={setTasks} />
+          )}
         </Box>
       </Box>
 
