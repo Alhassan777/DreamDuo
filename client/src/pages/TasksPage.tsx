@@ -29,6 +29,9 @@ import TimeScopeSelector from '../components/tasks/TimeScopeSelector';
 import SearchBar from '../components/tasks/SearchBar';
 import FilterPanel from '../components/tasks/FilterPanel';
 import FilterChips from '../components/tasks/FilterChips';
+import ViewToggleButton, { ViewMode } from '../components/ViewToggleButton';
+import TaskCanvasView from '../components/canvas/TaskCanvasView';
+import AddTaskCard from '../components/tasks/AddTaskCard';
 
 import { useDragAndDrop } from '../hooks/useDragAndDrop';
 import { useTaskFilters } from '../hooks/useTaskFilters';
@@ -63,6 +66,9 @@ const TasksPage: React.FC = () => {
     clearAllFilters,
     clearFilter,
   } = useTaskFilters();
+
+  // View mode state
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
 
   // Tasks state
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -186,8 +192,9 @@ const TasksPage: React.FC = () => {
     toast
   ]);
 
-  const handleCreateTask = async () => {
-    if (!newTask.name.trim()) return;
+  const handleCreateTask = async (taskData?: TaskCreateRequest) => {
+    const taskToCreate = taskData || newTask;
+    if (!taskToCreate.name.trim()) return;
     setIsLoading(true);
   
     try {
@@ -195,13 +202,13 @@ const TasksPage: React.FC = () => {
       const dateStr = `${filters.anchorDate.getFullYear()}-${String(filters.anchorDate.getMonth() + 1).padStart(2, '0')}-${String(filters.anchorDate.getDate()).padStart(2, '0')}`;
     
       await tasksService.createTask({
-        name: newTask.name,
-        description: newTask.description,
-        category_id: newTask.category_id,
-        priority: newTask.priority,
-        deadline: newTask.deadline,
-        parent_id: newTask.parent_id,
-        creation_date: dateStr
+        name: taskToCreate.name,
+        description: taskToCreate.description,
+        category_id: taskToCreate.category_id,
+        priority: taskToCreate.priority,
+        deadline: taskToCreate.deadline,
+        parent_id: taskToCreate.parent_id,
+        creation_date: taskToCreate.creation_date || dateStr
       });
 
       // Refresh tasks
@@ -212,14 +219,18 @@ const TasksPage: React.FC = () => {
       });
       setTasks(fetchedTasks);
   
-      setNewTask({
-        name: '',
-        description: '',
-        category_id: undefined,
-        priority: '',
-        parent_id: null,
-        deadline: undefined
-      });
+      // Only reset newTask and close modal if called from modal (no taskData parameter)
+      if (!taskData) {
+        setNewTask({
+          name: '',
+          description: '',
+          category_id: undefined,
+          priority: '',
+          parent_id: null,
+          deadline: undefined
+        });
+        onClose();
+      }
   
       toast({
         title: 'Task Created',
@@ -227,7 +238,6 @@ const TasksPage: React.FC = () => {
         duration: 2000,
         isClosable: true,
       });
-      onClose();
     } catch (error) {
       console.error('Error creating task:', error);
       toast({
@@ -448,49 +458,22 @@ const TasksPage: React.FC = () => {
                   onOpen();
                 }}
                 size="md"
-                bg="transparent"
-                color={isAotMode ? '#c89a5a' : 'white'}
+                bg="var(--color-button-secondary)"
+                color="var(--color-button-secondary-text)"
                 borderWidth="1px"
-                borderColor={isAotMode ? 'rgba(220, 162, 83, 0.5)' : 'rgba(255, 255, 255, 0.3)'}
+                borderColor="var(--color-border)"
+                borderRadius="var(--border-radius-md)"
+                transition={`all var(--animation-duration) var(--animation-timing)`}
                 _hover={{
-                  bg: isAotMode ? 'rgba(220, 162, 83, 0.1)' : 'rgba(255, 255, 255, 0.1)',
-                  borderColor: isAotMode ? '#dca253' : 'rgba(255, 255, 255, 0.5)',
+                  bg: 'var(--color-button-secondary-hover)',
+                  borderColor: 'var(--color-primary)',
                   transform: 'translateY(-1px)',
+                  boxShadow: 'var(--shadow-md)'
                 }}
-                transition="all 0.2s"
               >
                 Add Category
               </Button>
-              <Button
-                leftIcon={<AddIcon />}
-                onClick={() => {
-                  setIsTaskMode(true);
-                  const dateStr = `${filters.anchorDate.getFullYear()}-${String(filters.anchorDate.getMonth() + 1).padStart(2, '0')}-${String(filters.anchorDate.getDate()).padStart(2, '0')}`;
-                  setNewTask({
-                    name: '',
-                    description: '',
-                    category_id: categories.length > 0 ? categories[0].id : undefined,
-                    priority: '',
-                    parent_id: null,
-                    deadline: undefined,
-                    creation_date: dateStr
-                  });
-                  onOpen();
-                }}
-                size="md"
-                bg={isAotMode ? '#8B0000' : 'purple.600'}
-                color="white"
-                borderWidth="1px"
-                borderColor={isAotMode ? '#8B0000' : 'purple.600'}
-                _hover={{
-                  bg: isAotMode ? '#a00' : 'purple.700',
-                  transform: 'translateY(-1px)',
-                  boxShadow: 'md',
-                }}
-                transition="all 0.2s"
-              >
-                Create New Task
-              </Button>
+              <ViewToggleButton viewMode={viewMode} onToggle={setViewMode} />
             </Flex>
           </Flex>
 
@@ -618,36 +601,17 @@ const TasksPage: React.FC = () => {
                     Clear All Filters
                   </Button>
                 )}
-                <Button
-                  size="md"
-                  leftIcon={<AddIcon />}
-                  onClick={() => {
-                    setIsTaskMode(true);
-                    const dateStr = `${filters.anchorDate.getFullYear()}-${String(filters.anchorDate.getMonth() + 1).padStart(2, '0')}-${String(filters.anchorDate.getDate()).padStart(2, '0')}`;
-                    setNewTask({
-                      name: '',
-                      description: '',
-                      category_id: categories.length > 0 ? categories[0].id : undefined,
-                      priority: '',
-                      parent_id: null,
-                      deadline: undefined,
-                      creation_date: dateStr
-                    });
-                    onOpen();
-                  }}
-                  bg={isAotMode ? '#8B0000' : 'blue.500'}
-                  color="white"
-                  _hover={{
-                    bg: isAotMode ? '#a00' : 'blue.600',
-                    transform: 'translateY(-2px)',
-                    boxShadow: 'lg',
-                  }}
-                  transition="all 0.2s"
-                >
-                  Create New Task
-                </Button>
               </Flex>
             </VStack>
+          ) : viewMode === 'canvas' ? (
+            <TaskCanvasView 
+              tasks={tasks} 
+              setTasks={setTasks}
+              categories={categories}
+              priorities={priorities}
+              anchorDate={filters.anchorDate}
+              onCreateTask={handleCreateTask}
+            />
           ) : (
             <Grid 
               templateColumns={{
@@ -659,6 +623,22 @@ const TasksPage: React.FC = () => {
               px={{ base: 4, md: 6 }}
               py={4}
             >
+              <AddTaskCard
+                onClick={() => {
+                  setIsTaskMode(true);
+                  const dateStr = `${filters.anchorDate.getFullYear()}-${String(filters.anchorDate.getMonth() + 1).padStart(2, '0')}-${String(filters.anchorDate.getDate()).padStart(2, '0')}`;
+                  setNewTask({
+                    name: '',
+                    description: '',
+                    category_id: categories.length > 0 ? categories[0].id : undefined,
+                    priority: '',
+                    parent_id: null,
+                    deadline: undefined,
+                    creation_date: dateStr
+                  });
+                  onOpen();
+                }}
+              />
               {tasks.map((task) => (
                 <TaskCard
                   key={task.id}
