@@ -126,7 +126,13 @@ def get_task_with_subtasks(session: Session, task_id: int, user_id: int = None) 
         'priority': priority_info,
         'category_id': task.category_id,
         'category': category_info,
+        'parent_id': task.parent_id,
+        'creation_date': task.creation_date.isoformat() if task.creation_date else None,
         'deadline': task.deadline.isoformat() if task.deadline else None,
+        'position_x': task.position_x,
+        'position_y': task.position_y,
+        'canvas_color': task.canvas_color,
+        'canvas_shape': task.canvas_shape,
         'subtasks': build_subtask_hierarchy(subtasks_flat, task.id)
     }
 
@@ -153,6 +159,11 @@ def build_subtask_hierarchy(subtasks_flat: List[Dict[str, Any]], parent_id: int)
             'completed': child['completed'],
             'priority': priority_info,  # now includes both color and level
             'category_id': child.get('category_id'),
+            'parent_id': child.get('parent_id'),
+            'position_x': child.get('position_x'),
+            'position_y': child.get('position_y'),
+            'canvas_color': child.get('canvas_color'),
+            'canvas_shape': child.get('canvas_shape'),
             'subtasks': build_subtask_hierarchy(subtasks_flat, child['id'])
         }
         result.append(child_dict)

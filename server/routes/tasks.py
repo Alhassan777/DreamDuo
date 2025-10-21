@@ -6,6 +6,9 @@ from models.task_utils import (
     delete_task, move_subtask, toggle_task_completion,
     get_tasks_stats_by_date_range, get_tasks_with_filters
 )
+from models.task_dependency import (
+    add_dependency, remove_dependency, get_user_dependencies, get_task_dependencies
+)
 from . import tasks_bp
 from datetime import datetime
 from socket_events import emit_task_created, emit_task_updated, emit_task_deleted, emit_task_completed
@@ -331,5 +334,143 @@ def get_tasks_stats():
         return jsonify(stats)
     except ValueError:
         return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD without timezone'}), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+# Canvas View Endpoints
+
+@tasks_bp.route('/<int:task_id>/position', methods=['POST'])
+@jwt_required()
+def update_task_position(task_id):
+    """Update task position on canvas"""
+    user_id = get_jwt_identity()
+    task = Task.query.filter_by(id=task_id, user_id=user_id).first()
+
+    if not task:
+        return jsonify({'error': 'Task not found'}), 404
+
+    data = request.get_json()
+    
+    try:
+        task.position_x = data.get('x')
+        task.position_y = data.get('y')
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'data': {
+                'id': task.id,
+                'position_x': task.position_x,
+                'position_y': task.position_y
+            }
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@tasks_bp.route('/<int:task_id>/customize', methods=['POST'])
+@jwt_required()
+def customize_task(task_id):
+    """Update task appearance (color, shape) on canvas"""
+    user_id = get_jwt_identity()
+    task = Task.query.filter_by(id=task_id, user_id=user_id).first()
+
+    if not task:
+        return jsonify({'error': 'Task not found'}), 404
+
+    data = request.get_json()
+    
+    try:
+        if 'color' in data:
+            task.canvas_color = data['color']
+        if 'shape' in data:
+            task.canvas_shape = data['shape']
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'data': {
+                'id': task.id,
+                'canvas_color': task.canvas_color,
+                'canvas_shape': task.canvas_shape
+            }
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@tasks_bp.route('/dependencies', methods=['GET'])
+@jwt_required()
+def get_dependencies():
+    """Get all task dependencies for the current user"""
+    user_id = get_jwt_identity()
+    
+    try:
+        dependencies = get_user_dependencies(db.session, user_id)
+        return jsonify({'success': True, 'data': dependencies}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@tasks_bp.route('/dependencies', methods=['POST'])
+@jwt_required()
+def create_dependency():
+    """Create a new task dependency"""
+    user_id = get_jwt_identity()
+    data = request.get_json()
+    
+    source_id = data.get('source_task_id')
+    target_id = data.get('target_task_id')
+    
+    if not source_id or not target_id:
+        return jsonify({'error': 'Both source_task_id and target_task_id are required'}), 400
+    
+    try:
+        dependency = add_dependency(db.session, source_id, target_id, user_id)
+        return jsonify({
+            'success': True,
+            'data': dependency.to_dict()
+        }), 201
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@tasks_bp.route('/dependencies/<int:dependency_id>', methods=['DELETE'])
+@jwt_required()
+def delete_dependency(dependency_id):
+    """Delete a task dependency"""
+    user_id = get_jwt_identity()
+    
+    try:
+        remove_dependency(db.session, dependency_id, user_id)
+        return jsonify({
+            'success': True,
+            'message': 'Dependency deleted successfully'
+        }), 200
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 404
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@tasks_bp.route('/<int:task_id>/dependencies', methods=['GET'])
+@jwt_required()
+def get_task_dependencies_route(task_id):
+    """Get all dependencies for a specific task"""
+    user_id = get_jwt_identity()
+    
+    try:
+        dependencies = get_task_dependencies(db.session, task_id, user_id)
+        return jsonify({'success': True, 'data': dependencies}), 200
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 404
     except Exception as e:
         return jsonify({'error': str(e)}), 500
