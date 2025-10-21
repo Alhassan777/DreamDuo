@@ -4,7 +4,10 @@ from models import Task, db
 from models.task_utils import (
     add_task, get_root_tasks, get_task_with_subtasks,
     delete_task, move_subtask, toggle_task_completion,
-    get_tasks_stats_by_date_range
+    get_tasks_stats_by_date_range, get_tasks_with_filters
+)
+from models.task_dependency import (
+    add_dependency, remove_dependency, get_user_dependencies, get_task_dependencies
 )
 from . import tasks_bp
 from datetime import datetime
@@ -204,12 +207,115 @@ def move_task_route(task_id):
     return jsonify(task_data)
 
 
+@tasks_bp.route('/search', methods=['GET'])
+@jwt_required()
+def search_tasks():
+    """
+    Search and filter tasks with comprehensive parameters.
+    Query params:
+    - time_scope: 'daily' | 'weekly' | 'monthly' | 'yearly'
+    - anchor_date: YYYY-MM-DD (default: today)
+    - search_query: text search
+    - category_ids: comma-separated IDs
+    - priority_levels: comma-separated levels
+    - deadline_before: ISO date
+    - deadline_after: ISO date
+    - completion_status: 'all' | 'completed' | 'incomplete'
+    """
+    user_id = get_jwt_identity()
+    
+    # Get time scope and anchor date
+    time_scope = request.args.get('time_scope', 'daily')
+    anchor_date_str = request.args.get('anchor_date')
+    
+    try:
+        # Parse anchor date or use today
+        if anchor_date_str:
+            anchor_date = datetime.strptime(anchor_date_str, '%Y-%m-%d')
+        else:
+            anchor_date = datetime.now()
+        
+        # Calculate date range based on time scope
+        from datetime import timedelta
+        
+        if time_scope == 'daily':
+            start_date = anchor_date.replace(hour=0, minute=0, second=0, microsecond=0)
+            end_date = anchor_date.replace(hour=23, minute=59, second=59, microsecond=999999)
+        elif time_scope == 'weekly':
+            # Get start of week (Monday)
+            days_from_monday = anchor_date.weekday()
+            start_date = (anchor_date - timedelta(days=days_from_monday)).replace(hour=0, minute=0, second=0, microsecond=0)
+            end_date = (start_date + timedelta(days=6)).replace(hour=23, minute=59, second=59, microsecond=999999)
+        elif time_scope == 'monthly':
+            # Get start and end of month
+            start_date = anchor_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            # Get last day of month
+            if anchor_date.month == 12:
+                end_date = anchor_date.replace(month=12, day=31, hour=23, minute=59, second=59, microsecond=999999)
+            else:
+                next_month = anchor_date.replace(month=anchor_date.month + 1, day=1)
+                end_date = (next_month - timedelta(days=1)).replace(hour=23, minute=59, second=59, microsecond=999999)
+        elif time_scope == 'yearly':
+            # Get start and end of year
+            start_date = anchor_date.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+            end_date = anchor_date.replace(month=12, day=31, hour=23, minute=59, second=59, microsecond=999999)
+        else:
+            return jsonify({'error': 'Invalid time_scope. Use: daily, weekly, monthly, or yearly'}), 400
+        
+        # Get filter parameters
+        search_query = request.args.get('search_query')
+        category_ids_str = request.args.get('category_ids')
+        priority_levels_str = request.args.get('priority_levels')
+        deadline_before_str = request.args.get('deadline_before')
+        deadline_after_str = request.args.get('deadline_after')
+        completion_status = request.args.get('completion_status', 'all')
+        
+        # Parse filter parameters
+        category_ids = None
+        if category_ids_str:
+            category_ids = [int(id.strip()) for id in category_ids_str.split(',') if id.strip()]
+        
+        priority_levels = None
+        if priority_levels_str:
+            priority_levels = [level.strip() for level in priority_levels_str.split(',') if level.strip()]
+        
+        deadline_before = None
+        if deadline_before_str:
+            deadline_before = datetime.fromisoformat(deadline_before_str)
+        
+        deadline_after = None
+        if deadline_after_str:
+            deadline_after = datetime.fromisoformat(deadline_after_str)
+        
+        # Get filtered tasks
+        tasks = get_tasks_with_filters(
+            session=db.session,
+            user_id=user_id,
+            start_date=start_date,
+            end_date=end_date,
+            search_query=search_query,
+            category_ids=category_ids,
+            priority_levels=priority_levels,
+            deadline_before=deadline_before,
+            deadline_after=deadline_after,
+            completion_status=completion_status
+        )
+        
+        return jsonify(tasks)
+    except ValueError as e:
+        return jsonify({'error': f'Invalid date format: {str(e)}'}), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @tasks_bp.route('/stats', methods=['GET'])
 @jwt_required()
 def get_tasks_stats():
     user_id = get_jwt_identity()
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
+    category_ids_str = request.args.get('category_ids')
+    priority_levels_str = request.args.get('priority_levels')
 
     if not start_date or not end_date:
         return jsonify({'error': 'Both start_date and end_date are required'}), 400
@@ -217,9 +323,154 @@ def get_tasks_stats():
     try:
         start_dt = datetime.strptime(start_date, '%Y-%m-%d')
         end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+        
+        # For now, get all stats - filtering will be applied on frontend
+        # TODO: Implement backend filtering for stats if needed for performance
         stats = get_tasks_stats_by_date_range(db.session, user_id, start_dt, end_dt)
+        
+        # If filters are provided, we could filter the stats here
+        # This is a simplified implementation - full filtering would require updating the SQL query
+        
         return jsonify(stats)
     except ValueError:
         return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD without timezone'}), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+# Canvas View Endpoints
+
+@tasks_bp.route('/<int:task_id>/position', methods=['POST'])
+@jwt_required()
+def update_task_position(task_id):
+    """Update task position on canvas"""
+    user_id = get_jwt_identity()
+    task = Task.query.filter_by(id=task_id, user_id=user_id).first()
+
+    if not task:
+        return jsonify({'error': 'Task not found'}), 404
+
+    data = request.get_json()
+    
+    try:
+        task.position_x = data.get('x')
+        task.position_y = data.get('y')
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'data': {
+                'id': task.id,
+                'position_x': task.position_x,
+                'position_y': task.position_y
+            }
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@tasks_bp.route('/<int:task_id>/customize', methods=['POST'])
+@jwt_required()
+def customize_task(task_id):
+    """Update task appearance (color, shape) on canvas"""
+    user_id = get_jwt_identity()
+    task = Task.query.filter_by(id=task_id, user_id=user_id).first()
+
+    if not task:
+        return jsonify({'error': 'Task not found'}), 404
+
+    data = request.get_json()
+    
+    try:
+        if 'color' in data:
+            task.canvas_color = data['color']
+        if 'shape' in data:
+            task.canvas_shape = data['shape']
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'data': {
+                'id': task.id,
+                'canvas_color': task.canvas_color,
+                'canvas_shape': task.canvas_shape
+            }
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@tasks_bp.route('/dependencies', methods=['GET'])
+@jwt_required()
+def get_dependencies():
+    """Get all task dependencies for the current user"""
+    user_id = get_jwt_identity()
+    
+    try:
+        dependencies = get_user_dependencies(db.session, user_id)
+        return jsonify({'success': True, 'data': dependencies}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@tasks_bp.route('/dependencies', methods=['POST'])
+@jwt_required()
+def create_dependency():
+    """Create a new task dependency"""
+    user_id = get_jwt_identity()
+    data = request.get_json()
+    
+    source_id = data.get('source_task_id')
+    target_id = data.get('target_task_id')
+    
+    if not source_id or not target_id:
+        return jsonify({'error': 'Both source_task_id and target_task_id are required'}), 400
+    
+    try:
+        dependency = add_dependency(db.session, source_id, target_id, user_id)
+        return jsonify({
+            'success': True,
+            'data': dependency.to_dict()
+        }), 201
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@tasks_bp.route('/dependencies/<int:dependency_id>', methods=['DELETE'])
+@jwt_required()
+def delete_dependency(dependency_id):
+    """Delete a task dependency"""
+    user_id = get_jwt_identity()
+    
+    try:
+        remove_dependency(db.session, dependency_id, user_id)
+        return jsonify({
+            'success': True,
+            'message': 'Dependency deleted successfully'
+        }), 200
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 404
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@tasks_bp.route('/<int:task_id>/dependencies', methods=['GET'])
+@jwt_required()
+def get_task_dependencies_route(task_id):
+    """Get all dependencies for a specific task"""
+    user_id = get_jwt_identity()
+    
+    try:
+        dependencies = get_task_dependencies(db.session, task_id, user_id)
+        return jsonify({'success': True, 'data': dependencies}), 200
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 404
     except Exception as e:
         return jsonify({'error': str(e)}), 500

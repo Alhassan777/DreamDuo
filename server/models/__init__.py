@@ -9,6 +9,7 @@ from .category import Category
 from .user_settings import UserSettings, JSONEncodedDict
 from .priority import Priority
 from .task_hierarchy import TaskHierarchy
+from .task_dependency import TaskDependency
 from .task_utils import (
     add_task,
     get_root_tasks,
@@ -26,6 +27,7 @@ __all__ = [
     'JSONEncodedDict',
     'Priority',
     'TaskHierarchy',
+    'TaskDependency',
     'add_task',
     'get_root_tasks',
     'get_task_with_subtasks',

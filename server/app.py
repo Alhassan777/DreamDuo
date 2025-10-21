@@ -61,7 +61,7 @@ def create_app():
     with app.app_context():
         try:
             # Import models and routes after app creation to avoid circular imports
-            from models import User, Category, Task
+            from models import User, Category, Task, TaskDependency
             from routes import auth_bp, tasks_bp, user_bp, tags_bp
 
             # Register blueprints
