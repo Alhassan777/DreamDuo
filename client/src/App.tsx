@@ -23,9 +23,6 @@ function App() {
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/tasks" element={<TasksPage />} />
-            {/* Redirect old daily-tasks routes to new tasks route */}
-            <Route path="/daily-tasks" element={<Navigate to="/tasks" replace />} />
-            <Route path="/daily-tasks/:date" element={<Navigate to="/tasks" replace />} />
             <Route path="/edit-profile" element={<EditProfilePage />} />
             <Route path="/tags" element={<TagsPage />} />
             <Route path="/calendar" element={<CalendarPage />} />
