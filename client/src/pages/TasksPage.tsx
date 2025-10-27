@@ -550,7 +550,7 @@ const TasksPage: React.FC = () => {
                 Loading tasks...
               </Text>
             </VStack>
-          ) : tasks.length === 0 ? (
+          ) : tasks.length === 0 && activeFilterCount > 0 ? (
             <VStack 
               className="tasks-empty-state" 
               data-aot-mode={isAotMode} 
@@ -585,22 +585,20 @@ const TasksPage: React.FC = () => {
                 </Text>
               </VStack>
               <Flex gap={3} flexWrap="wrap" justify="center" mt={4}>
-                {activeFilterCount > 0 && (
-                  <Button
-                    size="md"
-                    onClick={clearAllFilters}
-                    variant="outline"
-                    borderColor={isAotMode ? '#dca253' : 'blue.400'}
-                    color={isAotMode ? '#dca253' : 'blue.400'}
-                    _hover={{
-                      bg: isAotMode ? 'rgba(220, 162, 83, 0.1)' : 'rgba(66, 153, 225, 0.1)',
-                      transform: 'translateY(-2px)',
-                    }}
-                    transition="all 0.2s"
-                  >
-                    Clear All Filters
-                  </Button>
-                )}
+                <Button
+                  size="md"
+                  onClick={clearAllFilters}
+                  variant="outline"
+                  borderColor={isAotMode ? '#dca253' : 'blue.400'}
+                  color={isAotMode ? '#dca253' : 'blue.400'}
+                  _hover={{
+                    bg: isAotMode ? 'rgba(220, 162, 83, 0.1)' : 'rgba(66, 153, 225, 0.1)',
+                    transform: 'translateY(-2px)',
+                  }}
+                  transition="all 0.2s"
+                >
+                  Clear All Filters
+                </Button>
               </Flex>
             </VStack>
           ) : viewMode === 'canvas' ? (
@@ -623,22 +621,6 @@ const TasksPage: React.FC = () => {
               px={{ base: 4, md: 6 }}
               py={4}
             >
-              <AddTaskCard
-                onClick={() => {
-                  setIsTaskMode(true);
-                  const dateStr = `${filters.anchorDate.getFullYear()}-${String(filters.anchorDate.getMonth() + 1).padStart(2, '0')}-${String(filters.anchorDate.getDate()).padStart(2, '0')}`;
-                  setNewTask({
-                    name: '',
-                    description: '',
-                    category_id: categories.length > 0 ? categories[0].id : undefined,
-                    priority: '',
-                    parent_id: null,
-                    deadline: undefined,
-                    creation_date: dateStr
-                  });
-                  onOpen();
-                }}
-              />
               {tasks.map((task) => (
                 <TaskCard
                   key={task.id}
@@ -655,6 +637,22 @@ const TasksPage: React.FC = () => {
                   dragState={dragState}
                 />
               ))}
+              <AddTaskCard
+                onClick={() => {
+                  setIsTaskMode(true);
+                  const dateStr = `${filters.anchorDate.getFullYear()}-${String(filters.anchorDate.getMonth() + 1).padStart(2, '0')}-${String(filters.anchorDate.getDate()).padStart(2, '0')}`;
+                  setNewTask({
+                    name: '',
+                    description: '',
+                    category_id: categories.length > 0 ? categories[0].id : undefined,
+                    priority: '',
+                    parent_id: null,
+                    deadline: undefined,
+                    creation_date: dateStr
+                  });
+                  onOpen();
+                }}
+              />
             </Grid>
           )}
         </Box>
@@ -697,7 +695,7 @@ const TasksPage: React.FC = () => {
               Cancel
             </Button>
             <Button
-              onClick={isTaskMode ? handleCreateTask : handleCreateCategory}
+              onClick={isTaskMode ? () => handleCreateTask() : handleCreateCategory}
               isLoading={isLoading}
               isDisabled={
                 (isTaskMode && !newTask.name.trim()) ||
