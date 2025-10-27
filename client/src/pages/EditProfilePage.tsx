@@ -174,7 +174,7 @@ const EditProfilePage = () => {
           isClosable: true,
         });
 
-        navigate('/daily-tasks');
+        navigate('/tasks');
       } catch (error) {
         toast({
           title: 'Error',

@@ -65,7 +65,7 @@ const toast = useToast();
             isClosable: true,
           });
 
-          navigate('/daily-tasks');
+          navigate('/tasks');
         } else {
           throw new Error('Invalid response format');
         }

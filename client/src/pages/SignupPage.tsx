@@ -96,7 +96,7 @@ const SignupPage = () => {
             isClosable: true,
           });
 
-          navigate('/daily-tasks');
+          navigate('/tasks');
         } else {
           throw new Error('Registration failed');
         }
