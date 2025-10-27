@@ -104,6 +104,7 @@
   transform-origin: top;
   position: relative;
   width: 100%;
+  overflow: visible !important;
 }
 
 .task-card.drag-over {
