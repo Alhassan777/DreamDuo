@@ -7,6 +7,7 @@ import {
   BackgroundVariant,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import './CanvasStyles.css';
 import { Box, Flex } from '@chakra-ui/react';
 import CustomTaskNode from './CustomTaskNode';
 import TaskCustomizationPanel from './TaskCustomizationPanel';
@@ -28,6 +29,7 @@ interface TaskCanvasViewProps {
   priorities: PriorityColor[];
   anchorDate: Date;
   onCreateTask: (task: TaskCreateRequest) => Promise<void>;
+  onRefresh?: () => void;
 }
 
 const TaskCanvasView: React.FC<TaskCanvasViewProps> = ({ 
@@ -37,6 +39,7 @@ const TaskCanvasView: React.FC<TaskCanvasViewProps> = ({
   priorities,
   anchorDate,
   onCreateTask,
+  onRefresh,
 }) => {
   const {
     nodes,
@@ -51,7 +54,7 @@ const TaskCanvasView: React.FC<TaskCanvasViewProps> = ({
     toggleConnectMode,
     customizeTasks,
     deleteDependency,
-  } = useCanvasView({ tasks, setTasks });
+  } = useCanvasView({ tasks, setTasks, onRefresh });
 
   // Define custom node types
   const nodeTypes = useMemo(
@@ -84,6 +87,10 @@ const TaskCanvasView: React.FC<TaskCanvasViewProps> = ({
           maxZoom={2}
           defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
           onPaneClick={() => setSelectedNodeIds([])}
+          connectionRadius={30}
+          connectionLineStyle={{ stroke: 'var(--color-primary)', strokeWidth: 3 }}
+          elevateEdgesOnSelect={true}
+          edgesReconnectable={true}
           style={{
             background: 'var(--color-background)',
           }}
