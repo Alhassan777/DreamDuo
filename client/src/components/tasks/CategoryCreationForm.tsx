@@ -42,11 +42,10 @@ const CategoryCreationForm: React.FC<CategoryCreationFormProps> = ({
   return (
     <VStack spacing={4}>
       <FormControl>
-        <FormLabel className="daily-tasks-form-label">
+        <FormLabel>
           Category Name
         </FormLabel>
         <Input
-          className="daily-tasks-form-input"
           value={newCategory.name}
           onChange={(e) =>
             setNewCategory((prev) => ({ ...prev, name: e.target.value }))
@@ -56,11 +55,10 @@ const CategoryCreationForm: React.FC<CategoryCreationFormProps> = ({
       </FormControl>
 
       <FormControl>
-        <FormLabel className="daily-tasks-form-label">
+        <FormLabel>
           Description (Optional)
         </FormLabel>
         <Textarea
-          className="daily-tasks-form-input"
           value={newCategory.description}
           onChange={(e) =>
             setNewCategory((prev) => ({ ...prev, description: e.target.value }))
@@ -72,7 +70,7 @@ const CategoryCreationForm: React.FC<CategoryCreationFormProps> = ({
       </FormControl>
 
       <FormControl>
-        <FormLabel className="daily-tasks-form-label">Icon</FormLabel>
+        <FormLabel>Icon</FormLabel>
         <Flex justify="center" align="center">
           <Popover
             isOpen={showEmojiPicker}
@@ -81,7 +79,6 @@ const CategoryCreationForm: React.FC<CategoryCreationFormProps> = ({
           >
             <PopoverTrigger>
               <Center
-                className="daily-tasks-emoji-picker"
                 onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                 sx={{
                   width: "60px",
@@ -106,7 +103,6 @@ const CategoryCreationForm: React.FC<CategoryCreationFormProps> = ({
                 maxHeight="400px"
                 overflowY="auto"
                 boxShadow="xl"
-                className="daily-tasks-emoji-content"
                 sx={{
                   backgroundColor: "var(--chakra-colors-gray-700)",
                   border: "1px solid var(--chakra-colors-gray-600)"
