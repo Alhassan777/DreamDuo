@@ -47,9 +47,32 @@ const DependencyControls: React.FC<DependencyControlsProps> = ({
     );
   };
 
+  // Recursively find task by ID and build hierarchical path
+  const findTaskWithPath = (taskList: Task[], taskId: number, path: string[] = []): { task: Task | null; path: string[] } => {
+    for (const task of taskList) {
+      if (task.id === taskId) {
+        return { task, path: [...path, task.name] };
+      }
+      if (task.children && task.children.length > 0) {
+        const result = findTaskWithPath(task.children, taskId, [...path, task.name]);
+        if (result.task) {
+          return result;
+        }
+      }
+    }
+    return { task: null, path: [] };
+  };
+
   const getTaskName = (taskId: number): string => {
-    const task = tasks.find(t => t.id === taskId);
-    return task?.name || `Task ${taskId}`;
+    const result = findTaskWithPath(tasks, taskId);
+    if (result.task) {
+      // If it's a subtask (path has more than one element), show hierarchy
+      if (result.path.length > 1) {
+        return result.path.join(' > ');
+      }
+      return result.task.name;
+    }
+    return `Task ${taskId}`;
   };
 
   const selectedDependencies = getSelectedTaskDependencies();
