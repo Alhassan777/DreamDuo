@@ -131,55 +131,51 @@ const TasksPage: React.FC = () => {
     fetchTags();
   }, [toast]);
 
-  // Fetch tasks whenever filters change
-  useEffect(() => {
-    const fetchTasks = async () => {
-      setIsLoading(true);
-      try {
-        // Format anchor date
-        const anchorDateStr = `${filters.anchorDate.getFullYear()}-${String(filters.anchorDate.getMonth() + 1).padStart(2, '0')}-${String(filters.anchorDate.getDate()).padStart(2, '0')}`;
-        
-        // Prepare filter parameters
-        const params: any = {
-          timeScope: filters.timeScope,
-          anchorDate: anchorDateStr,
-        };
+  // Fetch tasks function (memoized for passing to components)
+  const fetchTasks = React.useCallback(async () => {
+    setIsLoading(true);
+    try {
+      // Format anchor date
+      const anchorDateStr = `${filters.anchorDate.getFullYear()}-${String(filters.anchorDate.getMonth() + 1).padStart(2, '0')}-${String(filters.anchorDate.getDate()).padStart(2, '0')}`;
+      
+      // Prepare filter parameters
+      const params: any = {
+        timeScope: filters.timeScope,
+        anchorDate: anchorDateStr,
+      };
 
-        if (filters.searchQuery.trim()) {
-          params.searchQuery = filters.searchQuery.trim();
-        }
-        if (filters.categoryIds.length > 0) {
-          params.categoryIds = filters.categoryIds;
-        }
-        if (filters.priorityLevels.length > 0) {
-          params.priorityLevels = filters.priorityLevels;
-        }
-        if (filters.deadlineBefore) {
-          params.deadlineBefore = filters.deadlineBefore.toISOString();
-        }
-        if (filters.deadlineAfter) {
-          params.deadlineAfter = filters.deadlineAfter.toISOString();
-        }
-        // Always send completion status
-        params.completionStatus = filters.completionStatus;
-
-        const fetchedTasks = await tasksService.searchTasksWithFilters(params);
-        setTasks(fetchedTasks);
-      } catch (error) {
-        console.error('Error fetching tasks:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load tasks',
-          status: 'error',
-          duration: 3000,
-          isClosable: true,
-        });
-      } finally {
-        setIsLoading(false);
+      if (filters.searchQuery.trim()) {
+        params.searchQuery = filters.searchQuery.trim();
       }
-    };
+      if (filters.categoryIds.length > 0) {
+        params.categoryIds = filters.categoryIds;
+      }
+      if (filters.priorityLevels.length > 0) {
+        params.priorityLevels = filters.priorityLevels;
+      }
+      if (filters.deadlineBefore) {
+        params.deadlineBefore = filters.deadlineBefore.toISOString();
+      }
+      if (filters.deadlineAfter) {
+        params.deadlineAfter = filters.deadlineAfter.toISOString();
+      }
+      // Always send completion status
+      params.completionStatus = filters.completionStatus;
 
-    fetchTasks();
+      const fetchedTasks = await tasksService.searchTasksWithFilters(params);
+      setTasks(fetchedTasks);
+    } catch (error) {
+      console.error('Error fetching tasks:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load tasks',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }, [
     filters.timeScope,
     filters.anchorDate.getTime(), // Use timestamp to detect date changes
@@ -191,6 +187,11 @@ const TasksPage: React.FC = () => {
     filters.completionStatus,
     toast
   ]);
+
+  // Fetch tasks whenever filters change
+  useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
 
   const handleCreateTask = async (taskData?: TaskCreateRequest) => {
     const taskToCreate = taskData || newTask;
@@ -373,7 +374,7 @@ const TasksPage: React.FC = () => {
     }
   };
 
-  const toggleSubtaskComplete = async (taskId: number, subtaskId: number) => {
+  const toggleSubtaskComplete = async (_taskId: number, subtaskId: number) => {
     try {
       await tasksService.toggleTaskComplete(subtaskId, false);
       
@@ -405,7 +406,7 @@ const TasksPage: React.FC = () => {
     }
   };
 
-  const updateSubtaskName = async (taskId: number, subtaskId: number, newName: string) => {
+  const updateSubtaskName = async (_taskId: number, subtaskId: number, newName: string) => {
     try {
       await tasksService.updateTask(subtaskId, { name: newName });
       
@@ -609,6 +610,7 @@ const TasksPage: React.FC = () => {
               priorities={priorities}
               anchorDate={filters.anchorDate}
               onCreateTask={handleCreateTask}
+              onRefresh={fetchTasks}
             />
           ) : (
             <Grid 
