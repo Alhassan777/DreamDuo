@@ -1,0 +1,45 @@
+/* Canvas Subtask Card Styles */
+
+.canvas-subtask-wrapper {
+  position: relative;
+  margin-bottom: var(--spacing-sm);
+}
+
+.canvas-subtask-inner {
+  position: relative;
+  overflow: visible;
+}
+
+/* Handle styles - positioned at exact vertical center of the subtask card */
+.canvas-subtask-handle-target {
+  background: var(--color-primary) !important;
+  width: 12px !important;
+  height: 12px !important;
+  left: -20px !important;
+  border: 2px solid var(--color-card-background) !important;
+  z-index: 1002 !important;
+  position: absolute !important;
+  top: 50% !important;
+  transform: translateY(-6px) !important; /* Offset by half the handle height (12px / 2) */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+}
+
+.canvas-subtask-handle-source {
+  background: var(--color-success) !important;
+  width: 12px !important;
+  height: 12px !important;
+  right: -20px !important;
+  border: 2px solid var(--color-card-background) !important;
+  z-index: 1002 !important;
+  position: absolute !important;
+  top: 50% !important;
+  transform: translateY(-6px) !important; /* Offset by half the handle height (12px / 2) */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Ensure nested subtasks also show handles properly */
+.canvas-subtask-nested {
+  overflow: visible !important;
+  position: relative;
+}
+

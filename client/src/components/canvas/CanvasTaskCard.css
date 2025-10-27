@@ -1,0 +1,47 @@
+/* Canvas Task Card Styles */
+
+.canvas-task-card-wrapper {
+  position: relative;
+  min-width: 400px;
+  max-width: 600px;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+  transition: all var(--animation-duration);
+  z-index: 1;
+}
+
+.canvas-task-card-wrapper.selected {
+  border: 2px solid var(--color-focus-ring);
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+}
+
+.canvas-task-card-inner {
+  overflow: visible;
+}
+
+.canvas-task-handle-top {
+  background: var(--color-primary) !important;
+  width: 16px !important;
+  height: 16px !important;
+  top: -8px !important;
+  border: 3px solid var(--color-card-background) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  z-index: 1002 !important;
+}
+
+.canvas-task-handle-bottom {
+  background: var(--color-success) !important;
+  width: 16px !important;
+  height: 16px !important;
+  bottom: -8px !important;
+  border: 3px solid var(--color-card-background) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  z-index: 1002 !important;
+}
+
+.canvas-subtasks-container {
+  overflow: visible !important;
+  position: relative;
+}
+

@@ -1,0 +1,208 @@
+/* Canvas-specific styles for React Flow handles and nodes */
+
+/* Handle visibility and styling */
+.react-flow__handle {
+  opacity: 0.8;
+  transition: all 0.3s ease-in-out;
+  cursor: crosshair;
+  border-radius: 50%;
+}
+
+.react-flow__handle:hover {
+  opacity: 1;
+  transform: scale(1.4);
+  box-shadow: 0 0 12px rgba(var(--color-primary-rgb, 66, 153, 225), 0.6);
+}
+
+.react-flow__node:hover .react-flow__handle {
+  opacity: 0.95;
+}
+
+.react-flow__node.selected .react-flow__handle {
+  opacity: 1;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+}
+
+/* Prevent handle interference with task card interactions */
+.react-flow__handle {
+  pointer-events: all;
+  z-index: 100;
+}
+
+/* Target handles (incoming) - different color */
+.react-flow__handle.target {
+  background: var(--color-primary) !important;
+}
+
+/* Source handles (outgoing) - different color */
+.react-flow__handle.source {
+  background: var(--color-success) !important;
+}
+
+/* Subtask handles - visible and well-positioned */
+.subtask-card .react-flow__handle {
+  opacity: 0.7;
+  position: absolute;
+}
+
+.subtask-card:hover .react-flow__handle {
+  opacity: 1;
+}
+
+/* Make sure nested subtask handles are visible */
+.subtask-nested .react-flow__handle {
+  opacity: 0.7;
+}
+
+.subtask-nested:hover .react-flow__handle {
+  opacity: 1;
+}
+
+/* Increase handle visibility when node is being dragged from */
+.react-flow__node.dragging .react-flow__handle {
+  opacity: 1;
+  transform: scale(1.6);
+}
+
+/* Handle glow effect on connection mode */
+.react-flow__node.connecting .react-flow__handle {
+  opacity: 1;
+  box-shadow: 0 0 20px rgba(var(--color-primary-rgb, 66, 153, 225), 0.8);
+}
+
+/* Canvas node wrapper */
+.canvas-node-wrapper {
+  cursor: grab;
+}
+
+.canvas-node-wrapper:active {
+  cursor: grabbing;
+}
+
+/* Connect mode styling */
+.canvas-node-wrapper.connect-mode {
+  cursor: crosshair;
+}
+
+.canvas-node-wrapper.connect-mode:hover {
+  filter: brightness(1.1);
+}
+
+/* React Flow layer management - edges should be above nodes */
+.react-flow__edges {
+  z-index: 1000 !important;
+  pointer-events: all !important;
+}
+
+.react-flow__nodes {
+  z-index: 1 !important;
+}
+
+/* Ensure task cards in canvas have proper z-index for overlapping */
+.react-flow__node {
+  z-index: auto;
+}
+
+.react-flow__node.selected {
+  z-index: 10;
+}
+
+/* Edge styling for dependencies */
+.react-flow__edge {
+  pointer-events: all;
+}
+
+.react-flow__edge-path {
+  stroke-width: 2;
+  transition: stroke-width 0.2s ease-in-out;
+}
+
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke-width: 3;
+  filter: drop-shadow(0 0 4px rgba(66, 153, 225, 0.6));
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke-width: 3;
+  filter: drop-shadow(0 0 6px rgba(66, 153, 225, 0.8));
+}
+
+/* Marker styling */
+.react-flow__arrowhead {
+  fill: var(--color-primary);
+}
+
+/* Minimap styling */
+.react-flow__minimap {
+  background-color: var(--color-surface) !important;
+  border: 1px solid var(--color-border) !important;
+}
+
+.react-flow__minimap-mask {
+  fill: var(--color-primary);
+  opacity: 0.2;
+}
+
+/* Controls styling */
+.react-flow__controls {
+  background: var(--color-card-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.react-flow__controls-button {
+  background: var(--color-card-background);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+  transition: all 0.2s ease-in-out;
+}
+
+.react-flow__controls-button:hover {
+  background: var(--color-hover-overlay);
+}
+
+.react-flow__controls-button svg {
+  fill: var(--color-text);
+}
+
+/* Background styling */
+.react-flow__background {
+  background-color: var(--color-background);
+}
+
+/* Selection box styling */
+.react-flow__selection {
+  background: var(--color-primary);
+  opacity: 0.1;
+  border: 1px solid var(--color-primary);
+}
+
+/* Node drag handle cursor */
+.react-flow__node {
+  cursor: grab;
+}
+
+.react-flow__node.dragging {
+  cursor: grabbing;
+}
+
+/* Ensure collapsed subtasks don't interfere with handles */
+.subtasks-container.collapsed {
+  display: none;
+}
+
+/* Handle positioning adjustments for nested structures */
+.subtask-nested .react-flow__handle {
+  margin-left: 2px;
+}
+
