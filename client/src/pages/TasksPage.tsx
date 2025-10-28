@@ -454,7 +454,6 @@ const TasksPage: React.FC = () => {
               className="tasks-title" 
               data-aot-mode={isAotMode}
               fontSize={{ base: "2xl", md: "3xl" }}
-              color={isAotMode ? '#c89a5a' : 'white'}
             >
               📋 Tasks
             </Heading>
@@ -468,18 +467,8 @@ const TasksPage: React.FC = () => {
                   onOpen();
                 }}
                 size="md"
-                bg="var(--color-button-secondary)"
-                color="var(--color-button-secondary-text)"
-                borderWidth="1px"
-                borderColor="var(--color-border)"
-                borderRadius="var(--border-radius-md)"
-                transition={`all var(--animation-duration) var(--animation-timing)`}
-                _hover={{
-                  bg: 'var(--color-button-secondary-hover)',
-                  borderColor: 'var(--color-primary)',
-                  transform: 'translateY(-1px)',
-                  boxShadow: 'var(--shadow-md)'
-                }}
+                className="tasks-add-category-button"
+                data-aot-mode={isAotMode}
               >
                 Add Category
               </Button>
@@ -547,14 +536,20 @@ const TasksPage: React.FC = () => {
             <VStack spacing={4} py={12}>
               <CircularProgress 
                 isIndeterminate 
-                color={isAotMode ? '#dca253' : 'blue.500'}
+                color="var(--color-primary)"
                 size="60px"
                 thickness="4px"
+                sx={{
+                  'circle': {
+                    stroke: isAotMode ? 'var(--aot-accent)' : 'var(--color-primary)'
+                  }
+                }}
               />
               <Text 
                 textAlign="center" 
                 fontSize={{ base: "md", md: "lg" }}
-                color={isAotMode ? '#c89a5a' : 'white'}
+                className="tasks-loading-text"
+                data-aot-mode={isAotMode}
                 fontWeight="medium"
               >
                 Loading tasks...
@@ -581,14 +576,16 @@ const TasksPage: React.FC = () => {
                 <Text 
                   fontSize={{ base: "xl", md: "2xl" }} 
                   fontWeight="bold"
-                  color={isAotMode ? '#dca253' : 'white'}
+                  className="tasks-empty-title"
+                  data-aot-mode={isAotMode}
                   textAlign="center"
                 >
                   No tasks match your filters for this period
                 </Text>
                 <Text 
                   fontSize={{ base: "sm", md: "md" }}
-                  color={isAotMode ? 'rgba(200, 154, 90, 0.7)' : 'rgba(255, 255, 255, 0.6)'}
+                  className="tasks-empty-description"
+                  data-aot-mode={isAotMode}
                   textAlign="center"
                 >
                   Try adjusting your filters or time scope
@@ -599,13 +596,8 @@ const TasksPage: React.FC = () => {
                   size="md"
                   onClick={clearAllFilters}
                   variant="outline"
-                  borderColor={isAotMode ? '#dca253' : 'blue.400'}
-                  color={isAotMode ? '#dca253' : 'blue.400'}
-                  _hover={{
-                    bg: isAotMode ? 'rgba(220, 162, 83, 0.1)' : 'rgba(66, 153, 225, 0.1)',
-                    transform: 'translateY(-2px)',
-                  }}
-                  transition="all 0.2s"
+                  className="tasks-empty-clear-button"
+                  data-aot-mode={isAotMode}
                 >
                   Clear All Filters
                 </Button>
