@@ -420,3 +420,30 @@
     border-color: var(--color-primary);
   }
 
+  /* Cancel Button - Using CSS Variables */
+  .cancel-button {
+    background-color: var(--color-surface);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+    transition: all var(--animation-duration) ease;
+  }
+
+  .cancel-button:hover {
+    transform: translateY(-2px);
+    background-color: var(--color-card-background);
+    border-color: var(--color-primary);
+  }
+
+  .cancel-button[data-aot-mode="true"] {
+    background-color: var(--aot-primary);
+    color: var(--aot-accent);
+    border: 1px solid var(--aot-accent);
+    transition: all var(--animation-duration) ease;
+  }
+
+  .cancel-button[data-aot-mode="true"]:hover {
+    background-color: var(--aot-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(139, 69, 19, 0.3);
+  }
+

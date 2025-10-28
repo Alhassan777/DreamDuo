@@ -110,6 +110,31 @@
   --aot-background: #1D1D1D;
   --aot-border: #463A2E;
   --aot-secondary-text: #f3f2f0;
+  
+  /* AOT Button-Specific Variables */
+  --aot-primary-bg: var(--aot-primary);
+  --aot-primary-bg-hover: #CD5C5C;
+  --aot-primary-text-color: #FFFFFF;
+  
+  --aot-secondary-bg: transparent;
+  --aot-secondary-border-color: var(--aot-accent);
+  --aot-secondary-text-color: var(--aot-accent);
+  --aot-secondary-bg-hover: var(--aot-accent);
+  --aot-secondary-text-hover: var(--aot-background);
+  
+  /* AOT Interactive States */
+  --aot-hover-overlay: rgba(220, 162, 83, 0.1);
+  
+  /* Default Theme Button Variables */
+  --default-primary-bg: var(--color-primary);
+  --default-primary-bg-hover: var(--color-secondary);
+  --default-primary-text: var(--color-text);
+  
+  --default-secondary-bg: transparent;
+  --default-secondary-border: var(--color-primary);
+  --default-secondary-text: var(--color-primary);
+  --default-secondary-bg-hover: var(--color-primary);
+  --default-secondary-text-hover: var(--color-text);
 }
 
 /* Theme-specific body classes for special handling */

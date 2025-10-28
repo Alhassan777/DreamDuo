@@ -104,10 +104,10 @@
   
   /* Today button (Default Mode) */
   .calendar-button-today {
-    background-color: var(--color-primary);
-    color: var(--color-text);
+    background-color: var(--default-primary-bg);
+    color: var(--default-primary-text);
     font-weight: 700;
-    border: none;
+    border: 2px solid var(--color-primary);
     border-radius: var(--border-radius-md);
     padding: var(--spacing-sm) var(--spacing-md);
     display: inline-flex;
@@ -118,7 +118,7 @@
   } 
   
   .calendar-button-today:hover {
-    background-color: var(--color-secondary);
+    background-color: var(--default-primary-bg-hover);
     transform: translateY(-2px) !important;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
   }
@@ -276,14 +276,15 @@
      3) AOT MODE - BUTTONS
      ======================================== */
   
-  /* Today button */
+  /* Today button - AOT Mode */
   .calendar-page-wrapper[data-aot-mode="true"] .calendar-button-today {
     background-color: var(--aot-primary-bg) !important;
     color: var(--aot-primary-text-color) !important;
+    border: 2px solid var(--aot-accent);
   }
   
   .calendar-page-wrapper[data-aot-mode="true"] .calendar-button-today:hover {
-    background-color: var(--aot-primary);
+    background-color: var(--aot-primary-bg-hover) !important;
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(139, 0, 0, 0.3);
   }

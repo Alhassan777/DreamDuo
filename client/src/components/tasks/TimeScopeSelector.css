@@ -55,8 +55,8 @@
 }
 
 [data-aot-mode="true"] .time-scope-button.selected {
-  background-color: var(--aot-primary);
-  color: white;
+  background-color: var(--aot-primary-bg);
+  color: var(--aot-primary-text-color);
   border-color: var(--aot-primary);
 }
 
@@ -67,7 +67,7 @@
 }
 
 [data-aot-mode="true"] .time-scope-button.selected:hover {
-  background-color: #a00;
+  background-color: var(--aot-primary-bg-hover);
 }
 
 /* First button - rounded left */
@@ -148,7 +148,7 @@
 }
 
 .time-scope-today-button {
-  background-color: transparent;
+  background-color: transparent !important;
   color: var(--color-primary);
   border-width: 1px;
   border-color: var(--color-primary);
@@ -156,7 +156,9 @@
   transition: all var(--animation-duration) var(--animation-timing);
 }
 
-[data-aot-mode="true"] .time-scope-today-button {
+[data-aot-mode="true"] .time-scope-today-button,
+.time-scope-today-button[data-aot-mode="true"] {
+  background-color: transparent !important;
   color: var(--aot-accent);
   border-color: var(--aot-accent);
 }
@@ -166,8 +168,9 @@
   transform: translateY(-1px);
 }
 
-[data-aot-mode="true"] .time-scope-today-button:hover {
-  background-color: rgba(220, 162, 83, 0.1);
+[data-aot-mode="true"] .time-scope-today-button:hover,
+.time-scope-today-button[data-aot-mode="true"]:hover {
+  background-color: var(--aot-hover-overlay);
 }
 
 .time-scope-date-range-text {
