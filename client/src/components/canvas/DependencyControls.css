@@ -1,0 +1,233 @@
+/* Dependency Controls Styling */
+
+.dependency-controls-container {
+  background-color: var(--color-card-background);
+  padding: calc(var(--spacing-unit) * var(--spacing-scale, 1));
+  border-radius: var(--border-radius-lg);
+  width: 100%;
+  color: var(--color-text);
+  border: 2px solid var(--color-border);
+  transition: border-color var(--animation-duration) var(--animation-timing);
+}
+
+.dependency-controls-container:focus-within {
+  border-color: var(--color-focus-ring);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
+  outline: none;
+}
+
+.dependency-controls-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.dependency-controls-header {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.dependency-controls-selection-info {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.dependency-controls-selection-warning {
+  font-size: 0.875rem;
+  color: var(--color-warning);
+}
+
+.dependency-edge-selected-badge {
+  background: var(--color-info);
+  padding: 0.5rem;
+  border-radius: var(--border-radius-md);
+  opacity: 0.9;
+}
+
+.dependency-edge-selected-text {
+  font-size: 0.875rem;
+  color: white;
+  font-weight: bold;
+}
+
+.dependency-create-button {
+  background: var(--color-button-primary);
+  color: var(--color-button-primary-text);
+  border-width: 1px;
+  border-color: var(--color-border);
+  border-radius: var(--border-radius-md);
+  transition: all var(--animation-duration) var(--animation-timing);
+}
+
+.dependency-create-button:hover:not(:disabled) {
+  background: var(--color-button-primary-hover);
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.dependency-create-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dependency-create-button.connect-mode-active {
+  background: var(--color-success);
+  border-width: 0;
+  border-color: transparent;
+}
+
+.dependency-connect-mode-info {
+  background: var(--color-info);
+  padding: 0.5rem;
+  border-radius: var(--border-radius-md);
+  opacity: 0.9;
+  border: 1px solid var(--color-primary);
+}
+
+.dependency-connect-mode-text {
+  font-size: 0.875rem;
+  color: white;
+}
+
+.dependency-list-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dependency-list-header {
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.dependency-list-empty {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.dependency-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dependency-list-item {
+  background: var(--color-card-background);
+  padding: 0.5rem;
+  border-radius: var(--border-radius-md);
+  border-left: 3px solid;
+  opacity: 0.9;
+}
+
+.dependency-list-item.outgoing {
+  border-color: var(--color-success);
+}
+
+.dependency-list-item.incoming {
+  border-color: var(--color-info);
+}
+
+.dependency-list-item.edge-selected {
+  background: var(--color-primary);
+  border-color: var(--color-success);
+  opacity: 1;
+  padding: 0.75rem;
+}
+
+.dependency-item-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.dependency-item-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.dependency-badge {
+  color: white;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--border-radius-sm);
+  display: inline-block;
+}
+
+.dependency-badge.outgoing {
+  background: var(--color-success);
+}
+
+.dependency-badge.incoming {
+  background: var(--color-info);
+}
+
+.dependency-connecting-label {
+  font-size: 0.75rem;
+  color: white;
+  opacity: 0.9;
+  font-weight: bold;
+}
+
+.dependency-task-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.dependency-task-name.edge-selected {
+  color: white;
+}
+
+.dependency-arrow-text {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+.dependency-arrow-text.edge-selected {
+  color: white;
+}
+
+.dependency-delete-button {
+  background: transparent;
+  color: var(--color-error);
+  border-radius: var(--border-radius-md);
+  transition: all var(--animation-duration) var(--animation-timing);
+  min-width: 2rem;
+  height: 2rem;
+}
+
+.dependency-delete-button:hover {
+  background: var(--color-error);
+  color: white;
+  transform: scale(1.1);
+}
+
+.dependency-delete-button.edge-selected {
+  color: white;
+}
+
+.dependency-stats-box {
+  background: var(--color-card-background);
+  padding: 0.5rem;
+  border-radius: var(--border-radius-md);
+}
+
+.dependency-stats-text {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+.dependency-close-button {
+  color: var(--color-text);
+  transition: all var(--animation-duration) var(--animation-timing);
+}
+
+.dependency-close-button:hover {
+  background: var(--color-hover-overlay);
+}
+

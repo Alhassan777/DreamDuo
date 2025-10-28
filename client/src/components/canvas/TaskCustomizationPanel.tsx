@@ -15,6 +15,7 @@ import {
 import { HexColorPicker } from 'react-colorful';
 import { BsSquare, BsCircle } from 'react-icons/bs';
 import { MdRoundedCorner } from 'react-icons/md';
+import './TaskCustomizationPanel.css';
 
 interface TaskCustomizationPanelProps {
   selectedTaskIds: number[];

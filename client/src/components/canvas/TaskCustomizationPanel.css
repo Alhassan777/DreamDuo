@@ -1,0 +1,146 @@
+/* Task Customization Panel Styling */
+
+.task-customization-container {
+  background: var(--color-card-background);
+  padding: 1rem;
+  border-radius: var(--border-radius-lg);
+  width: 100%;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.task-customization-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.task-customization-header {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.task-customization-selection-count {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.task-customization-selection-warning {
+  font-size: 0.875rem;
+  color: var(--color-warning);
+}
+
+.task-customization-form-control {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.task-customization-form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.task-customization-color-picker-wrapper {
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  padding: 0.5rem;
+  background: var(--color-background);
+}
+
+.task-customization-color-info {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  margin-top: 0.25rem;
+}
+
+.task-customization-shape-buttons {
+  display: flex;
+  width: 100%;
+  gap: 0;
+}
+
+.task-customization-shape-button {
+  flex: 1;
+  font-size: 0.875rem;
+  border-width: 1px;
+  border-radius: var(--border-radius-md);
+  transition: all var(--animation-duration) var(--animation-timing);
+  background: transparent;
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+.task-customization-shape-button:hover {
+  background: var(--color-hover-overlay);
+  border-color: var(--color-primary);
+}
+
+.task-customization-shape-button.selected {
+  background: var(--color-button-primary);
+  color: var(--color-button-primary-text);
+  border-color: var(--color-primary);
+}
+
+.task-customization-shape-button.selected:hover {
+  background: var(--color-button-primary-hover);
+}
+
+.task-customization-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.task-customization-button {
+  flex: 1;
+  border-radius: var(--border-radius-md);
+  transition: all var(--animation-duration) var(--animation-timing);
+}
+
+.task-customization-apply-button {
+  background: var(--color-button-primary);
+  color: var(--color-button-primary-text);
+}
+
+.task-customization-apply-button:hover:not(:disabled) {
+  background: var(--color-button-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.task-customization-apply-button:active:not(:disabled) {
+  background: var(--color-active-state);
+}
+
+.task-customization-apply-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.task-customization-reset-button {
+  background: var(--color-button-secondary);
+  color: var(--color-button-secondary-text);
+}
+
+.task-customization-reset-button:hover:not(:disabled) {
+  background: var(--color-button-secondary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.task-customization-reset-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.task-customization-close-button {
+  font-size: 0.875rem;
+  color: var(--color-text);
+  transition: all var(--animation-duration) var(--animation-timing);
+}
+
+.task-customization-close-button:hover {
+  background: var(--color-hover-overlay);
+}
+
