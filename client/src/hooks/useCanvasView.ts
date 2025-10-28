@@ -477,15 +477,19 @@ export const useCanvasView = ({ tasks, setTasks, onRefresh }: UseCanvasViewProps
     (changes) => {
       setNodes((nds) => applyNodeChanges(changes, nds) as Node<TaskNodeData>[]);
 
-      // Handle position changes with debounced save
+      // Handle position changes - only save after drop (not during drag)
       changes.forEach((change) => {
         if (change.type === 'position' && change.position && !change.dragging) {
+          // This fires when the drag ends (on drop)
           const nodeId = parseInt(change.id);
           const { x, y } = change.position;
 
-          // Debounced save
-          setTimeout(() => {
-            tasksService.updateTaskPosition(nodeId, x, y).catch((error) => {
+          // Save immediately after drop - fire and forget, no loading state needed
+          tasksService.updateTaskPosition(nodeId, x, y)
+            .then(() => {
+              console.log(`Position saved for task ${nodeId}: (${x.toFixed(0)}, ${y.toFixed(0)})`);
+            })
+            .catch((error) => {
               console.error('Failed to save position:', error);
               toast({
                 title: 'Failed to save position',
@@ -494,7 +498,6 @@ export const useCanvasView = ({ tasks, setTasks, onRefresh }: UseCanvasViewProps
                 isClosable: true,
               });
             });
-          }, 500);
         }
 
         // Handle selection
