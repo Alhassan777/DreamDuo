@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { getStorageItem, setStorageItem, STORAGE_KEYS } from '../utils/localStorage';
 
 export type TimeScope = 'daily' | 'weekly' | 'monthly' | 'yearly';
 export type CompletionStatus = 'all' | 'completed' | 'incomplete';
@@ -14,8 +15,37 @@ export interface TaskFilters {
   completionStatus: CompletionStatus;
 }
 
-export const useTaskFilters = () => {
-  const [filters, setFilters] = useState<TaskFilters>({
+// Serializable version of filters for localStorage
+interface SerializableFilters {
+  timeScope: TimeScope;
+  anchorDate: string; // ISO string
+  searchQuery: string;
+  categoryIds: number[];
+  priorityLevels: string[];
+  deadlineBefore: string | null; // ISO string
+  deadlineAfter: string | null; // ISO string
+  completionStatus: CompletionStatus;
+}
+
+// Load initial filters from localStorage or use defaults
+const loadInitialFilters = (): TaskFilters => {
+  const stored = getStorageItem<SerializableFilters>(STORAGE_KEYS.FILTERS);
+  
+  if (stored) {
+    return {
+      timeScope: stored.timeScope || 'daily',
+      anchorDate: stored.anchorDate ? new Date(stored.anchorDate) : new Date(),
+      searchQuery: stored.searchQuery || '',
+      categoryIds: stored.categoryIds || [],
+      priorityLevels: stored.priorityLevels || [],
+      deadlineBefore: stored.deadlineBefore ? new Date(stored.deadlineBefore) : null,
+      deadlineAfter: stored.deadlineAfter ? new Date(stored.deadlineAfter) : null,
+      completionStatus: stored.completionStatus || 'all',
+    };
+  }
+
+  // Default filters
+  return {
     timeScope: 'daily',
     anchorDate: new Date(),
     searchQuery: '',
@@ -24,7 +54,31 @@ export const useTaskFilters = () => {
     deadlineBefore: null,
     deadlineAfter: null,
     completionStatus: 'all',
-  });
+  };
+};
+
+// Convert filters to serializable format
+const serializeFilters = (filters: TaskFilters): SerializableFilters => {
+  return {
+    timeScope: filters.timeScope,
+    anchorDate: filters.anchorDate.toISOString(),
+    searchQuery: filters.searchQuery,
+    categoryIds: filters.categoryIds,
+    priorityLevels: filters.priorityLevels,
+    deadlineBefore: filters.deadlineBefore?.toISOString() || null,
+    deadlineAfter: filters.deadlineAfter?.toISOString() || null,
+    completionStatus: filters.completionStatus,
+  };
+};
+
+export const useTaskFilters = () => {
+  const [filters, setFilters] = useState<TaskFilters>(loadInitialFilters);
+
+  // Persist filters to localStorage whenever they change
+  useEffect(() => {
+    const serialized = serializeFilters(filters);
+    setStorageItem(STORAGE_KEYS.FILTERS, serialized);
+  }, [filters]);
 
   // Calculate active filter count (excluding time scope and anchor date)
   const activeFilterCount = useMemo(() => {

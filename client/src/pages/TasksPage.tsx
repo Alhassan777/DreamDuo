@@ -38,6 +38,7 @@ import { useTaskFilters } from '../hooks/useTaskFilters';
 import { useTheme } from '../contexts/ThemeContext';
 import { tagsService, Category } from '../services/tags';
 import { tasksService, Task, TaskCreateRequest } from '../services/tasks';
+import { getStorageItem, setStorageItem, STORAGE_KEYS } from '../utils/localStorage';
 import './styles/Tasks.css';
 
 /** PriorityColor is used to render & pick priority options. */
@@ -67,8 +68,16 @@ const TasksPage: React.FC = () => {
     clearFilter,
   } = useTaskFilters();
 
-  // View mode state
-  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  // View mode state - load from localStorage or default to 'list'
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    const stored = getStorageItem<ViewMode>(STORAGE_KEYS.VIEW_MODE);
+    return stored || 'list';
+  });
+
+  // Persist view mode to localStorage whenever it changes
+  useEffect(() => {
+    setStorageItem(STORAGE_KEYS.VIEW_MODE, viewMode);
+  }, [viewMode]);
 
   // Tasks state
   const [tasks, setTasks] = useState<Task[]>([]);
