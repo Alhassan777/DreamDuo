@@ -101,6 +101,17 @@
   --color-text-secondary: #5a5a5a;
 }
 
+/* AOT Theme Variables */
+:root {
+  --aot-primary: #8B0000;
+  --aot-secondary: #2A1F1A;
+  --aot-accent: #dca253;
+  --aot-text: #c89a5a;
+  --aot-background: #1D1D1D;
+  --aot-border: #463A2E;
+  --aot-secondary-text: #f3f2f0;
+}
+
 /* Theme-specific body classes for special handling */
 body.theme-aot {
   /* Attack on Titan specific overrides can go here */
