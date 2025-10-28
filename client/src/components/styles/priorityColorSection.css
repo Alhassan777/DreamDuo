@@ -92,9 +92,147 @@
   box-shadow: 0 0 15px rgba(139, 69, 19, 0.3);
 }
 
+.priority-color-heading {
+  color: var(--color-text);
+}
+
 [data-aot-mode="true"] .priority-color-heading {
   color: var(--aot-text);
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+.priority-input {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  border-color: var(--color-border);
+  transition: all var(--animation-duration) ease;
+}
+
+.priority-input:hover {
+  border-color: var(--color-primary);
+}
+
+.priority-input:focus {
+  border-color: var(--color-focus-ring);
+  box-shadow: 0 0 0 1px var(--color-focus-ring);
+}
+
+[data-aot-mode="true"] .priority-input {
+  background-color: rgba(39, 37, 45, 1);
+  color: var(--aot-text);
+  border-color: var(--aot-accent);
+}
+
+[data-aot-mode="true"] .priority-input:focus {
+  border-color: var(--aot-accent);
+  box-shadow: 0 0 0 1px var(--aot-accent);
+}
+
+.priority-add-button {
+  background-color: var(--color-button-primary);
+  color: var(--color-button-primary-text);
+  transition: all var(--animation-duration) ease;
+}
+
+.priority-add-button:hover {
+  background-color: var(--color-button-primary-hover);
+  transform: translateY(-2px);
+}
+
+.priority-add-button.editing {
+  background-color: var(--color-success);
+  color: var(--color-button-primary-text);
+}
+
+.priority-add-button.editing:hover {
+  background-color: var(--color-success);
+  filter: brightness(1.1);
+}
+
+[data-aot-mode="true"] .priority-add-button {
+  background-color: var(--aot-accent);
+  color: var(--aot-background);
+}
+
+[data-aot-mode="true"] .priority-add-button:hover {
+  background-color: var(--aot-accent);
+  filter: brightness(1.2);
+}
+
+[data-aot-mode="true"] .priority-add-button.editing {
+  background-color: var(--aot-primary);
+  color: white;
+}
+
+.priority-spinner {
+  color: var(--color-primary);
+}
+
+[data-aot-mode="true"] .priority-spinner {
+  color: var(--aot-accent);
+}
+
+.priority-empty-text {
+  color: var(--color-text-secondary);
+}
+
+[data-aot-mode="true"] .priority-empty-text {
+  color: var(--aot-text);
+}
+
+.priority-inline-edit-input {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+[data-aot-mode="true"] .priority-inline-edit-input {
+  background-color: var(--color-card-background);
+  color: var(--aot-text);
+  border-color: var(--aot-accent);
+}
+
+.priority-edit-button {
+  background-color: var(--color-primary);
+  color: var(--color-button-primary-text);
+  transition: all var(--animation-duration) ease;
+}
+
+.priority-edit-button:hover {
+  background-color: var(--color-button-primary-hover);
+  transform: scale(1.1);
+}
+
+[data-aot-mode="true"] .priority-edit-button {
+  background-color: var(--aot-accent);
+  color: var(--aot-background);
+}
+
+[data-aot-mode="true"] .priority-edit-button:hover {
+  background-color: var(--aot-accent);
+  filter: brightness(1.2);
+}
+
+.priority-delete-button {
+  background-color: var(--color-error);
+  color: var(--color-button-danger-text);
+  transition: all var(--animation-duration) ease;
+}
+
+.priority-delete-button:hover {
+  background-color: var(--color-button-danger-hover);
+  transform: scale(1.1);
+}
+
+[data-aot-mode="true"] .priority-delete-button {
+  background-color: var(--aot-primary);
+  color: white;
+}
+
+[data-aot-mode="true"] .priority-delete-button:hover {
+  background-color: var(--aot-primary);
+  filter: brightness(1.2);
+  transform: scale(1.1);
 }
 
 [data-aot-mode="true"] .priority-color-picker {

@@ -1,6 +1,6 @@
-import { VStack, Heading, SimpleGrid, Box, Text, Image, Select, CircularProgress, CircularProgressLabel } from '@chakra-ui/react';
+import { VStack, Heading, SimpleGrid } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
-import { tagsService, CompletionStatus } from '../../services/tags';
+import { tagsService } from '../../services/tags';
 import { useToast } from '@chakra-ui/react';
 import StatusCard from './StatusCard';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -66,38 +66,29 @@ const AVAILABLE_LOGOS: Logo[] = [
 
 const CompletionStatusSection = () => {
   const [statusLogoMap, setStatusLogoMap] = useState<Record<string, string>>({});
-  const [completionData, setCompletionData] = useState<CompletionStatus | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
   const { isAotMode } = useTheme();
 
-  // Fetch completion status and status logos from the backend when component mounts
+  // Fetch status logos from the backend when component mounts
   useEffect(() => {
     const fetchData = async () => {
-      setIsLoading(true);
       try {
-        const [statusData, logosData] = await Promise.all([
-          tagsService.getCompletionStatus(),
-          tagsService.getStatusLogos()
-        ]);
-        setCompletionData(statusData);
+        const logosData = await tagsService.getStatusLogos();
         setStatusLogoMap(logosData);
       } catch (error) {
         console.error('Error fetching data:', error);
         toast({
           title: 'Error fetching data',
-          description: 'Could not load completion status or status logos',
+          description: 'Could not load status logos',
           status: 'error',
           duration: 3000,
           isClosable: true,
         });
-      } finally {
-        setIsLoading(false);
       }
     };
     
     fetchData();
-  }, []);
+  }, [toast]);
 
   const handleLogoChange = async (statusId: string, logoId: string) => {
     try {
@@ -156,7 +147,9 @@ const CompletionStatusSection = () => {
 
   return (
     <VStack align="stretch" spacing={4} className="completion-status-section" data-aot-mode={isAotMode}>
-      <Heading size="md" className="completion-status-heading">Daily Task Progress</Heading>
+      <Heading size="md" className="completion-status-heading">
+        Daily Task Progress
+      </Heading>
       
       <SimpleGrid columns={4} spacing={4} className="completion-status-grid">
         {STATUS_OPTIONS.map((status) => (

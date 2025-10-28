@@ -113,10 +113,15 @@
 
 .status-card-select:focus {
   outline: none;
-  box-shadow: 0 0 0 2px var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-focus-ring);
 }
 
 .status-card-select option {
   background-color: var(--color-surface);
   color: var(--color-text);
+}
+
+[data-aot-mode="true"] .status-card-select option {
+  background-color: rgba(139, 69, 19, 0.2);
+  color: var(--aot-text);
 }

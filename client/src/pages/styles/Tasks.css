@@ -93,9 +93,10 @@
     font-size: 1.75rem;
     margin-bottom: 0;
     margin-top: 0;
+    color: var(--color-text);
   }
 
-  @media (max-width: 768px) {
+@media (max-width: 768px) {
     .tasks-title {
       font-size: 1.5rem;
     }
@@ -108,7 +109,7 @@
   }
   
   .tasks-title[data-aot-mode="false"] {
-    color: white;
+    color: var(--color-text);
     text-shadow: none;
   }
   
@@ -163,6 +164,85 @@
   
   .tasks-empty-state[data-aot-mode="false"] {
     color: var(--color-text-secondary);
+  }
+
+  .tasks-loading-text {
+    color: var(--color-text);
+  }
+
+  .tasks-loading-text[data-aot-mode="true"] {
+    color: var(--aot-text);
+  }
+
+  .tasks-empty-title {
+    color: var(--color-text);
+  }
+
+  .tasks-empty-title[data-aot-mode="true"] {
+    color: var(--aot-accent);
+  }
+
+  .tasks-empty-description {
+    color: var(--color-text-secondary);
+    opacity: 0.7;
+  }
+
+  .tasks-empty-description[data-aot-mode="true"] {
+    color: var(--aot-text);
+    opacity: 0.7;
+  }
+
+  .tasks-empty-clear-button {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background-color: transparent;
+    transition: all var(--animation-duration) ease;
+  }
+
+  .tasks-empty-clear-button:hover {
+    background-color: var(--color-hover-overlay);
+    transform: translateY(-2px);
+  }
+
+  .tasks-empty-clear-button[data-aot-mode="true"] {
+    border-color: var(--aot-accent);
+    color: var(--aot-accent);
+  }
+
+  .tasks-empty-clear-button[data-aot-mode="true"]:hover {
+    background-color: rgba(220, 162, 83, 0.1);
+    transform: translateY(-2px);
+  }
+
+  /* Add Category Button */
+  .tasks-add-category-button {
+    background-color: var(--color-button-secondary);
+    color: var(--color-button-secondary-text);
+    border-width: 1px;
+    border-color: var(--color-border);
+    border-radius: var(--border-radius-md);
+    transition: all var(--animation-duration) var(--animation-timing);
+  }
+
+  .tasks-add-category-button:hover {
+    background-color: var(--color-button-secondary-hover);
+    border-color: var(--color-primary);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .tasks-add-category-button[data-aot-mode="true"] {
+    background-color: var(--aot-accent);
+    color: var(--aot-background);
+    border-color: var(--aot-accent);
+  }
+
+  .tasks-add-category-button[data-aot-mode="true"]:hover {
+    background-color: var(--aot-accent);
+    filter: brightness(1.2);
+    border-color: var(--aot-accent);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(220, 162, 83, 0.3);
   }
   
   /* ===========================================================

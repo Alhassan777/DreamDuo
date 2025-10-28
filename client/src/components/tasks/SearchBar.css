@@ -1,0 +1,95 @@
+/* SearchBar.css - Follows theme customization system */
+
+.search-bar-container {
+  width: 100%;
+  max-width: 500px;
+  flex: 0 1 500px;
+}
+
+@media (max-width: 768px) {
+  .search-bar-container {
+    flex: 1;
+    max-width: 100%;
+  }
+}
+
+.search-bar-input-group {
+  position: relative;
+}
+
+.search-bar-icon {
+  color: var(--color-text-secondary);
+  opacity: 0.7;
+}
+
+[data-aot-mode="true"] .search-bar-icon {
+  color: var(--aot-text);
+  opacity: 0.8;
+}
+
+.search-bar-input {
+  background-color: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text);
+  transition: all var(--animation-duration) var(--animation-timing);
+  height: 40px;
+  font-size: var(--font-size-base);
+}
+
+[data-aot-mode="true"] .search-bar-input {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(220, 162, 83, 0.3);
+  color: var(--aot-text);
+}
+
+.search-bar-input::placeholder {
+  color: var(--color-text-secondary);
+  opacity: 0.5;
+}
+
+[data-aot-mode="true"] .search-bar-input::placeholder {
+  color: var(--aot-text);
+  opacity: 0.5;
+}
+
+.search-bar-input:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-hover-overlay);
+}
+
+[data-aot-mode="true"] .search-bar-input:hover {
+  border-color: var(--aot-accent);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.search-bar-input:focus {
+  border-color: var(--color-focus-ring);
+  box-shadow: 0 0 0 1px var(--color-focus-ring);
+  background-color: var(--color-card-background);
+}
+
+[data-aot-mode="true"] .search-bar-input:focus {
+  border-color: var(--aot-accent);
+  box-shadow: 0 0 0 1px var(--aot-accent);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.search-bar-clear-button {
+  color: var(--color-text-secondary);
+  transition: all var(--animation-duration) var(--animation-timing);
+}
+
+[data-aot-mode="true"] .search-bar-clear-button {
+  color: var(--aot-text);
+}
+
+.search-bar-clear-button:hover {
+  background-color: var(--color-hover-overlay);
+  color: var(--color-text);
+}
+
+[data-aot-mode="true"] .search-bar-clear-button:hover {
+  background-color: rgba(220, 162, 83, 0.2);
+  color: var(--aot-accent);
+}
+
