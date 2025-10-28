@@ -19,6 +19,7 @@ import { ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Category } from '../../services/tags';
 import { CompletionStatus } from '../../hooks/useTaskFilters';
+import './FilterPanel.css';
 
 interface PriorityColor {
   level: string;
@@ -96,37 +97,18 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   };
 
   return (
-    <Box position="relative">
+    <Box className="filter-panel-container" data-aot-mode={isAotMode}>
       {/* Filter Toggle Button */}
       <Button
+        className="filter-panel-toggle-button"
         size="md"
         onClick={() => setIsOpen(!isOpen)}
         rightIcon={isOpen ? <ChevronUpIcon boxSize={5} /> : <ChevronDownIcon boxSize={5} />}
-        bg={isAotMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.1)'}
-        color={isAotMode ? '#c89a5a' : 'white'}
-        borderWidth="1px"
-        borderColor={isAotMode ? 'rgba(220, 162, 83, 0.3)' : 'rgba(255, 255, 255, 0.2)'}
-        _hover={{
-          bg: isAotMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.15)',
-          borderColor: isAotMode ? '#dca253' : 'rgba(255, 255, 255, 0.4)',
-          transform: 'translateY(-1px)',
-        }}
-        _active={{
-          transform: 'translateY(0)',
-        }}
-        transition="all 0.2s"
-        fontWeight="medium"
-        h="40px"
       >
         Filters
         {activeFilterCount > 0 && (
           <Badge 
-            ml={2} 
-            bg={isAotMode ? '#8B0000' : 'purple.600'}
-            color="white"
-            borderRadius="full"
-            px={2}
-            fontSize="xs"
+            className="filter-panel-badge"
           >
             {activeFilterCount}
           </Badge>
@@ -135,75 +117,30 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
 
       {/* Filter Panel Content */}
       <Collapse in={isOpen} animateOpacity>
-        <Box 
-          position="absolute" 
-          top="calc(100% + 8px)"
-          left={0} 
-          zIndex={1500} 
-          minW={{ base: "320px", md: "400px" }}
-          maxW={{ base: "100vw", md: "500px" }}
-        >
-        <Box
-          p={5}
-          borderWidth="1px"
-          borderRadius="lg"
-          borderColor={isAotMode ? 'rgba(220, 162, 83, 0.3)' : 'rgba(255, 255, 255, 0.2)'}
-          bg={isAotMode ? 'rgba(0, 0, 0, 0.95)' : 'rgba(0, 0, 0, 0.95)'}
-          backdropFilter="blur(10px)"
-          boxShadow="2xl"
-          maxH="70vh"
-          overflowY="auto"
-          css={{
-            '&::-webkit-scrollbar': {
-              width: '8px',
-            },
-            '&::-webkit-scrollbar-track': {
-              background: isAotMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.1)',
-              borderRadius: '4px',
-            },
-            '&::-webkit-scrollbar-thumb': {
-              background: isAotMode ? 'rgba(220, 162, 83, 0.5)' : 'rgba(159, 122, 234, 0.5)',
-              borderRadius: '4px',
-            },
-            '&::-webkit-scrollbar-thumb:hover': {
-              background: isAotMode ? 'rgba(220, 162, 83, 0.7)' : 'rgba(159, 122, 234, 0.7)',
-            },
-          }}
-        >
+        <Box className="filter-panel-content">
           <VStack align="stretch" spacing={5}>
             {/* Categories */}
             <Box>
-              <Text 
-                fontWeight="semibold" 
-                mb={3} 
-                fontSize="md"
-                color={isAotMode ? '#dca253' : 'purple.300'}
-              >
+              <Text className="filter-panel-section-title">
                 📁 Categories
               </Text>
-                  <Stack spacing={2} maxH="200px" overflowY="auto" pr={2}>
+              <Stack spacing={2} className="filter-panel-section-content">
                 {categories.length === 0 ? (
-                  <Text fontSize="sm" color={isAotMode ? 'rgba(200, 154, 90, 0.6)' : 'gray.500'}>
+                  <Text className="filter-panel-empty-text">
                     No categories available
                   </Text>
                 ) : (
                   categories.map((category) => (
                     <Checkbox
                       key={category.id}
+                      className="filter-panel-checkbox"
                       isChecked={selectedCategoryIds.includes(category.id!)}
                       onChange={() => handleCategoryToggle(category.id!)}
-                      colorScheme={isAotMode ? 'orange' : 'purple'}
                       size="md"
-                      sx={{
-                        '.chakra-checkbox__control': {
-                          borderColor: isAotMode ? 'rgba(220, 162, 83, 0.5)' : 'rgba(159, 122, 234, 0.5)',
-                          bg: isAotMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.05)',
-                        },
-                      }}
                     >
                       <Flex align="center" gap={2}>
                         {category.icon && <span>{category.icon}</span>}
-                        <Text fontSize="sm" color={isAotMode ? '#c89a5a' : 'white'}>
+                        <Text fontSize="sm">
                           {category.name}
                         </Text>
                       </Flex>
@@ -213,41 +150,30 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
               </Stack>
             </Box>
 
-            <Divider borderColor={isAotMode ? 'rgba(220, 162, 83, 0.2)' : 'rgba(255, 255, 255, 0.1)'} />
+            <Divider className="filter-panel-divider" />
 
             {/* Priorities */}
             <Box>
-              <Text 
-                fontWeight="semibold" 
-                mb={3} 
-                fontSize="md"
-                color={isAotMode ? '#dca253' : 'purple.300'}
-              >
+              <Text className="filter-panel-section-title">
                 ⭐ Priorities
               </Text>
               <Stack spacing={2}>
                 {priorities.length === 0 ? (
-                  <Text fontSize="sm" color={isAotMode ? 'rgba(200, 154, 90, 0.6)' : 'gray.500'}>
+                  <Text className="filter-panel-empty-text">
                     No priorities available
                   </Text>
                 ) : (
                   priorities.map((priority) => (
                     <Checkbox
                       key={priority.level}
+                      className="filter-panel-checkbox"
                       isChecked={selectedPriorityLevels.includes(priority.level)}
                       onChange={() => handlePriorityToggle(priority.level)}
-                      colorScheme={isAotMode ? 'orange' : 'purple'}
                       size="md"
-                      sx={{
-                        '.chakra-checkbox__control': {
-                          borderColor: isAotMode ? 'rgba(220, 162, 83, 0.5)' : 'rgba(159, 122, 234, 0.5)',
-                          bg: isAotMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.05)',
-                        },
-                      }}
                     >
                       <Flex align="center" gap={2}>
                         <Circle size="14px" bg={priority.color} boxShadow="sm" />
-                        <Text fontSize="sm" color={isAotMode ? '#c89a5a' : 'white'}>
+                        <Text fontSize="sm">
                           {priority.level}
                         </Text>
                       </Flex>
@@ -257,131 +183,77 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
               </Stack>
             </Box>
 
-            <Divider borderColor={isAotMode ? 'rgba(220, 162, 83, 0.2)' : 'rgba(255, 255, 255, 0.1)'} />
+            <Divider className="filter-panel-divider" />
 
             {/* Deadline Filters */}
             <Box>
-              <Text 
-                fontWeight="semibold" 
-                mb={3} 
-                fontSize="md"
-                color={isAotMode ? '#dca253' : 'purple.300'}
-              >
+              <Text className="filter-panel-section-title">
                 📅 Deadline
               </Text>
               <VStack align="stretch" spacing={3}>
                 <Box>
-                  <Text 
-                    fontSize="sm" 
-                    mb={2}
-                    color={isAotMode ? '#c89a5a' : 'gray.300'}
-                    fontWeight="medium"
-                  >
+                  <Text className="filter-panel-date-label">
                     Before:
                   </Text>
                   <Input
+                    className="filter-panel-date-input"
                     type="date"
                     size="sm"
                     value={formatDateForInput(deadlineBefore)}
                     onChange={handleDeadlineBeforeChange}
-                    bg={isAotMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.05)'}
-                    borderColor={isAotMode ? 'rgba(220, 162, 83, 0.3)' : 'rgba(255, 255, 255, 0.2)'}
-                    color={isAotMode ? '#c89a5a' : 'white'}
-                    _hover={{
-                      borderColor: isAotMode ? '#dca253' : 'rgba(255, 255, 255, 0.4)',
-                    }}
-                    _focus={{
-                      borderColor: isAotMode ? '#dca253' : 'purple.500',
-                      boxShadow: isAotMode ? '0 0 0 1px #dca253' : '0 0 0 1px purple.500',
-                    }}
                   />
                 </Box>
                 <Box>
-                  <Text 
-                    fontSize="sm" 
-                    mb={2}
-                    color={isAotMode ? '#c89a5a' : 'gray.300'}
-                    fontWeight="medium"
-                  >
+                  <Text className="filter-panel-date-label">
                     After:
                   </Text>
                   <Input
+                    className="filter-panel-date-input"
                     type="date"
                     size="sm"
                     value={formatDateForInput(deadlineAfter)}
                     onChange={handleDeadlineAfterChange}
-                    bg={isAotMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.05)'}
-                    borderColor={isAotMode ? 'rgba(220, 162, 83, 0.3)' : 'rgba(255, 255, 255, 0.2)'}
-                    color={isAotMode ? '#c89a5a' : 'white'}
-                    _hover={{
-                      borderColor: isAotMode ? '#dca253' : 'rgba(255, 255, 255, 0.4)',
-                    }}
-                    _focus={{
-                      borderColor: isAotMode ? '#dca253' : 'purple.500',
-                      boxShadow: isAotMode ? '0 0 0 1px #dca253' : '0 0 0 1px purple.500',
-                    }}
                   />
                 </Box>
               </VStack>
             </Box>
 
-            <Divider borderColor={isAotMode ? 'rgba(220, 162, 83, 0.2)' : 'rgba(255, 255, 255, 0.1)'} />
+            <Divider className="filter-panel-divider" />
 
             {/* Completion Status */}
             <Box>
-              <Text 
-                fontWeight="semibold" 
-                mb={3} 
-                fontSize="md"
-                color={isAotMode ? '#dca253' : 'purple.300'}
-              >
+              <Text className="filter-panel-section-title">
                 ✓ Status
               </Text>
               <RadioGroup
                 value={completionStatus}
                 onChange={(value) => onCompletionStatusChange(value as CompletionStatus)}
-                colorScheme={isAotMode ? 'orange' : 'purple'}
               >
                 <Stack spacing={2}>
                   <Radio 
+                    className="filter-panel-radio"
                     value="all" 
                     size="md"
-                    sx={{
-                      '.chakra-radio__control': {
-                        borderColor: isAotMode ? 'rgba(220, 162, 83, 0.5)' : 'rgba(159, 122, 234, 0.5)',
-                        bg: isAotMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.05)',
-                      },
-                    }}
                   >
-                    <Text fontSize="sm" color={isAotMode ? '#c89a5a' : 'white'}>
+                    <Text fontSize="sm">
                       All Tasks
                     </Text>
                   </Radio>
                   <Radio 
+                    className="filter-panel-radio"
                     value="completed" 
                     size="md"
-                    sx={{
-                      '.chakra-radio__control': {
-                        borderColor: isAotMode ? 'rgba(220, 162, 83, 0.5)' : 'rgba(159, 122, 234, 0.5)',
-                        bg: isAotMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.05)',
-                      },
-                    }}
                   >
-                    <Text fontSize="sm" color={isAotMode ? '#c89a5a' : 'white'}>
+                    <Text fontSize="sm">
                       Completed Only
                     </Text>
                   </Radio>
                   <Radio 
+                    className="filter-panel-radio"
                     value="incomplete" 
                     size="md"
-                    sx={{
-                      '.chakra-radio__control': {
-                        borderColor: isAotMode ? 'rgba(220, 162, 83, 0.5)' : 'rgba(159, 122, 234, 0.5)',
-                        bg: isAotMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.05)',
-                      },
-                    }}
                   >
-                    <Text fontSize="sm" color={isAotMode ? '#c89a5a' : 'white'}>
+                    <Text fontSize="sm">
                       Incomplete Only
                     </Text>
                   </Radio>
@@ -390,42 +262,24 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             </Box>
 
             {/* Action Buttons */}
-            <Flex gap={3} pt={3} borderTopWidth="1px" borderColor={isAotMode ? 'rgba(220, 162, 83, 0.2)' : 'rgba(255, 255, 255, 0.1)'}>
+            <Flex gap={3} pt={3} borderTopWidth="1px" className="filter-panel-divider">
               <Button
+                className="filter-panel-button-clear"
                 size="md"
                 onClick={onClearAll}
                 variant="outline"
-                flex={1}
-                borderColor={isAotMode ? 'rgba(220, 162, 83, 0.5)' : 'rgba(255, 255, 255, 0.3)'}
-                color={isAotMode ? '#c89a5a' : 'white'}
-                _hover={{
-                  bg: isAotMode ? 'rgba(220, 162, 83, 0.1)' : 'rgba(255, 255, 255, 0.1)',
-                  borderColor: isAotMode ? '#dca253' : 'rgba(255, 255, 255, 0.5)',
-                }}
               >
                 Clear All
               </Button>
               <Button
+                className="filter-panel-button-apply"
                 size="md"
                 onClick={() => setIsOpen(false)}
-                flex={1}
-                bg={isAotMode ? '#8B0000' : 'purple.600'}
-                color="white"
-                _hover={{
-                  bg: isAotMode ? '#a00' : 'purple.700',
-                  transform: 'translateY(-1px)',
-                  boxShadow: 'md',
-                }}
-                _active={{
-                  transform: 'translateY(0)',
-                }}
-                transition="all 0.2s"
               >
                 Apply
               </Button>
             </Flex>
           </VStack>
-        </Box>
         </Box>
       </Collapse>
     </Box>
