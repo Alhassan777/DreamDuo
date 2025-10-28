@@ -60,34 +60,31 @@ const StatusCard = (props: StatusCardProps) => {
       data-aot-mode={isAotMode}
       style={{ height: cardHeight }}
       p={3}
-      bg="whiteAlpha.50"
     >
-      <Flex direction="column" h="100%">
-        <VStack spacing={4} alignItems="center">
+      <Flex className="status-card-container">
+        <VStack className="status-card-content">
           {selectedLogo && (
             <Image
+              className="status-card-logo"
               src={selectedLogo.icon}
               alt={selectedLogo.label}
-              boxSize="50px"
-              objectFit="contain"
             />
           )}
-          <VStack spacing={1} alignItems="center">
-            <Text color="white" fontSize="sm" fontWeight="bold">
+          <VStack className="status-card-text">
+            <Text className="status-card-label">
               {status.label}
             </Text>
-            <Text color="gray.300" fontSize="xs" textAlign="center">
+            <Text className="status-card-description">
               {status.description}
             </Text>
           </VStack>
         </VStack>
         <Spacer />
         <Select
+          className="status-card-select"
           size="sm"
           value={selectedLogo?.id || ''}
           onChange={(e) => onLogoChange(status.status, e.target.value)}
-          bg="whiteAlpha.200"
-          color="white"
         >
           <option value="">Select a logo</option>
           {AVAILABLE_LOGOS.map((logo) => (
