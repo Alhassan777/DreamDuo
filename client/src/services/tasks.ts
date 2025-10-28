@@ -51,6 +51,10 @@ export interface TaskDependency {
   source_task_id: number;
   target_task_id: number;
   user_id: number;
+  edge_color?: string | null;
+  edge_style?: string | null;
+  edge_width?: number | null;
+  edge_animated?: boolean | null;
 }
 
 /**
@@ -398,6 +402,27 @@ export const tasksService = {
       return response.data.data;
     } catch (error) {
       console.error('Failed to fetch task dependencies:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update the appearance of a dependency edge
+   */
+  updateDependencyAppearance: async (
+    dependencyId: number,
+    appearance: {
+      edge_color?: string | null;
+      edge_style?: string | null;
+      edge_width?: number | null;
+      edge_animated?: boolean | null;
+    }
+  ): Promise<TaskDependency> => {
+    try {
+      const response = await api.put(`/tasks/dependencies/${dependencyId}/customize`, appearance);
+      return response.data.data;
+    } catch (error) {
+      console.error('Failed to update dependency appearance:', error);
       throw error;
     }
   },

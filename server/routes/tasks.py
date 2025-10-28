@@ -482,3 +482,47 @@ def get_task_dependencies_route(task_id):
         return jsonify({'error': str(e)}), 404
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@tasks_bp.route('/dependencies/<int:dependency_id>/customize', methods=['PUT'])
+@jwt_required()
+def customize_dependency(dependency_id):
+    """Update dependency edge appearance (color, style, width, animated)"""
+    user_id = get_jwt_identity()
+    
+    from models.task_dependency import TaskDependency
+    
+    dependency = db.session.query(TaskDependency).filter_by(
+        id=dependency_id,
+        user_id=user_id
+    ).first()
+    
+    if not dependency:
+        return jsonify({'error': 'Dependency not found'}), 404
+    
+    data = request.get_json()
+    
+    try:
+        # Update edge customization fields
+        if 'edge_color' in data:
+            dependency.edge_color = data['edge_color']
+        if 'edge_style' in data:
+            # Validate edge style
+            valid_styles = ['smoothstep', 'straight', 'step', 'bezier']
+            if data['edge_style'] not in valid_styles:
+                return jsonify({'error': f'Invalid edge style. Must be one of: {", ".join(valid_styles)}'}), 400
+            dependency.edge_style = data['edge_style']
+        if 'edge_width' in data:
+            dependency.edge_width = float(data['edge_width'])
+        if 'edge_animated' in data:
+            dependency.edge_animated = bool(data['edge_animated'])
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'data': dependency.to_dict()
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500

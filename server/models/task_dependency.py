@@ -12,6 +12,12 @@ class TaskDependency(db.Model):
     source_task_id = db.Column(db.Integer, db.ForeignKey('tasks.id'), nullable=False)
     target_task_id = db.Column(db.Integer, db.ForeignKey('tasks.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    
+    # Edge customization fields
+    edge_color = db.Column(db.String(20), nullable=True, default='#4A5568')  # Hex color code
+    edge_style = db.Column(db.String(20), nullable=True, default='smoothstep')  # smoothstep, straight, step, bezier
+    edge_width = db.Column(db.Float, nullable=True, default=2.0)  # Line width in pixels
+    edge_animated = db.Column(db.Boolean, nullable=True, default=True)  # Whether edge is animated
 
     # Relationships
     source_task = db.relationship('Task', foreign_keys=[source_task_id], backref='outgoing_dependencies')
@@ -26,7 +32,11 @@ class TaskDependency(db.Model):
             'id': self.id,
             'source_task_id': self.source_task_id,
             'target_task_id': self.target_task_id,
-            'user_id': self.user_id
+            'user_id': self.user_id,
+            'edge_color': self.edge_color,
+            'edge_style': self.edge_style,
+            'edge_width': self.edge_width,
+            'edge_animated': self.edge_animated
         }
 
 

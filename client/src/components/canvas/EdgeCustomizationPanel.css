@@ -1,0 +1,180 @@
+/* Edge Customization Panel Styling */
+
+.edge-customization-container {
+  background: var(--color-card-background);
+  padding: 1rem;
+  border-radius: var(--border-radius-lg);
+  width: 100%;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.edge-customization-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.edge-customization-header {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.edge-customization-selection-count {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.edge-customization-selection-warning {
+  font-size: 0.875rem;
+  color: var(--color-warning);
+}
+
+.edge-customization-form-control {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.edge-customization-form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.edge-customization-color-picker-wrapper {
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  padding: 0.5rem;
+  background: var(--color-background);
+}
+
+.edge-customization-color-info {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  margin-top: 0.25rem;
+}
+
+.edge-customization-style-buttons {
+  display: flex;
+  width: 100%;
+  gap: 0;
+}
+
+.edge-customization-style-button {
+  flex: 1;
+  font-size: 0.875rem;
+  border-width: 1px;
+  border-radius: 0;
+  transition: all var(--animation-duration) var(--animation-timing);
+  background: transparent;
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+.edge-customization-style-button:first-child {
+  border-top-left-radius: var(--border-radius-md);
+  border-bottom-left-radius: var(--border-radius-md);
+}
+
+.edge-customization-style-button:last-child {
+  border-top-right-radius: var(--border-radius-md);
+  border-bottom-right-radius: var(--border-radius-md);
+}
+
+.edge-customization-style-button:hover {
+  background: var(--color-hover-overlay);
+}
+
+.edge-customization-style-button.selected {
+  background: var(--color-button-primary);
+  color: var(--color-button-primary-text);
+  border-color: var(--color-primary);
+}
+
+.edge-customization-style-button.selected:hover {
+  background: var(--color-button-primary-hover);
+}
+
+.edge-customization-width-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.edge-customization-width-value {
+  font-weight: 600;
+}
+
+.edge-customization-slider {
+  width: 100%;
+}
+
+.edge-customization-switch-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.edge-customization-switch-label {
+  font-size: 0.875rem;
+  margin-bottom: 0;
+}
+
+.edge-customization-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.edge-customization-button {
+  flex: 1;
+  border-radius: var(--border-radius-md);
+  transition: all var(--animation-duration) var(--animation-timing);
+}
+
+.edge-customization-apply-button {
+  background: var(--color-button-primary);
+  color: var(--color-button-primary-text);
+}
+
+.edge-customization-apply-button:hover:not(:disabled) {
+  background: var(--color-button-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.edge-customization-apply-button:active:not(:disabled) {
+  background: var(--color-active-state);
+}
+
+.edge-customization-apply-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.edge-customization-reset-button {
+  background: var(--color-button-secondary);
+  color: var(--color-button-secondary-text);
+}
+
+.edge-customization-reset-button:hover:not(:disabled) {
+  background: var(--color-button-secondary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.edge-customization-reset-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.edge-customization-close-button {
+  font-size: 0.875rem;
+  color: var(--color-text);
+  transition: all var(--animation-duration) var(--animation-timing);
+}
+
+.edge-customization-close-button:hover {
+  background: var(--color-hover-overlay);
+}
+
