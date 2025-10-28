@@ -352,9 +352,14 @@ def update_task_position(task_id):
 
     data = request.get_json()
     
+    # Validate that x and y are provided
+    if 'x' not in data or 'y' not in data:
+        return jsonify({'error': 'Both x and y coordinates are required'}), 400
+    
     try:
-        task.position_x = data.get('x')
-        task.position_y = data.get('y')
+        # Update position
+        task.position_x = float(data['x'])
+        task.position_y = float(data['y'])
         db.session.commit()
         
         return jsonify({
@@ -365,6 +370,9 @@ def update_task_position(task_id):
                 'position_y': task.position_y
             }
         }), 200
+    except (ValueError, TypeError) as e:
+        db.session.rollback()
+        return jsonify({'error': 'Invalid coordinate values'}), 400
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
