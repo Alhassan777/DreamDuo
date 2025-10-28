@@ -213,7 +213,7 @@ const TaskCategoriesSection: React.FC<TaskCategoriesSectionProps> = ({ categorie
           fontSize: '1.5rem',
           marginBottom: '1rem',
           transition: 'color 0.3s ease',
-          color: isAotMode ? 'var(--aot-text)' : 'white',
+          color: isAotMode ? 'var(--aot-text)' : 'var(--color-text)',
           textShadow: isAotMode ? '2px 2px 4px var(--aot-accent)' : '2px 2px 4px rgba(0, 0, 0, 0.7)'
         }} data-aot-mode={isAotMode}>
           Task Categories
@@ -223,7 +223,7 @@ const TaskCategoriesSection: React.FC<TaskCategoriesSectionProps> = ({ categorie
         leftIcon={<AddIcon />} 
         onClick={onOpen} 
         alignSelf="flex-end" 
-        className="create-button primary" 
+        className="create-button-primary" 
         data-aot-mode={isAotMode}
       >
         Create New Category
@@ -260,25 +260,29 @@ const TaskCategoriesSection: React.FC<TaskCategoriesSectionProps> = ({ categorie
 
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
-        <ModalContent bg="gray.800">
+        <ModalContent sx={{
+          bg: isAotMode ? 'var(--aot-secondary)' : 'var(--color-card-background)'
+        }}>
           <ModalHeader 
             sx={{
               fontSize: '1.5rem',
               marginBottom: '1rem',
               transition: 'color 0.3s ease',
-              color: isAotMode ? 'var(--aot-text)' : 'white',
+              color: isAotMode ? 'var(--aot-text)' : 'var(--color-text)',
               textShadow: '2px 2px 4px rgba(0, 0, 0, 0.7)'
             }}
             data-aot-mode={isAotMode}
           >
             Create New Category
           </ModalHeader>
-          <ModalCloseButton color="white" />
+          <ModalCloseButton sx={{
+            color: isAotMode ? 'var(--aot-text)' : 'var(--color-text)'
+          }} />
           <ModalBody>
-          <FormControl mb={4}>
+            <FormControl mb={4}>
               <FormLabel
                 sx={{
-                  color: isAotMode ? "var(--aot-text)" : "gray.300",
+                  color: isAotMode ? "var(--aot-text)" : "var(--color-text-secondary)",
                   fontWeight: isAotMode ? "bold" : "normal"
                 }}
               >
@@ -289,15 +293,15 @@ const TaskCategoriesSection: React.FC<TaskCategoriesSectionProps> = ({ categorie
                 onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
                 placeholder="Enter category name"
                 sx={{
-                  bg: isAotMode ? "var(--aot-background)" : "gray.700",
-                  color: isAotMode ? "var(--aot-text)" : "white",
-                  borderColor: isAotMode ? "var(--aot-primary)" : "transparent",
+                  bg: isAotMode ? "var(--aot-background)" : "var(--color-surface)",
+                  color: isAotMode ? "var(--aot-text)" : "var(--color-text)",
+                  borderColor: isAotMode ? "var(--aot-primary)" : "var(--color-border)",
                   _hover: {
-                    borderColor: isAotMode ? "var(--aot-accent)" : "whiteAlpha.400"
+                    borderColor: isAotMode ? "var(--aot-accent)" : "var(--color-primary)"
                   },
                   _focus: {
-                    borderColor: isAotMode ? "var(--aot-accent)" : "blue.500",
-                    boxShadow: isAotMode ? "0 0 0 1px var(--aot-accent)" : "0 0 0 1px #3182ce"
+                    borderColor: isAotMode ? "var(--aot-accent)" : "var(--color-focus-ring)",
+                    boxShadow: isAotMode ? "0 0 0 1px var(--aot-accent)" : "0 0 0 1px var(--color-focus-ring)"
                   }
                 }}
               />
@@ -305,7 +309,7 @@ const TaskCategoriesSection: React.FC<TaskCategoriesSectionProps> = ({ categorie
             <FormControl>
               <FormLabel
                 sx={{
-                  color: isAotMode ? "var(--aot-text)" : "gray.300",
+                  color: isAotMode ? "var(--aot-text)" : "var(--color-text-secondary)",
                   fontWeight: isAotMode ? "bold" : "normal"
                 }}
               >
@@ -318,25 +322,34 @@ const TaskCategoriesSection: React.FC<TaskCategoriesSectionProps> = ({ categorie
                 resize="vertical"
                 rows={3}
                 sx={{
-                  bg: isAotMode ? "var(--aot-background)" : "gray.700",
-                  color: isAotMode ? "var(--aot-text)" : "white",
-                  borderColor: isAotMode ? "var(--aot-primary)" : "transparent",
+                  bg: isAotMode ? "var(--aot-background)" : "var(--color-surface)",
+                  color: isAotMode ? "var(--aot-text)" : "var(--color-text)",
+                  borderColor: isAotMode ? "var(--aot-primary)" : "var(--color-border)",
                   _hover: {
-                    borderColor: isAotMode ? "var(--aot-accent)" : "whiteAlpha.400"
+                    borderColor: isAotMode ? "var(--aot-accent)" : "var(--color-primary)"
                   },
                   _focus: {
-                    borderColor: isAotMode ? "var(--aot-accent)" : "blue.500",
-                    boxShadow: isAotMode ? "0 0 0 1px var(--aot-accent)" : "0 0 0 1px #3182ce"
+                    borderColor: isAotMode ? "var(--aot-accent)" : "var(--color-focus-ring)",
+                    boxShadow: isAotMode ? "0 0 0 1px var(--aot-accent)" : "0 0 0 1px var(--color-focus-ring)"
                   }
                 }}
               />
             </FormControl>
           </ModalBody>
           <ModalFooter>
-            <Button variant="ghost" mr={3} onClick={onClose} color="gray.300" className="cancel-button" data-aot-mode={isAotMode}>
+            <Button 
+              variant="ghost" 
+              mr={3} 
+              onClick={onClose} 
+              className="cancel-button" 
+              data-aot-mode={isAotMode}
+              sx={{
+                color: isAotMode ? 'var(--aot-accent)' : 'var(--color-text-secondary)'
+              }}
+            >
               Cancel
             </Button>
-            <Button className="create-button primary" data-aot-mode={isAotMode} onClick={handleAddCategory}>
+            <Button className="create-button-primary" data-aot-mode={isAotMode} onClick={handleAddCategory}>
               Create Category
             </Button>
           </ModalFooter>

@@ -7,16 +7,19 @@
   border: 1px solid var(--color-border);
 }
 
-.create-button-primary:hover, .create-button-secondary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  background-color: var(--color-secondary);
+/* Create button styles - Default Mode */
+.create-button-primary, .create-button-secondary {
+  background-color: var(--default-primary-bg) !important;
+  color: var(--default-primary-text) !important;
+  border: 2px solid var(--color-primary);
+  border-radius: var(--border-radius-md);
+  transition: all var(--animation-duration) ease;
 }
 
-.create-button-primary, .create-button-secondary {
-  background-color: var(--color-primary) !important;
-  color: var(--color-text) !important;
-  transition: all var(--animation-duration) ease;
+.create-button-primary:hover, .create-button-secondary:hover {
+  background-color: var(--default-primary-bg-hover) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .cancel-button {
@@ -47,17 +50,20 @@
   transition: all var(--animation-duration) ease;
 }
 
+/* Create button styles - AOT Mode */
 .create-button-primary[data-aot-mode="true"], .create-button-secondary[data-aot-mode="true"] {
-  background-color: var(--aot-primary) !important;
-  color: var(--aot-accent) !important;
-  border: 1px solid var(--aot-accent);
+  background-color: var(--aot-primary-bg) !important;
+  color: var(--aot-primary-text-color) !important;
+  border: 2px solid var(--aot-accent);
   transition: all var(--animation-duration) ease;
 }
 
-.task-categories-section[data-aot-mode="true"] .create-button-primary:hover, .create-button-secondary:hover {
+.task-categories-section[data-aot-mode="true"] .create-button-primary:hover, 
+.task-categories-section[data-aot-mode="true"] .create-button-secondary:hover {
+  background-color: var(--aot-primary-bg-hover) !important;
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(139, 69, 19, 0.3);
-  border: 1px solid var(--aot-accent);
+  box-shadow: 0 4px 8px rgba(139, 0, 0, 0.4);
+  border-color: var(--aot-accent);
 }
 
 .task-categories-section[data-aot-mode="true"] .chakra-button.accent {
