@@ -10,6 +10,7 @@ import {
 import { useTheme } from '../../contexts/ThemeContext';
 import { Category } from '../../services/tags';
 import { format } from 'date-fns';
+import './FilterChips.css';
 
 interface PriorityColor {
   level: string;
@@ -85,16 +86,12 @@ const FilterChips: React.FC<FilterChipsProps> = ({
   };
 
   return (
-    <Flex gap={2} flexWrap="wrap" align="center" mt={4} mb={4}>
+    <Flex className="filter-chips-container" data-aot-mode={isAotMode}>
       {/* Search Query Chip */}
       {searchQuery.trim() && (
-        <Tag
-          size="md"
-          colorScheme={isAotMode ? 'red' : 'blue'}
-          variant="solid"
-        >
-          <TagLabel>Search: "{searchQuery}"</TagLabel>
-          <TagCloseButton onClick={onRemoveSearch} />
+        <Tag className="filter-chip" size="md" variant="solid">
+          <TagLabel className="filter-chip-label">Search: "{searchQuery}"</TagLabel>
+          <TagCloseButton className="filter-chip-close-button" onClick={onRemoveSearch} />
         </Tag>
       )}
 
@@ -102,14 +99,14 @@ const FilterChips: React.FC<FilterChipsProps> = ({
       {selectedCategoryIds.map((categoryId) => (
         <Tag
           key={`category-${categoryId}`}
+          className="filter-chip"
           size="md"
-          colorScheme={isAotMode ? 'red' : 'blue'}
           variant="solid"
         >
-          <TagLabel>
+          <TagLabel className="filter-chip-label">
             {getCategoryIcon(categoryId)} {getCategoryName(categoryId)}
           </TagLabel>
-          <TagCloseButton onClick={() => onRemoveCategory(categoryId)} />
+          <TagCloseButton className="filter-chip-close-button" onClick={() => onRemoveCategory(categoryId)} />
         </Tag>
       ))}
 
@@ -117,61 +114,49 @@ const FilterChips: React.FC<FilterChipsProps> = ({
       {selectedPriorityLevels.map((priority) => (
         <Tag
           key={`priority-${priority}`}
+          className="filter-chip"
           size="md"
-          colorScheme={isAotMode ? 'red' : 'blue'}
           variant="solid"
         >
-          <Circle size="12px" bg={getPriorityColor(priority)} mr={2} />
-          <TagLabel>{priority}</TagLabel>
-          <TagCloseButton onClick={() => onRemovePriority(priority)} />
+          <Circle className="filter-chip-priority-indicator" size="12px" bg={getPriorityColor(priority)} mr={2} />
+          <TagLabel className="filter-chip-label">{priority}</TagLabel>
+          <TagCloseButton className="filter-chip-close-button" onClick={() => onRemovePriority(priority)} />
         </Tag>
       ))}
 
       {/* Deadline Before Chip */}
       {deadlineBefore && (
-        <Tag
-          size="md"
-          colorScheme={isAotMode ? 'red' : 'blue'}
-          variant="solid"
-        >
-          <TagLabel>Due Before: {format(deadlineBefore, 'MMM d, yyyy')}</TagLabel>
-          <TagCloseButton onClick={onRemoveDeadlineBefore} />
+        <Tag className="filter-chip" size="md" variant="solid">
+          <TagLabel className="filter-chip-label">Due Before: {format(deadlineBefore, 'MMM d, yyyy')}</TagLabel>
+          <TagCloseButton className="filter-chip-close-button" onClick={onRemoveDeadlineBefore} />
         </Tag>
       )}
 
       {/* Deadline After Chip */}
       {deadlineAfter && (
-        <Tag
-          size="md"
-          colorScheme={isAotMode ? 'red' : 'blue'}
-          variant="solid"
-        >
-          <TagLabel>Due After: {format(deadlineAfter, 'MMM d, yyyy')}</TagLabel>
-          <TagCloseButton onClick={onRemoveDeadlineAfter} />
+        <Tag className="filter-chip" size="md" variant="solid">
+          <TagLabel className="filter-chip-label">Due After: {format(deadlineAfter, 'MMM d, yyyy')}</TagLabel>
+          <TagCloseButton className="filter-chip-close-button" onClick={onRemoveDeadlineAfter} />
         </Tag>
       )}
 
       {/* Completion Status Chip */}
       {completionStatus !== 'all' && (
-        <Tag
-          size="md"
-          colorScheme={isAotMode ? 'red' : 'blue'}
-          variant="solid"
-        >
-          <TagLabel>
+        <Tag className="filter-chip" size="md" variant="solid">
+          <TagLabel className="filter-chip-label">
             Status: {completionStatus === 'completed' ? 'Completed' : 'Incomplete'}
           </TagLabel>
-          <TagCloseButton onClick={onRemoveCompletionStatus} />
+          <TagCloseButton className="filter-chip-close-button" onClick={onRemoveCompletionStatus} />
         </Tag>
       )}
 
       {/* Clear All Button */}
       {hasFilters && (
         <Button
+          className="filter-chips-clear-all-button"
           size="sm"
           variant="ghost"
           onClick={onClearAll}
-          colorScheme={isAotMode ? 'red' : 'blue'}
         >
           Clear All Filters
         </Button>
