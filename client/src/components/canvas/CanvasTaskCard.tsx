@@ -27,6 +27,8 @@ interface Task {
   deadline?: string;
   children: Task[];
   subtasks?: Task[];
+  canvas_color?: string | null;
+  canvas_shape?: string | null;
 }
 
 interface CanvasTaskCardProps {
@@ -89,6 +91,25 @@ const CanvasTaskCard: React.FC<CanvasTaskCardProps> = ({
 
   const subtasks = task.children || task.subtasks || [];
 
+  // Determine styling based on canvas customization
+  const getBorderRadius = () => {
+    switch (task.canvas_shape) {
+      case 'rectangle':
+        return '4px';
+      case 'circle':
+        return '50%';
+      case 'rounded':
+      default:
+        return 'var(--border-radius-lg)';
+    }
+  };
+
+  const cardStyle: React.CSSProperties = {
+    backgroundColor: task.canvas_color || undefined,
+    borderRadius: getBorderRadius(),
+    transition: 'all 0.3s ease',
+  };
+
   return (
     <Box className={`canvas-task-card-wrapper ${selected ? 'selected' : ''}`}>
       {/* Top Handle - Target for incoming dependencies */}
@@ -102,6 +123,7 @@ const CanvasTaskCard: React.FC<CanvasTaskCardProps> = ({
       <Box
         className={`task-card canvas-task-card-inner ${task.completed ? 'completed' : ''}`}
         data-aot-mode={isAotMode}
+        style={cardStyle}
       >
         <VStack spacing={4} align="stretch">
           {/* HEADER: Delete button, Name, Collapse toggle, Add subtask */}
