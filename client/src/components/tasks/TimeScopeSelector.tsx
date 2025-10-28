@@ -10,6 +10,7 @@ import { CalendarIcon } from '@chakra-ui/icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { TimeScope } from '../../hooks/useTaskFilters';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
+import './TimeScopeSelector.css';
 
 interface TimeScopeSelectorProps {
   timeScope: TimeScope;
@@ -63,146 +64,68 @@ const TimeScopeSelector: React.FC<TimeScopeSelectorProps> = ({
     onAnchorDateChange(new Date());
   };
 
-  // Button style helper
-  const getButtonStyle = (scope: TimeScope) => {
-    const isSelected = timeScope === scope;
-    
-    if (isSelected) {
-      return {
-        bg: isAotMode ? '#8B0000' : 'purple.600',
-        color: 'white',
-        borderColor: isAotMode ? '#8B0000' : 'purple.600',
-        _hover: {
-          bg: isAotMode ? '#a00' : 'purple.700',
-          transform: 'translateY(-1px)',
-          boxShadow: 'md',
-        },
-        fontWeight: 'semibold',
-        boxShadow: isSelected ? 'sm' : 'none',
-      };
-    }
-    
-    return {
-      bg: isAotMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.1)',
-      color: isAotMode ? '#c89a5a' : 'white',
-      borderColor: isAotMode ? 'rgba(220, 162, 83, 0.3)' : 'rgba(255, 255, 255, 0.2)',
-      _hover: {
-        bg: isAotMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.15)',
-        borderColor: isAotMode ? '#dca253' : 'rgba(255, 255, 255, 0.4)',
-        transform: 'translateY(-1px)',
-      },
-      fontWeight: 'normal',
-    };
-  };
+  // Check if a scope is selected
+  const isSelected = (scope: TimeScope) => timeScope === scope;
 
   return (
-    <Box>
-      <Flex gap={3} align="center" flexWrap="wrap">
+    <Box className="time-scope-selector-container" data-aot-mode={isAotMode}>
+      <Flex className="time-scope-controls">
         {/* Time Scope Buttons */}
-        <Flex gap={0}>
+        <Flex className="time-scope-button-group">
           <Button
+            className={`time-scope-button ${isSelected('daily') ? 'selected' : ''}`}
             onClick={() => onTimeScopeChange('daily')}
             size="md"
-            borderRadius="md"
-            borderRightRadius={0}
-            borderWidth="1px"
-            transition="all 0.2s"
-            {...getButtonStyle('daily')}
           >
             Daily
           </Button>
           <Button
+            className={`time-scope-button ${isSelected('weekly') ? 'selected' : ''}`}
             onClick={() => onTimeScopeChange('weekly')}
             size="md"
-            borderRadius={0}
-            borderWidth="1px"
-            borderLeftWidth={0}
-            transition="all 0.2s"
-            {...getButtonStyle('weekly')}
           >
             Weekly
           </Button>
           <Button
+            className={`time-scope-button ${isSelected('monthly') ? 'selected' : ''}`}
             onClick={() => onTimeScopeChange('monthly')}
             size="md"
-            borderRadius={0}
-            borderWidth="1px"
-            borderLeftWidth={0}
-            transition="all 0.2s"
-            {...getButtonStyle('monthly')}
           >
             Monthly
           </Button>
           <Button
+            className={`time-scope-button ${isSelected('yearly') ? 'selected' : ''}`}
             onClick={() => onTimeScopeChange('yearly')}
             size="md"
-            borderRadius="md"
-            borderLeftRadius={0}
-            borderWidth="1px"
-            borderLeftWidth={0}
-            transition="all 0.2s"
-            {...getButtonStyle('yearly')}
           >
             Yearly
           </Button>
         </Flex>
 
         {/* Date Picker */}
-        <Flex align="center" gap={2} ml={2}>
-          <CalendarIcon color={isAotMode ? '#c89a5a' : 'white'} />
+        <Flex className="time-scope-date-picker-container">
+          <CalendarIcon className="time-scope-calendar-icon" />
           <Input
+            className="time-scope-date-input"
             type="date"
             value={formatDateForInput(anchorDate)}
             onChange={handleDateChange}
             size="md"
-            width="auto"
-            bg={isAotMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.1)'}
-            borderColor={isAotMode ? 'rgba(220, 162, 83, 0.3)' : 'rgba(255, 255, 255, 0.2)'}
-            color={isAotMode ? '#c89a5a' : 'white'}
-            _hover={{
-              borderColor: isAotMode ? '#dca253' : 'rgba(255, 255, 255, 0.4)',
-            }}
-            _focus={{
-              borderColor: isAotMode ? '#dca253' : 'purple.500',
-              boxShadow: isAotMode ? '0 0 0 1px #dca253' : '0 0 0 1px purple.500',
-            }}
-            sx={{
-              colorScheme: isAotMode ? 'dark' : 'dark',
-              '&::-webkit-calendar-picker-indicator': {
-                filter: isAotMode ? 'invert(0.7) sepia(1) saturate(2) hue-rotate(15deg)' : 'invert(1)',
-                cursor: 'pointer',
-              }
-            }}
           />
         </Flex>
 
         {/* Today Button */}
         <Button
+          className="time-scope-today-button"
           size="md"
           onClick={handleToday}
-          bg="transparent"
-          color={isAotMode ? '#dca253' : 'purple.400'}
-          borderWidth="1px"
-          borderColor={isAotMode ? '#dca253' : 'purple.500'}
-          _hover={{
-            bg: isAotMode ? 'rgba(220, 162, 83, 0.1)' : 'rgba(159, 122, 234, 0.1)',
-            transform: 'translateY(-1px)',
-          }}
-          fontWeight="medium"
-          transition="all 0.2s"
         >
           Today
         </Button>
       </Flex>
 
       {/* Date Range Display */}
-      <Text 
-        mt={3} 
-        fontSize="sm" 
-        fontWeight="medium" 
-        color={isAotMode ? '#c89a5a' : 'gray.400'}
-        opacity={0.9}
-      >
+      <Text className="time-scope-date-range-text">
         {getDateRangeText()}
       </Text>
     </Box>
