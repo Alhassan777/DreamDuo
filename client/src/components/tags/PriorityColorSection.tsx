@@ -284,29 +284,21 @@ const PriorityColorSection = () => {
 
   return (
     <VStack align="stretch" spacing={4} className="priority-color-section" data-aot-mode={isAotMode}>
-      <Heading size="md" color="white" className='priority-color-heading'>
+      <Heading size="md" className='priority-color-heading'>
         Task Urgency Levels
       </Heading>
 
       {/* NEW PRIORITY INPUT */}
       <HStack>
         <Input
+          className="priority-input"
+          data-aot-mode={isAotMode}
           placeholder="Enter priority level"
           value={newPriority.level}
           onChange={(e) =>
             setNewPriority({ ...newPriority, level: e.target.value })
           }
           onKeyPress={handleKeyPress}
-          bg={isAotMode ? "transparent" : "gray.700"}
-          color={isAotMode ? "var(--aot-text)" : "white"}
-          sx={{
-            backgroundColor: isAotMode ? "rgba(39,37,45,255)" : undefined,
-            borderColor: isAotMode ? "var(--aot-accent)" : "transparent",
-            _focus: {
-              borderColor: isAotMode ? "var(--aot-accent)" : "blue.500",
-              boxShadow: isAotMode ? "0 0 0 1px var(--aot-accent)" : "0 0 0 1px #3182ce"
-            }
-          }}
         />
         <HStack
           className="priority-color-picker"
@@ -331,9 +323,9 @@ const PriorityColorSection = () => {
           />
         </HStack>
         <Button
-          colorScheme={editingIndex !== null ? 'green' : 'purple'}
           onClick={editingIndex !== null ? handleUpdatePriority : handleAddPriority}
-          className={isAotMode ? (editingIndex !== null ? 'priority-button-primary' : 'priority-button-accent') : ''}
+          className={`priority-add-button ${editingIndex !== null ? 'editing' : ''}`}
+          data-aot-mode={isAotMode}
           isLoading={isLoading}
         >
           {editingIndex !== null ? 'Update' : 'Add'}
@@ -343,14 +335,14 @@ const PriorityColorSection = () => {
       {/* LOADING INDICATOR */}
       {isLoading && (
         <Center py={4}>
-          <Spinner size="md" color={isAotMode ? "var(--aot-accent)" : "blue.500"} />
+          <Spinner size="md" className="priority-spinner" data-aot-mode={isAotMode} />
         </Center>
       )}
 
       {/* EMPTY STATE */}
       {!isLoading && priorityColors.length === 0 && (
         <Box textAlign="center" py={6} className="priority-empty-state" data-aot-mode={isAotMode}>
-          <Text color={isAotMode ? "var(--aot-text)" : "gray.300"}>
+          <Text className="priority-empty-text" data-aot-mode={isAotMode}>
             No priority levels found. Add your first priority level above.
           </Text>
         </Box>
@@ -433,6 +425,8 @@ const PriorityColorSection = () => {
               </HStack>
               {inlineEditingIndex === index ? (
                 <Input
+                  className="priority-inline-edit-input"
+                  data-aot-mode={isAotMode}
                   value={inlineEditValue}
                   onChange={(e) => setInlineEditValue(e.target.value)}
                   onKeyPress={handleKeyPress}
@@ -440,15 +434,13 @@ const PriorityColorSection = () => {
                   autoFocus
                   size="sm"
                   width="auto"
-                  color="white"
-                  bg="gray.700"
                 />
               ) : (
                 <Text
-                  color="white"
                   onDoubleClick={() => handleInlineEdit(index)}
                   cursor="pointer"
                   className="priority-level-text"
+                  data-aot-mode={isAotMode}
                 >
                   {priority.level}
                 </Text>
@@ -459,17 +451,17 @@ const PriorityColorSection = () => {
                 aria-label="Edit priority"
                 icon={<EditIcon />}
                 size="sm"
-                colorScheme="blue"
                 onClick={() => handleEditPriority(index)}
-                className={isAotMode ? 'priority-button-accent' : ''}
+                className="priority-edit-button"
+                data-aot-mode={isAotMode}
               />
               <IconButton
                 aria-label="Delete priority"
                 icon={<DeleteIcon />}
                 size="sm"
-                colorScheme="red"
                 onClick={() => handleDeletePriority(index)}
-                className={isAotMode ? 'priority-button-primary' : ''}
+                className="priority-delete-button"
+                data-aot-mode={isAotMode}
               />
             </HStack>
           </HStack>
