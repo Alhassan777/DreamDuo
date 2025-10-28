@@ -435,21 +435,33 @@ export const useCanvasView = ({ tasks, setTasks, onRefresh }: UseCanvasViewProps
         ? `task-${dep.target_task_id}-target`
         : `subtask-${dep.target_task_id}-target`;
 
+      // Use custom edge appearance if set, otherwise use defaults
+      const edgeColor = dep.edge_color || 'var(--color-primary)';
+      const edgeStyle = dep.edge_style || 'smoothstep';
+      const edgeWidth = dep.edge_width || 2;
+      // Ensure animated is always a boolean, not null
+      const edgeAnimated = dep.edge_animated !== null && dep.edge_animated !== undefined 
+        ? dep.edge_animated 
+        : true;
+
       return {
         id: `e-${dep.id}`,
         source: sourceRootId.toString(),
         target: targetRootId.toString(),
         sourceHandle: sourceHandle,
         targetHandle: targetHandle,
-        type: 'smoothstep',
-        animated: true,
+        type: edgeStyle,
+        animated: edgeAnimated,
         style: { 
-          stroke: 'var(--color-primary)', 
-          strokeWidth: 2 
+          stroke: edgeColor, 
+          strokeWidth: edgeWidth 
         },
         markerEnd: {
           type: 'arrowclosed' as const,
-          color: 'var(--color-primary)',
+          color: edgeColor,
+        },
+        data: {
+          dependencyId: dep.id,
         },
       };
     });
@@ -690,7 +702,7 @@ export const useCanvasView = ({ tasks, setTasks, onRefresh }: UseCanvasViewProps
           taskIds.map((taskId) => tasksService.updateTaskAppearance(taskId, color, shape))
         );
 
-        // Update nodes
+        // Update nodes - fix: update node.data.task instead of node.data
         setNodes((nds) =>
           nds.map((node) => {
             if (taskIds.includes(parseInt(node.id))) {
@@ -698,8 +710,11 @@ export const useCanvasView = ({ tasks, setTasks, onRefresh }: UseCanvasViewProps
                 ...node,
                 data: {
                   ...node.data,
-                  canvas_color: color,
-                  canvas_shape: shape,
+                  task: {
+                    ...node.data.task,
+                    canvas_color: color,
+                    canvas_shape: shape,
+                  },
                 },
               };
             }
@@ -707,7 +722,7 @@ export const useCanvasView = ({ tasks, setTasks, onRefresh }: UseCanvasViewProps
           })
         );
 
-        // Update tasks in parent state
+        // Update tasks in parent state - also update subtasks recursively
         setTasks((prevTasks) => {
           const updateTaskAppearance = (taskList: Task[]): Task[] => {
             return taskList.map((task) => {
@@ -727,12 +742,26 @@ export const useCanvasView = ({ tasks, setTasks, onRefresh }: UseCanvasViewProps
           };
           return updateTaskAppearance(prevTasks);
         });
+
+        toast({
+          title: 'Customization applied',
+          description: `Updated ${taskIds.length} task(s)`,
+          status: 'success',
+          duration: 2000,
+          isClosable: true,
+        });
       } catch (error) {
         console.error('Failed to customize tasks:', error);
+        toast({
+          title: 'Failed to customize tasks',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
         throw error;
       }
     },
-    [setTasks]
+    [setTasks, toast]
   );
 
   // Delete dependency
@@ -750,6 +779,62 @@ export const useCanvasView = ({ tasks, setTasks, onRefresh }: UseCanvasViewProps
     []
   );
 
+  // Customize edges (dependencies)
+  const customizeEdges = useCallback(
+    async (
+      dependencyIds: number[],
+      appearance: {
+        edge_color?: string | null;
+        edge_style?: string | null;
+        edge_width?: number | null;
+        edge_animated?: boolean | null;
+      }
+    ) => {
+      try {
+        // Update all selected dependencies
+        await Promise.all(
+          dependencyIds.map((depId) =>
+            tasksService.updateDependencyAppearance(depId, appearance)
+          )
+        );
+
+        // Update dependencies state
+        setDependencies((prev) => {
+          const updated = prev.map((dep) => {
+            if (dependencyIds.includes(dep.id)) {
+              return {
+                ...dep,
+                ...appearance,
+              };
+            }
+            return dep;
+          });
+          // Regenerate edges with new appearance
+          setEdges(dependenciesToEdges(updated));
+          return updated;
+        });
+
+        toast({
+          title: 'Edge customization applied',
+          description: `Updated ${dependencyIds.length} edge(s)`,
+          status: 'success',
+          duration: 2000,
+          isClosable: true,
+        });
+      } catch (error) {
+        console.error('Failed to customize edges:', error);
+        toast({
+          title: 'Failed to customize edges',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+        throw error;
+      }
+    },
+    [dependenciesToEdges, toast]
+  );
+
   return {
     nodes,
     edges,
@@ -762,6 +847,7 @@ export const useCanvasView = ({ tasks, setTasks, onRefresh }: UseCanvasViewProps
     onConnect,
     toggleConnectMode,
     customizeTasks,
+    customizeEdges,
     deleteDependency,
   };
 };

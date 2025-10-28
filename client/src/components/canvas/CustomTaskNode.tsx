@@ -14,6 +14,8 @@ interface Task {
   deadline?: string;
   children: Task[];
   subtasks?: Task[];
+  canvas_color?: string | null;
+  canvas_shape?: string | null;
 }
 
 export interface TaskNodeData extends Record<string, unknown> {

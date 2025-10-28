@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   ReactFlow,
   Background,
@@ -11,6 +11,7 @@ import './CanvasStyles.css';
 import { Box, Flex } from '@chakra-ui/react';
 import CustomTaskNode from './CustomTaskNode';
 import TaskCustomizationPanel from './TaskCustomizationPanel';
+import EdgeCustomizationPanel from './EdgeCustomizationPanel';
 import DependencyControls from './DependencyControls';
 import CanvasAddTaskPanel from './CanvasAddTaskPanel';
 import { Task, TaskCreateRequest } from '../../services/tasks';
@@ -41,6 +42,8 @@ const TaskCanvasView: React.FC<TaskCanvasViewProps> = ({
   onCreateTask,
   onRefresh,
 }) => {
+  const [selectedEdgeIds, setSelectedEdgeIds] = useState<number[]>([]);
+
   const {
     nodes,
     edges,
@@ -53,6 +56,7 @@ const TaskCanvasView: React.FC<TaskCanvasViewProps> = ({
     onConnect,
     toggleConnectMode,
     customizeTasks,
+    customizeEdges,
     deleteDependency,
   } = useCanvasView({ tasks, setTasks, onRefresh });
 
@@ -63,6 +67,16 @@ const TaskCanvasView: React.FC<TaskCanvasViewProps> = ({
     }),
     []
   );
+
+  // Handle edge selection
+  const handleEdgeClick = (_event: React.MouseEvent, edge: any) => {
+    const dependencyId = edge.data?.dependencyId;
+    if (dependencyId) {
+      setSelectedEdgeIds([dependencyId]);
+      // Clear node selection when edge is selected
+      setSelectedNodeIds([]);
+    }
+  };
 
   return (
     <Flex w="100%" h="calc(100vh - 200px)" position="relative">
@@ -81,12 +95,16 @@ const TaskCanvasView: React.FC<TaskCanvasViewProps> = ({
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
+          onEdgeClick={handleEdgeClick}
           nodeTypes={nodeTypes}
           fitView
           minZoom={0.1}
           maxZoom={2}
           defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
-          onPaneClick={() => setSelectedNodeIds([])}
+          onPaneClick={() => {
+            setSelectedNodeIds([]);
+            setSelectedEdgeIds([]);
+          }}
           connectionRadius={30}
           connectionLineStyle={{ stroke: 'var(--color-primary)', strokeWidth: 3 }}
           elevateEdgesOnSelect={true}
@@ -155,21 +173,34 @@ const TaskCanvasView: React.FC<TaskCanvasViewProps> = ({
             onCreateTask={onCreateTask}
           />
 
-          {/* Task Customization Panel */}
-          <TaskCustomizationPanel
-            selectedTaskIds={selectedNodeIds}
-            onCustomize={customizeTasks}
-          />
+          {/* Task Customization Panel - Only show when task(s) selected */}
+          {selectedNodeIds.length > 0 && (
+            <TaskCustomizationPanel
+              selectedTaskIds={selectedNodeIds}
+              onCustomize={customizeTasks}
+            />
+          )}
 
-          {/* Dependency Controls */}
-          <DependencyControls
-            selectedTaskIds={selectedNodeIds}
-            dependencies={dependencies}
-            tasks={tasks}
-            connectMode={connectMode}
-            onToggleConnectMode={toggleConnectMode}
-            onDeleteDependency={deleteDependency}
-          />
+          {/* Edge Customization Panel - Only show when edge(s) selected */}
+          {selectedEdgeIds.length > 0 && (
+            <EdgeCustomizationPanel
+              selectedEdgeIds={selectedEdgeIds}
+              onCustomize={customizeEdges}
+            />
+          )}
+
+          {/* Dependency Controls - Only show when task(s) or edge(s) selected */}
+          {(selectedNodeIds.length > 0 || selectedEdgeIds.length > 0) && (
+            <DependencyControls
+              selectedTaskIds={selectedNodeIds}
+              selectedEdgeIds={selectedEdgeIds}
+              dependencies={dependencies}
+              tasks={tasks}
+              connectMode={connectMode}
+              onToggleConnectMode={toggleConnectMode}
+              onDeleteDependency={deleteDependency}
+            />
+          )}
         </Box>
       </Box>
     </Flex>
