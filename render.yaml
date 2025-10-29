@@ -19,8 +19,6 @@ services:
         generateValue: true
       - key: FRONTEND_URL
         value: https://your-app.netlify.app
-      - key: PYTHON_VERSION
-        value: 3.11.0
 
 databases:
   # PostgreSQL Database
