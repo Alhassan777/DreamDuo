@@ -18,7 +18,7 @@ import DashboardLayout from '../components/DashboardLayout';
 import DayTasksModal from '../components/tasks/DayTasksModal';
 import { tasksService, Task } from '../services/tasks';
 import { tagsService, Category } from '../services/tags';
-import './styles/calendarPage.css'; // Import the CSS file
+import './styles/CalendarPage.css'; // Import the CSS file
 
 const CalendarPage = () => {
   const { isAotMode } = useTheme();
