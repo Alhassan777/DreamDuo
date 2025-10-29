@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
@@ -19,9 +19,14 @@ def create_app():
     # Initialize Flask app
     app = Flask(__name__)
 
+    # Get allowed origins from environment variable
+    allowed_origins = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+    # Support multiple origins (comma-separated)
+    allowed_origins_list = [origin.strip() for origin in allowed_origins.split(',')]
+    
     # ✅ Enable CORS Globally with proper configuration
     CORS(app, 
-         resources={r"/api/*": {"origins": "http://localhost:5173"}},
+         resources={r"/api/*": {"origins": allowed_origins_list}},
          supports_credentials=True,
          allow_headers=["Content-Type", "Authorization"],
          methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
@@ -29,7 +34,9 @@ def create_app():
     # ✅ Ensure CORS Headers in Responses
     @app.after_request
     def add_cors_headers(response):
-        response.headers['Access-Control-Allow-Origin'] = "http://localhost:5173"
+        origin = request.headers.get('Origin')
+        if origin in allowed_origins_list:
+            response.headers['Access-Control-Allow-Origin'] = origin
         response.headers['Access-Control-Allow-Credentials'] = "true"
         response.headers['Access-Control-Allow-Methods'] = "GET, POST, PUT, DELETE, OPTIONS"
         response.headers['Access-Control-Allow-Headers'] = "Content-Type, Authorization"
@@ -44,11 +51,19 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # Configure JWT
-    app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', secrets.token_hex(32))
+    jwt_secret = os.getenv('JWT_SECRET_KEY')
+    if not jwt_secret:
+        if os.getenv('FLASK_ENV') == 'production':
+            raise ValueError('JWT_SECRET_KEY must be set in production')
+        jwt_secret = secrets.token_hex(32)
+        print('WARNING: Using auto-generated JWT_SECRET_KEY for development')
+    
+    app.config['JWT_SECRET_KEY'] = jwt_secret
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
     app.config['JWT_TOKEN_LOCATION'] = ['cookies']  # ✅ Read token from cookies
-    app.config['JWT_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
-    app.config['JWT_COOKIE_SAMESITE'] = 'lax'  # Required for cross-origin requests
+    # Set cookie secure to True in production (requires HTTPS)
+    app.config['JWT_COOKIE_SECURE'] = os.getenv('FLASK_ENV') == 'production'
+    app.config['JWT_COOKIE_SAMESITE'] = 'None' if os.getenv('FLASK_ENV') == 'production' else 'lax'
     app.config['JWT_COOKIE_CSRF_PROTECT'] = False  # Disable CSRF protection for now
     app.config['JWT_COOKIE_DOMAIN'] = None  # Allow the browser to handle cookie domain automatically
 
@@ -56,7 +71,7 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
-    socketio.init_app(app, cors_allowed_origins="http://localhost:5173")
+    socketio.init_app(app, cors_allowed_origins=allowed_origins_list)
 
     with app.app_context():
         try:
@@ -81,4 +96,6 @@ def create_app():
 
 if __name__ == '__main__':
     app = create_app()
-    socketio.run(app, debug=True, port=3001)
+    port = int(os.getenv('PORT', 3001))
+    debug = os.getenv('FLASK_ENV') != 'production'
+    socketio.run(app, debug=debug, host='0.0.0.0', port=port)
