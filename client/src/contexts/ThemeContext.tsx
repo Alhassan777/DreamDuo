@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { ThemePreset, defaultTheme, aotTheme, getPresetById } from '../config/themePresets';
 import { getThemePreferences, saveThemePreferences, ThemePreferences } from '../services/theme';
+import { getStorageItem, setStorageItem, STORAGE_KEYS } from '../utils/localStorage';
 
 interface ThemeContextType {
   currentTheme: ThemePreset;
@@ -118,14 +119,45 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Load theme from backend on mount
+  // Load theme from localStorage and backend on mount
   useEffect(() => {
     const loadTheme = async () => {
       try {
         // Check localStorage for legacy AoT mode
         const legacyAotMode = localStorage.getItem('aotMode');
         
-        // Try to load from backend
+        // First, try to load from localStorage for instant theme application
+        const localPreferences = getStorageItem<ThemePreferences>(STORAGE_KEYS.THEME_PREFERENCES);
+        
+        // Apply local preferences immediately if available
+        if (localPreferences && localPreferences.presetId) {
+          const preset = getPresetById(localPreferences.presetId);
+          if (preset) {
+            setCurrentTheme(preset);
+            setCurrentPresetId(preset.id);
+            applyTheme(preset);
+          }
+        } else if (localPreferences && Object.keys(localPreferences).length > 0 && !localPreferences.presetId) {
+          // Custom theme from localStorage
+          const customTheme: ThemePreset = {
+            ...defaultTheme,
+            id: 'custom',
+            name: 'Custom',
+            description: 'User customized theme',
+            ...localPreferences,
+            colors: { ...defaultTheme.colors, ...localPreferences.colors },
+            typography: { ...defaultTheme.typography, ...localPreferences.typography },
+            shapes: { ...defaultTheme.shapes, ...localPreferences.shapes },
+            spacing: { ...defaultTheme.spacing, ...localPreferences.spacing },
+            effects: { ...defaultTheme.effects, ...localPreferences.effects },
+          };
+          setCurrentTheme(customTheme);
+          setCurrentPresetId('custom');
+          setIsCustomTheme(true);
+          applyTheme(customTheme);
+        }
+        
+        // Then try to load from backend (for sync across devices)
         const preferences = await getThemePreferences();
         
         if (preferences.presetId) {
@@ -134,17 +166,20 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
             setCurrentTheme(preset);
             setCurrentPresetId(preset.id);
             applyTheme(preset);
+            // Update localStorage with backend data
+            setStorageItem(STORAGE_KEYS.THEME_PREFERENCES, { presetId: preset.id });
           }
         } else if (legacyAotMode === 'true') {
           // Migrate legacy AoT mode
           setCurrentTheme(aotTheme);
           setCurrentPresetId('aot');
           applyTheme(aotTheme);
-          // Save to backend
+          // Save to backend and localStorage
           await saveThemePreferences({ presetId: 'aot' });
+          setStorageItem(STORAGE_KEYS.THEME_PREFERENCES, { presetId: 'aot' });
           localStorage.removeItem('aotMode');
         } else if (Object.keys(preferences).length > 0) {
-          // Custom theme
+          // Custom theme from backend
           const customTheme: ThemePreset = {
             ...defaultTheme,
             id: 'custom',
@@ -161,13 +196,21 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
           setCurrentPresetId('custom');
           setIsCustomTheme(true);
           applyTheme(customTheme);
-        } else {
-          // Default theme
+          // Update localStorage with backend data
+          setStorageItem(STORAGE_KEYS.THEME_PREFERENCES, preferences);
+        } else if (!localPreferences) {
+          // No preferences anywhere - use default theme
           applyTheme(defaultTheme);
+          setStorageItem(STORAGE_KEYS.THEME_PREFERENCES, { presetId: 'default' });
         }
       } catch (error) {
         console.error('Error loading theme:', error);
-        applyTheme(defaultTheme);
+        // If backend fails but we have local preferences, keep using them
+        // Otherwise apply default
+        const localPreferences = getStorageItem<ThemePreferences>(STORAGE_KEYS.THEME_PREFERENCES);
+        if (!localPreferences) {
+          applyTheme(defaultTheme);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -183,6 +226,8 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
       setCurrentPresetId(presetId);
       setIsCustomTheme(false);
       applyTheme(preset);
+      // Persist to localStorage immediately
+      setStorageItem(STORAGE_KEYS.THEME_PREFERENCES, { presetId });
     }
   };
 
@@ -202,6 +247,15 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     setCurrentPresetId('custom');
     setIsCustomTheme(true);
     applyTheme(newTheme);
+    // Persist to localStorage immediately
+    const preferences: ThemePreferences = {
+      colors: newTheme.colors,
+      typography: newTheme.typography,
+      shapes: newTheme.shapes,
+      spacing: newTheme.spacing,
+      effects: newTheme.effects,
+    };
+    setStorageItem(STORAGE_KEYS.THEME_PREFERENCES, preferences);
   };
 
   const updateThemeColors = (colors: Partial<ThemePreset['colors']>) => {
@@ -210,6 +264,15 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     setIsCustomTheme(true);
     setCurrentPresetId('custom');
     applyTheme(newTheme);
+    // Persist to localStorage immediately
+    const preferences: ThemePreferences = {
+      colors: newTheme.colors,
+      typography: newTheme.typography,
+      shapes: newTheme.shapes,
+      spacing: newTheme.spacing,
+      effects: newTheme.effects,
+    };
+    setStorageItem(STORAGE_KEYS.THEME_PREFERENCES, preferences);
   };
 
   const updateThemeTypography = (typography: Partial<ThemePreset['typography']>) => {
@@ -218,6 +281,15 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     setIsCustomTheme(true);
     setCurrentPresetId('custom');
     applyTheme(newTheme);
+    // Persist to localStorage immediately
+    const preferences: ThemePreferences = {
+      colors: newTheme.colors,
+      typography: newTheme.typography,
+      shapes: newTheme.shapes,
+      spacing: newTheme.spacing,
+      effects: newTheme.effects,
+    };
+    setStorageItem(STORAGE_KEYS.THEME_PREFERENCES, preferences);
   };
 
   const updateThemeShapes = (shapes: Partial<ThemePreset['shapes']>) => {
@@ -226,6 +298,15 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     setIsCustomTheme(true);
     setCurrentPresetId('custom');
     applyTheme(newTheme);
+    // Persist to localStorage immediately
+    const preferences: ThemePreferences = {
+      colors: newTheme.colors,
+      typography: newTheme.typography,
+      shapes: newTheme.shapes,
+      spacing: newTheme.spacing,
+      effects: newTheme.effects,
+    };
+    setStorageItem(STORAGE_KEYS.THEME_PREFERENCES, preferences);
   };
 
   const updateThemeSpacing = (spacing: Partial<ThemePreset['spacing']>) => {
@@ -234,6 +315,15 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     setIsCustomTheme(true);
     setCurrentPresetId('custom');
     applyTheme(newTheme);
+    // Persist to localStorage immediately
+    const preferences: ThemePreferences = {
+      colors: newTheme.colors,
+      typography: newTheme.typography,
+      shapes: newTheme.shapes,
+      spacing: newTheme.spacing,
+      effects: newTheme.effects,
+    };
+    setStorageItem(STORAGE_KEYS.THEME_PREFERENCES, preferences);
   };
 
   const updateThemeEffects = (effects: Partial<ThemePreset['effects']>) => {
@@ -242,6 +332,15 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     setIsCustomTheme(true);
     setCurrentPresetId('custom');
     applyTheme(newTheme);
+    // Persist to localStorage immediately
+    const preferences: ThemePreferences = {
+      colors: newTheme.colors,
+      typography: newTheme.typography,
+      shapes: newTheme.shapes,
+      spacing: newTheme.spacing,
+      effects: newTheme.effects,
+    };
+    setStorageItem(STORAGE_KEYS.THEME_PREFERENCES, preferences);
   };
 
   const saveToBackend = async () => {
@@ -257,6 +356,8 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
         : { presetId: currentPresetId };
 
       await saveThemePreferences(preferences);
+      // Also save to localStorage
+      setStorageItem(STORAGE_KEYS.THEME_PREFERENCES, preferences);
     } catch (error) {
       console.error('Error saving theme to backend:', error);
       throw error;
@@ -268,6 +369,8 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     setCurrentPresetId('default');
     setIsCustomTheme(false);
     applyTheme(defaultTheme);
+    // Persist to localStorage immediately
+    setStorageItem(STORAGE_KEYS.THEME_PREFERENCES, { presetId: 'default' });
   };
 
   // Legacy AoT mode support
