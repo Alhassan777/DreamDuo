@@ -31,10 +31,13 @@ class WebSocketService {
   connect() {
     if (this.socket) return;
 
+    // Use environment variable for WebSocket URL, fallback to localhost for development
+    const WEBSOCKET_URL = import.meta.env.VITE_WEBSOCKET_URL || 'http://localhost:3001';
+    
     // Connect to the same host as the API but on the WebSocket port
-    this.socket = io('http://localhost:3001', {
+    this.socket = io(WEBSOCKET_URL, {
       withCredentials: true,
-      transports: ['websocket']
+      transports: ['websocket', 'polling']
     });
 
     // Set up event listeners
