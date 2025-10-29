@@ -1,0 +1,24 @@
+[build]
+  # Directory to change to before starting a build
+  base = "client/"
+  
+  # Command to run to build the site
+  command = "npm run build"
+  
+  # Directory that will be deployed to Netlify
+  publish = "dist/"
+
+# Redirect all requests to index.html for client-side routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Build environment variables
+[build.environment]
+  NODE_VERSION = "18.0.0"
+
+# Production environment variables (these will be set in Netlify UI)
+# VITE_API_URL will need to be set in Netlify dashboard
+# VITE_WEBSOCKET_URL will need to be set in Netlify dashboard
+

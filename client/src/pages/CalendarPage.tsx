@@ -24,7 +24,7 @@ const CalendarPage = () => {
   const { isAotMode } = useTheme();
   const navigate = useNavigate();
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedDate, _setSelectedDate] = useState<Date | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [dayTasks, setDayTasks] = useState<Task[]>([]);
@@ -112,7 +112,7 @@ const CalendarPage = () => {
   };
   
   // Handle day click to navigate to TasksPage
-  const handleDayClick = (day: number) => {
+  const handleDayClick = (_day: number) => {
     // Just navigate to tasks page - the TasksPage will handle showing tasks for the selected date
     navigate('/tasks');
   };

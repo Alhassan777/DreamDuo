@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   VStack,
   Box,
-  Icon,
   Text,
   Flex,
   IconButton,
-  Tooltip,
   IconProps,
 } from '@chakra-ui/react';
 import { useNavigate, useLocation } from 'react-router-dom';

@@ -1,5 +1,5 @@
 import { Box, Flex } from '@chakra-ui/react';
-import { ReactNode, useState } from 'react';
+import { ReactNode } from 'react';
 import Sidebar from './Sidebar';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -9,10 +9,8 @@ interface DashboardLayoutProps {
 
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const { currentTheme } = useTheme();
-  const [isCollapsed, setIsCollapsed] = useState(false);
-
-  const handleSidebarCollapse = (collapsed: boolean) => {
-    setIsCollapsed(collapsed);
+  const handleSidebarCollapse = (_collapsed: boolean) => {
+    // Handle sidebar collapse if needed
   };
 
   return (

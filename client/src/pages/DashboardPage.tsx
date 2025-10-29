@@ -9,15 +9,7 @@ import {
   CircularProgressLabel,
   useToast,
   Flex,
-  Button,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  ModalCloseButton,
-  Input
+  Button
 } from '@chakra-ui/react';
 import DashboardLayout from '../components/DashboardLayout';
 import DashboardFilters from '../components/dashboard/DashboardFilters';
@@ -150,7 +142,7 @@ const DashboardPage: React.FC = () => {
     weeklyStats: [],
     monthlyStats: []
   });
-  const [isLoading, setIsLoading] = useState(true);
+  const [_isLoading, setIsLoading] = useState(true);
   const [viewType, setViewType] = useState<'bar' | 'compound'>('bar');
   
   const toggleViewType = () => {

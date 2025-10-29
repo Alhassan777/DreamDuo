@@ -17,7 +17,7 @@ interface TaskCategoriesSectionProps {
   setCategories: (categories: string[]) => void;
 }
 
-const TaskCategoriesSection: React.FC<TaskCategoriesSectionProps> = ({ categories, setCategories }) => {
+const TaskCategoriesSection: React.FC<TaskCategoriesSectionProps> = ({ setCategories }) => {
   const { isAotMode } = useTheme();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [categoryList, setCategoryList] = useState<CategoryWithUI[]>([]);
@@ -26,7 +26,7 @@ const TaskCategoriesSection: React.FC<TaskCategoriesSectionProps> = ({ categorie
     description: '',
     icon: '📋'
   });
-  const [isLoading, setIsLoading] = useState(false);
+  const [_isLoading, setIsLoading] = useState(false);
   const toast = useToast();
   
   // Fetch categories from the backend when component mounts

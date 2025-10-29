@@ -6,7 +6,6 @@ import './styles/LoginPage.css';
 import surveyCorpsKey from '../assets/key.png';
 import hidePasswordIcon from '../assets/show_password.png';
 import showPasswordIcon from '../assets/hide_password.png';
-import api from '../services/api';
 import { auth } from '../services/api';
 
 const LoginPage = () => {

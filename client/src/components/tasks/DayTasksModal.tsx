@@ -190,7 +190,7 @@ const DayTasksModal: React.FC<DayTasksModalProps> = ({
                 </Text>
                 {task.priority && (
                   <Text fontSize="sm" color="gray.500">
-                    Priority: {task.priority}
+                    Priority: {typeof task.priority === 'string' ? task.priority : task.priority.level}
                   </Text>
                 )}
                 <IconButton

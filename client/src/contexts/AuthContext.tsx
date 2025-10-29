@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import { auth } from '../services/api';
 
 interface User {
@@ -12,7 +12,7 @@ interface AuthContextType {
   loading: boolean;
   error: string | null;
   login: (username: string, password: string) => Promise<void>;
-  register: (username: string, email: string, password: string) => Promise<void>;
+  register: (firstName: string, lastName: string, email: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -37,11 +37,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (username: string, email: string, password: string) => {
+  const register = async (firstName: string, lastName: string, email: string, password: string) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await auth.register(username, email, password);
+      const response = await auth.register(firstName, lastName, email, password);
       setUser(response.user);
     } catch (err: any) {
       setError(err.response?.data?.error || 'An error occurred during registration');

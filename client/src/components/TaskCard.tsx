@@ -77,7 +77,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
   onDelete,
   onToggleCollapse,
   onAddSubtask,
-  onToggleComplete,
+  onToggleComplete: _onToggleComplete,
   onToggleSubtaskComplete,
   onUpdateName,
   onUpdateSubtaskName,

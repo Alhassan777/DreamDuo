@@ -240,7 +240,7 @@ export const useTasks = (dateFilter?: string) => {
     }
   };
 
-  const updateSubtaskName = async (taskId: number, subtaskId: number, newName: string) => {
+  const updateSubtaskName = async (_taskId: number, subtaskId: number, newName: string) => {
     try {
       await tasksService.updateTask(subtaskId, { name: newName });
       

@@ -6,7 +6,6 @@ import {
   Select,
   Text,
   Button,
-  Textarea,
   VStack,
 } from '@chakra-ui/react';
 import { Category } from '../../services/tags';

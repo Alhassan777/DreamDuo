@@ -9,7 +9,7 @@ import {
 import { CalendarIcon } from '@chakra-ui/icons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { TimeScope } from '../../hooks/useTaskFilters';
-import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
+import { format, startOfWeek, endOfWeek } from 'date-fns';
 import './TimeScopeSelector.css';
 
 interface TimeScopeSelectorProps {

@@ -222,7 +222,7 @@ export const tasksService = {
    * Toggles a task's 'completed' status on the server.
    * Some backends ignore the 'completed' value you send; it depends on the API.
    */
-  toggleTaskComplete: async (taskId: number, completed: boolean): Promise<TaskResponse> => {
+  toggleTaskComplete: async (taskId: number, _completed: boolean): Promise<TaskResponse> => {
     try {
       const response = await api.put(`/tasks/${taskId}/toggle`, {});
       return response.data;
