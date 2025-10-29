@@ -11,6 +11,7 @@ export const STORAGE_KEYS = {
   TIME_SCOPE: `${STORAGE_PREFIX}time-scope`,
   ANCHOR_DATE: `${STORAGE_PREFIX}anchor-date`,
   FILTERS: `${STORAGE_PREFIX}filters`,
+  THEME_PREFERENCES: `${STORAGE_PREFIX}theme-preferences`,
 } as const;
 
 /**
