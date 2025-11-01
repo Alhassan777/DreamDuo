@@ -4,13 +4,16 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   background-color: var(--color-card-background);
   padding: var(--spacing-sm) var(--spacing-md);
-  height: var(--card-height, 150px);
   transition: all var(--animation-duration) ease;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   border-color: var(--color-border);
   opacity: var(--opacity-card);
+}
+
+.status-card.has-fixed-height {
+  height: var(--card-height, 150px);
 }
 
 .status-card:hover {
