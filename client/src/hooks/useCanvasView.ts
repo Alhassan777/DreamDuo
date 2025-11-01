@@ -528,6 +528,21 @@ export const useCanvasView = ({ tasks, setTasks, onRefresh }: UseCanvasViewProps
     [toast]
   );
 
+  // Delete dependency
+  const deleteDependency = useCallback(
+    async (dependencyId: number) => {
+      try {
+        await tasksService.deleteDependency(dependencyId);
+        setDependencies((prev) => prev.filter((dep) => dep.id !== dependencyId));
+        setEdges((prev) => prev.filter((edge) => edge.id !== `e-${dependencyId}`));
+      } catch (error) {
+        console.error('Failed to delete dependency:', error);
+        throw error;
+      }
+    },
+    []
+  );
+
   // Handle edge changes
   const onEdgesChange: OnEdgesChange = useCallback(
     (changes) => {
@@ -545,7 +560,7 @@ export const useCanvasView = ({ tasks, setTasks, onRefresh }: UseCanvasViewProps
         }
       });
     },
-    [dependencies]
+    [dependencies, deleteDependency]
   );
 
   // Helper to extract task ID from handle ID
@@ -571,6 +586,18 @@ export const useCanvasView = ({ tasks, setTasks, onRefresh }: UseCanvasViewProps
     async (connection: { source: string | null; target: string | null; sourceHandle?: string | null; targetHandle?: string | null }) => {
       if (!connection.source || !connection.target) return;
       
+      // Prevent self-connections
+      if (connection.source === connection.target) {
+        toast({
+          title: 'Invalid connection',
+          description: 'Cannot connect a task to itself',
+          status: 'warning',
+          duration: 2000,
+          isClosable: true,
+        });
+        return;
+      }
+      
       // Extract actual task/subtask IDs from handles
       const sourceId = extractTaskIdFromHandle(connection.source, connection.sourceHandle);
       const targetId = extractTaskIdFromHandle(connection.target, connection.targetHandle);
@@ -581,13 +608,10 @@ export const useCanvasView = ({ tasks, setTasks, onRefresh }: UseCanvasViewProps
         const newDep = await tasksService.createDependency(sourceId, targetId);
         console.log('Dependency created:', newDep);
         
-        // Update dependencies state
-        setDependencies((prev) => {
-          const updated = [...prev, newDep];
-          // Also update edges immediately
-          setEdges(dependenciesToEdges(updated));
-          return updated;
-        });
+        // Reload all dependencies to ensure consistency
+        const allDeps = await tasksService.getDependencies();
+        setDependencies(allDeps);
+        setEdges(dependenciesToEdges(allDeps));
         
         const sourceName = findTaskById(tasks, sourceId)?.name || `Task ${sourceId}`;
         const targetName = findTaskById(tasks, targetId)?.name || `Task ${targetId}`;
@@ -762,21 +786,6 @@ export const useCanvasView = ({ tasks, setTasks, onRefresh }: UseCanvasViewProps
       }
     },
     [setTasks, toast]
-  );
-
-  // Delete dependency
-  const deleteDependency = useCallback(
-    async (dependencyId: number) => {
-      try {
-        await tasksService.deleteDependency(dependencyId);
-        setDependencies((prev) => prev.filter((dep) => dep.id !== dependencyId));
-        setEdges((prev) => prev.filter((edge) => edge.id !== `e-${dependencyId}`));
-      } catch (error) {
-        console.error('Failed to delete dependency:', error);
-        throw error;
-      }
-    },
-    []
   );
 
   // Customize edges (dependencies)
