@@ -109,6 +109,7 @@ const TaskCanvasView: React.FC<TaskCanvasViewProps> = ({
           connectionLineStyle={{ stroke: 'var(--color-primary)', strokeWidth: 3 }}
           elevateEdgesOnSelect={true}
           edgesReconnectable={true}
+          deleteKeyCode={null}
           style={{
             background: 'var(--color-background)',
           }}
