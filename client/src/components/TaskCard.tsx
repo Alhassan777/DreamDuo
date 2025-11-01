@@ -10,6 +10,16 @@ import {
   Input,
   Circle,
   Tooltip,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  Textarea,
+  Button,
+  useDisclosure,
 } from '@chakra-ui/react';
 import { useTheme } from '../contexts/ThemeContext';
 import {
@@ -19,6 +29,7 @@ import {
   ChevronDownIcon,
   StarIcon,
   TimeIcon,
+  InfoOutlineIcon,
 } from '@chakra-ui/icons';
 import { format, isValid, parseISO } from 'date-fns';
 
@@ -30,6 +41,7 @@ import './styles/TaskCard.css';
 interface Task {
   id: number;
   name: string;
+  description?: string;
   completed: boolean;
   collapsed?: boolean;
   priority?: { color: string; level: string; } | string; // Support both new object format and legacy string format
@@ -70,6 +82,8 @@ interface TaskCardProps extends Partial<DragProps> {
   onToggleSubtaskComplete: (taskId: number, subtaskId: number) => void;
   onUpdateName: (taskId: number, newName: string) => void;
   onUpdateSubtaskName: (taskId: number, subtaskId: number, newName: string) => void;
+  onUpdateDescription: (taskId: number, description: string) => void;
+  onUpdateSubtaskDescription: (taskId: number, subtaskId: number, description: string) => void;
 }
 
 const TaskCard: React.FC<TaskCardProps> = ({
@@ -81,6 +95,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
   onToggleSubtaskComplete,
   onUpdateName,
   onUpdateSubtaskName,
+  onUpdateDescription,
+  onUpdateSubtaskDescription,
   onDragStart,
   onDrop,
   dragState,
@@ -90,10 +106,15 @@ const TaskCard: React.FC<TaskCardProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(task.name);
   
+  // Modal state for description editing
+  const { isOpen: isDescriptionModalOpen, onOpen: onDescriptionModalOpen, onClose: onDescriptionModalClose } = useDisclosure();
+  const [editedDescription, setEditedDescription] = useState(task.description || '');
+  
   // Update local state when task prop changes
   useEffect(() => {
     setEditedName(task.name);
-  }, [task.name]);
+    setEditedDescription(task.description || '');
+  }, [task.name, task.description]);
 
   /** Double-click to start editing */
   const handleDoubleClick = () => {
@@ -122,6 +143,24 @@ const TaskCard: React.FC<TaskCardProps> = ({
       setIsEditing(false);
       setEditedName(task.name);
     }
+  };
+
+  /** Handle description modal open */
+  const handleDescriptionOpen = () => {
+    setEditedDescription(task.description || '');
+    onDescriptionModalOpen();
+  };
+
+  /** Handle description save */
+  const handleDescriptionSave = () => {
+    onUpdateDescription(task.id, editedDescription);
+    onDescriptionModalClose();
+  };
+
+  /** Handle description cancel */
+  const handleDescriptionCancel = () => {
+    setEditedDescription(task.description || '');
+    onDescriptionModalClose();
   };
 
   // Use children property if available, otherwise fall back to subtasks for compatibility
@@ -162,7 +201,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
       }}
     >
       <VStack spacing={4} align="stretch">
-        {/* HEADER: Delete button, Name, Collapse toggle, Add subtask */}
+        {/* HEADER: Delete button, Name, Collapse toggle, Description, Add subtask */}
         <Flex justify="space-between" align="center">
           <IconButton
             icon={<CloseIcon />}
@@ -195,8 +234,23 @@ const TaskCard: React.FC<TaskCardProps> = ({
             </Text>
           )}
 
-          {/* Right side: collapse + add subtask */}
+          {/* Right side: description, collapse, add subtask */}
           <Flex gap={2}>
+            {/* Description button with tooltip */}
+            <Tooltip 
+              label={task.description || 'No description. Click to add one.'}
+              placement="top"
+            >
+              <IconButton
+                icon={<InfoOutlineIcon />}
+                aria-label="Edit description"
+                size="sm"
+                onClick={handleDescriptionOpen}
+                data-aot-mode={isAotMode}
+                className="description-button"
+                variant="solid"
+              />
+            </Tooltip>
             <IconButton
               icon={task.collapsed ? <ChevronDownIcon /> : <ChevronUpIcon />}
               aria-label="Toggle collapse"
@@ -267,6 +321,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
                   onAddSubtask={(taskId, parentSubtaskId) => onAddSubtask(taskId, parentSubtaskId)}
                   onToggleComplete={onToggleSubtaskComplete}
                   onUpdateName={onUpdateSubtaskName}
+                  onUpdateDescription={onUpdateSubtaskDescription}
                   /* Drag + drop optional */
                   onDragStart={onDragStart ? onDragStart : () => {}}
                   onDrop={onDrop ? onDrop : () => {}}
@@ -277,6 +332,32 @@ const TaskCard: React.FC<TaskCardProps> = ({
           )}
         </Collapse>
       </VStack>
+
+      {/* Description Edit Modal */}
+      <Modal isOpen={isDescriptionModalOpen} onClose={handleDescriptionCancel} data-aot-mode={isAotMode}>
+        <ModalOverlay />
+        <ModalContent data-aot-mode={isAotMode}>
+          <ModalHeader data-aot-mode={isAotMode}>Edit Task Description</ModalHeader>
+          <ModalCloseButton data-aot-mode={isAotMode} />
+          <ModalBody>
+            <Textarea
+              value={editedDescription}
+              onChange={(e) => setEditedDescription(e.target.value)}
+              placeholder="Enter task description..."
+              rows={6}
+              data-aot-mode={isAotMode}
+            />
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="ghost" mr={3} onClick={handleDescriptionCancel} data-aot-mode={isAotMode}>
+              Cancel
+            </Button>
+            <Button colorScheme="blue" onClick={handleDescriptionSave} data-aot-mode={isAotMode}>
+              Save
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 };
