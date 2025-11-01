@@ -117,6 +117,7 @@ const TimeScopeSelector: React.FC<TimeScopeSelectorProps> = ({
         {/* Today Button */}
         <Button
           className="time-scope-today-button"
+          variant="outline"
           size="md"
           onClick={handleToday}
           data-aot-mode={isAotMode}
