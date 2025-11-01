@@ -112,6 +112,30 @@
   transition: box-shadow var(--animation-duration) ease-in-out;
 }
 
+/* Description button styling */
+.description-button {
+  transition: all 0.2s ease-in-out;
+  background: var(--color-primary) !important;
+  color: white !important;
+  border: 1px solid var(--color-primary) !important;
+}
+
+.description-button:hover {
+  transform: scale(1.05);
+  opacity: 0.9;
+}
+
+[data-aot-mode="true"] .description-button {
+  background: var(--aot-primary) !important;
+  color: var(--aot-text) !important;
+  border: 1px solid var(--aot-accent) !important;
+  box-shadow: 0 0 8px var(--aot-accent);
+}
+
+[data-aot-mode="true"] .description-button:hover {
+  box-shadow: 0 0 12px var(--aot-accent);
+}
+
 .task-name {
   color: var(--color-text);
   font-size: var(--font-size-base);
