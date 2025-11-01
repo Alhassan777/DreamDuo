@@ -147,30 +147,85 @@
   filter: invert(0.7) sepia(1) saturate(2) hue-rotate(15deg);
 }
 
-.time-scope-today-button {
+.time-scope-today-button,
+.chakra-button.time-scope-today-button,
+.chakra-button[class*="time-scope-today-button"] {
   background-color: transparent !important;
-  color: var(--color-primary);
-  border-width: 1px;
-  border-color: var(--color-primary);
-  font-weight: 500;
-  transition: all var(--animation-duration) var(--animation-timing);
+  background: transparent !important;
+  color: var(--color-button-primary) !important;
+  border-width: 1px !important;
+  border-style: solid !important;
+  border-color: var(--color-button-primary) !important;
+  font-weight: 500 !important;
+  transition: all var(--animation-duration) var(--animation-timing) !important;
+  border-radius: var(--border-radius-md) !important;
 }
 
 [data-aot-mode="true"] .time-scope-today-button,
-.time-scope-today-button[data-aot-mode="true"] {
+.time-scope-today-button[data-aot-mode="true"],
+[data-aot-mode="true"] .chakra-button.time-scope-today-button,
+.chakra-button.time-scope-today-button[data-aot-mode="true"],
+[data-aot-mode="true"] .chakra-button[class*="time-scope-today-button"],
+.chakra-button[class*="time-scope-today-button"][data-aot-mode="true"] {
   background-color: transparent !important;
-  color: var(--aot-accent);
-  border-color: var(--aot-accent);
+  background: transparent !important;
+  color: var(--aot-secondary-text-color) !important;
+  border-color: var(--aot-secondary-border-color) !important;
 }
 
-.time-scope-today-button:hover {
-  background-color: var(--color-hover-overlay);
+.time-scope-today-button:hover,
+.chakra-button.time-scope-today-button:hover,
+.chakra-button[class*="time-scope-today-button"]:hover {
+  background-color: var(--color-button-primary) !important;
+  background: var(--color-button-primary) !important;
+  color: var(--color-button-primary-text) !important;
+  border-color: var(--color-button-primary) !important;
   transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.time-scope-today-button:focus,
+.chakra-button.time-scope-today-button:focus,
+.chakra-button[class*="time-scope-today-button"]:focus {
+  background-color: transparent !important;
+  background: transparent !important;
+  color: var(--color-button-primary) !important;
+  border-color: var(--color-focus-ring) !important;
+  box-shadow: 0 0 0 1px var(--color-focus-ring) !important;
+}
+
+.time-scope-today-button:active,
+.chakra-button.time-scope-today-button:active,
+.chakra-button[class*="time-scope-today-button"]:active {
+  background-color: var(--color-button-primary) !important;
+  background: var(--color-button-primary) !important;
+  color: var(--color-button-primary-text) !important;
+  border-color: var(--color-button-primary) !important;
 }
 
 [data-aot-mode="true"] .time-scope-today-button:hover,
-.time-scope-today-button[data-aot-mode="true"]:hover {
-  background-color: var(--aot-hover-overlay);
+.time-scope-today-button[data-aot-mode="true"]:hover,
+[data-aot-mode="true"] .chakra-button.time-scope-today-button:hover,
+.chakra-button.time-scope-today-button[data-aot-mode="true"]:hover,
+[data-aot-mode="true"] .chakra-button[class*="time-scope-today-button"]:hover,
+.chakra-button[class*="time-scope-today-button"][data-aot-mode="true"]:hover {
+  background-color: var(--aot-secondary-bg-hover) !important;
+  background: var(--aot-secondary-bg-hover) !important;
+  color: var(--aot-secondary-text-hover) !important;
+  border-color: var(--aot-secondary-border-color) !important;
+}
+
+[data-aot-mode="true"] .time-scope-today-button:focus,
+.time-scope-today-button[data-aot-mode="true"]:focus,
+[data-aot-mode="true"] .chakra-button.time-scope-today-button:focus,
+.chakra-button.time-scope-today-button[data-aot-mode="true"]:focus,
+[data-aot-mode="true"] .chakra-button[class*="time-scope-today-button"]:focus,
+.chakra-button[class*="time-scope-today-button"][data-aot-mode="true"]:focus {
+  background-color: transparent !important;
+  background: transparent !important;
+  color: var(--aot-secondary-text-color) !important;
+  border-color: var(--aot-accent) !important;
+  box-shadow: 0 0 0 1px var(--aot-accent) !important;
 }
 
 .time-scope-date-range-text {
