@@ -155,7 +155,7 @@ const FilterChips: React.FC<FilterChipsProps> = ({
         <Button
           className="filter-chips-clear-all-button"
           size="sm"
-          variant="ghost"
+          variant="outline"
           onClick={onClearAll}
         >
           Clear All Filters
