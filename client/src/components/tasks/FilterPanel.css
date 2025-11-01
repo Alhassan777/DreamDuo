@@ -240,24 +240,28 @@
 
 .filter-panel-button-clear {
   flex: 1;
-  border-color: var(--color-border);
-  color: var(--color-text);
+  border-color: var(--color-border) !important;
+  background-color: var(--color-surface) !important;
+  color: var(--color-text) !important;
   transition: all var(--animation-duration) var(--animation-timing);
 }
 
 [data-aot-mode="true"] .filter-panel-button-clear {
-  border-color: rgba(220, 162, 83, 0.5);
-  color: var(--aot-text);
+  border-color: rgba(220, 162, 83, 0.5) !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: var(--aot-text) !important;
 }
 
 .filter-panel-button-clear:hover {
-  background-color: var(--color-hover-overlay);
-  border-color: var(--color-primary);
+  background-color: var(--color-hover-overlay) !important;
+  border-color: var(--color-primary) !important;
+  color: var(--color-text) !important;
 }
 
 [data-aot-mode="true"] .filter-panel-button-clear:hover {
-  background-color: rgba(220, 162, 83, 0.1);
-  border-color: var(--aot-accent);
+  background-color: rgba(220, 162, 83, 0.2) !important;
+  border-color: var(--aot-accent) !important;
+  color: var(--aot-text) !important;
 }
 
 .filter-panel-button-apply {

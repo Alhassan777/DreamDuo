@@ -11,6 +11,8 @@ import {
 } from '@chakra-ui/react';
 import { Category } from '../../services/tags';
 import { TaskCreateRequest } from '../../services/tasks';
+import { useTheme } from '../../contexts/ThemeContext';
+import './TaskCreationForm.css';
 
 interface PriorityColor {
   level: string;
@@ -35,8 +37,10 @@ const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
   priorities,
   onClose,
 }) => {
+  const { isAotMode } = useTheme();
+  
   return (
-    <VStack spacing={4} align="stretch">
+    <VStack spacing={4} align="stretch" data-aot-mode={isAotMode}>
       <FormControl isRequired>
         <FormLabel color="white">Task Name</FormLabel>
         <Input
@@ -45,7 +49,7 @@ const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
             setNewTask((prev) => ({ ...prev, name: e.target.value }))
           }
           placeholder="Enter task name"
-          color="white"
+          className="task-creation-form-input"
         />
       </FormControl>
 
@@ -59,7 +63,7 @@ const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
           placeholder="Enter task description"
           resize="vertical"
           rows={3}
-          color="white"
+          className="task-creation-form-textarea"
         />
       </FormControl>
 
@@ -75,7 +79,13 @@ const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
                 : undefined,
             }))
           }
-          color="white"
+          className="task-creation-form-select"
+          sx={{
+            option: {
+              bg: isAotMode ? 'rgba(139, 69, 19, 0.3)' : 'var(--color-surface)',
+              color: isAotMode ? 'var(--aot-text)' : 'var(--color-text)',
+            },
+          }}
         >
           <option value="">No Category</option>
           {categories.map((cat) => (
@@ -97,7 +107,13 @@ const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
                 priority: e.target.value || undefined,
               }))
             }
-            color="white"
+            className="task-creation-form-select"
+            sx={{
+              option: {
+                bg: isAotMode ? 'rgba(139, 69, 19, 0.3)' : 'var(--color-surface)',
+                color: isAotMode ? 'var(--aot-text)' : 'var(--color-text)',
+              },
+            }}
           >
             <option value="">No Priority</option>
             {priorities.map((p) => (
@@ -137,7 +153,7 @@ const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
               deadline: e.target.value || undefined,
             }))
           }
-          color="white"
+          className="task-creation-form-input"
         />
       </FormControl>
 
