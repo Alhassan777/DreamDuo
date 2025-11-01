@@ -1,0 +1,28 @@
+/* DashboardFilters.css - Styling for dashboard filter components */
+
+.dashboard-filters-clear-button {
+  border-width: 1px !important;
+  background-color: var(--color-surface) !important;
+  color: var(--color-text) !important;
+  border-color: var(--color-border) !important;
+  transition: all var(--animation-duration) var(--animation-timing);
+}
+
+[data-aot-mode="true"] .dashboard-filters-clear-button {
+  border-color: rgba(220, 162, 83, 0.5) !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: var(--aot-text) !important;
+}
+
+.dashboard-filters-clear-button:hover {
+  background-color: var(--color-hover-overlay) !important;
+  border-color: var(--color-primary) !important;
+  color: var(--color-text) !important;
+}
+
+[data-aot-mode="true"] .dashboard-filters-clear-button:hover {
+  background-color: rgba(220, 162, 83, 0.2) !important;
+  border-color: var(--aot-accent) !important;
+  color: var(--aot-text) !important;
+}
+

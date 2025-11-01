@@ -13,6 +13,7 @@ import {
 } from '@chakra-ui/react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Category } from '../../services/tags';
+import './DashboardFilters.css';
 
 interface PriorityColor {
   level: string;
@@ -84,7 +85,7 @@ const DashboardFilters: React.FC<DashboardFiltersProps> = ({
   const hasFilters = selectedCategoryIds.length > 0 || selectedPriorityLevels.length > 0;
 
   return (
-    <Box>
+    <Box data-aot-mode={isAotMode}>
       <VStack align="stretch" spacing={3}>
         {/* Filter Controls */}
         <Flex gap={3} flexWrap="wrap" align="center">
@@ -123,9 +124,9 @@ const DashboardFilters: React.FC<DashboardFiltersProps> = ({
           {hasFilters && (
             <Button
               size="sm"
-              variant="ghost"
+              variant="outline"
               onClick={onClearAll}
-              colorScheme={isAotMode ? 'red' : 'blue'}
+              className="dashboard-filters-clear-button"
             >
               Clear Filters
             </Button>
