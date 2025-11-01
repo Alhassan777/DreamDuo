@@ -258,6 +258,42 @@ export const useTasks = (dateFilter?: string) => {
     }
   };
 
+  const updateTaskDescription = async (taskId: number, description: string) => {
+    try {
+      await tasksService.updateTask(taskId, { description });
+      
+      // Refetch all tasks after updating description
+      let updatedTasks;
+      if (currentDateFilter) {
+        updatedTasks = await tasksService.getTasksByDate(currentDateFilter);
+      } else {
+        updatedTasks = await tasksService.getTasks();
+      }
+      setTasks(updatedTasks);
+    } catch (error) {
+      console.error('Error updating task description:', error);
+      throw error;
+    }
+  };
+
+  const updateSubtaskDescription = async (_taskId: number, subtaskId: number, description: string) => {
+    try {
+      await tasksService.updateTask(subtaskId, { description });
+      
+      // Refetch all tasks after updating description
+      let updatedTasks;
+      if (currentDateFilter) {
+        updatedTasks = await tasksService.getTasksByDate(currentDateFilter);
+      } else {
+        updatedTasks = await tasksService.getTasks();
+      }
+      setTasks(updatedTasks);
+    } catch (error) {
+      console.error('Error updating subtask description:', error);
+      throw error;
+    }
+  };
+
   /**
    * Add a new subtask (or sub-subtask) under a given parent.
    * Uses WebSockets for real-time updates instead of optimistic updates with negative IDs.
@@ -347,6 +383,8 @@ export const useTasks = (dateFilter?: string) => {
     toggleComplete,
     toggleSubtaskComplete,
     updateTaskName,
-    updateSubtaskName
+    updateSubtaskName,
+    updateTaskDescription,
+    updateSubtaskDescription
   };
 };

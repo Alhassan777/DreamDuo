@@ -431,6 +431,38 @@ const TasksPage: React.FC = () => {
     }
   };
 
+  const updateTaskDescription = async (taskId: number, description: string) => {
+    try {
+      await tasksService.updateTask(taskId, { description });
+      
+      // Refresh tasks
+      const anchorDateStr = `${filters.anchorDate.getFullYear()}-${String(filters.anchorDate.getMonth() + 1).padStart(2, '0')}-${String(filters.anchorDate.getDate()).padStart(2, '0')}`;
+      const fetchedTasks = await tasksService.searchTasksWithFilters({
+        timeScope: filters.timeScope,
+        anchorDate: anchorDateStr,
+      });
+      setTasks(fetchedTasks);
+    } catch (error) {
+      console.error('Error updating task description:', error);
+    }
+  };
+
+  const updateSubtaskDescription = async (_taskId: number, subtaskId: number, description: string) => {
+    try {
+      await tasksService.updateTask(subtaskId, { description });
+      
+      // Refresh tasks
+      const anchorDateStr = `${filters.anchorDate.getFullYear()}-${String(filters.anchorDate.getMonth() + 1).padStart(2, '0')}-${String(filters.anchorDate.getDate()).padStart(2, '0')}`;
+      const fetchedTasks = await tasksService.searchTasksWithFilters({
+        timeScope: filters.timeScope,
+        anchorDate: anchorDateStr,
+      });
+      setTasks(fetchedTasks);
+    } catch (error) {
+      console.error('Error updating subtask description:', error);
+    }
+  };
+
   return (
     <DashboardLayout>
       <Box
@@ -635,6 +667,8 @@ const TasksPage: React.FC = () => {
                   onToggleSubtaskComplete={toggleSubtaskComplete}
                   onUpdateName={updateTaskName}
                   onUpdateSubtaskName={updateSubtaskName}
+                  onUpdateDescription={updateTaskDescription}
+                  onUpdateSubtaskDescription={updateSubtaskDescription}
                   onDragStart={handleDragStart}
                   onDrop={handleDrop}
                   dragState={dragState}

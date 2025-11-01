@@ -7,6 +7,7 @@ import {
   Text,
   Button,
   VStack,
+  Textarea,
 } from '@chakra-ui/react';
 import { Category } from '../../services/tags';
 import { TaskCreateRequest } from '../../services/tasks';
@@ -48,7 +49,6 @@ const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
         />
       </FormControl>
 
-      {/* Temporarily commented out description field
       <FormControl>
         <FormLabel color="white">Description</FormLabel>
         <Textarea
@@ -62,7 +62,6 @@ const TaskCreationForm: React.FC<TaskCreationFormProps> = ({
           color="white"
         />
       </FormControl>
-      */}
 
       <FormControl>
         <FormLabel color="white">Category</FormLabel>

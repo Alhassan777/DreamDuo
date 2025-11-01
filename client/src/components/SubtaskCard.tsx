@@ -1,5 +1,23 @@
-import { Box, VStack, Text, Flex, IconButton, Input } from '@chakra-ui/react';
-import { AddIcon, CheckIcon, CloseIcon } from '@chakra-ui/icons';
+import { 
+  Box, 
+  VStack, 
+  Text, 
+  Flex, 
+  IconButton, 
+  Input,
+  Tooltip,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  Textarea,
+  Button,
+  useDisclosure,
+} from '@chakra-ui/react';
+import { AddIcon, CheckIcon, CloseIcon, InfoOutlineIcon } from '@chakra-ui/icons';
 import { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import './styles/SubtaskCard.css';
@@ -7,6 +25,7 @@ import './styles/SubtaskCard.css';
 interface Subtask {
   id: number;
   name: string;
+  description?: string;
   completed: boolean;
   children: Subtask[];
   subtasks?: Subtask[];
@@ -20,6 +39,7 @@ interface SubtaskCardProps {
   onAddSubtask: (taskId: number, parentSubtaskId: number) => void;
   onToggleComplete: (taskId: number, subtaskId: number) => void;
   onUpdateName: (taskId: number, subtaskId: number, newName: string) => void;
+  onUpdateDescription: (taskId: number, subtaskId: number, description: string) => void;
   onDragStart: (
     type: 'subtask' | 'sub-subtask', 
     taskId: number, 
@@ -42,6 +62,7 @@ const SubtaskCard = ({
   onAddSubtask,
   onToggleComplete,
   onUpdateName,
+  onUpdateDescription,
   onDragStart,
   onDrop,
   dragState
@@ -50,10 +71,15 @@ const SubtaskCard = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(subtask.name);
 
+  // Modal state for description editing
+  const { isOpen: isDescriptionModalOpen, onOpen: onDescriptionModalOpen, onClose: onDescriptionModalClose } = useDisclosure();
+  const [editedDescription, setEditedDescription] = useState(subtask.description || '');
+
   // Update local state when subtask prop changes
   useEffect(() => {
     setEditedName(subtask.name);
-  }, [subtask.name]);
+    setEditedDescription(subtask.description || '');
+  }, [subtask.name, subtask.description]);
 
   // Enter rename mode by double-click
   const handleDoubleClick = () => {
@@ -81,6 +107,24 @@ const SubtaskCard = ({
       setIsEditing(false);
       setEditedName(subtask.name);
     }
+  };
+
+  /** Handle description modal open */
+  const handleDescriptionOpen = () => {
+    setEditedDescription(subtask.description || '');
+    onDescriptionModalOpen();
+  };
+
+  /** Handle description save */
+  const handleDescriptionSave = () => {
+    onUpdateDescription(taskId, subtask.id, editedDescription);
+    onDescriptionModalClose();
+  };
+
+  /** Handle description cancel */
+  const handleDescriptionCancel = () => {
+    setEditedDescription(subtask.description || '');
+    onDescriptionModalClose();
   };
 
   // Use children property if available, otherwise fall back to subtasks for compatibility
@@ -170,6 +214,21 @@ const SubtaskCard = ({
 
         {/* Action Buttons for Subtask */}
         <Flex className="subtask-card-right">
+          {/* Description Button */}
+          <Tooltip 
+            label={subtask.description || 'No description. Click to add one.'}
+            placement="top"
+          >
+            <IconButton
+              icon={<InfoOutlineIcon />}
+              aria-label="Edit description"
+              size="xs"
+              onClick={handleDescriptionOpen}
+              data-aot-mode={isAotMode}
+              className="description-button"
+              variant="solid"
+            />
+          </Tooltip>
           {/* Add Nested Subtask */}
           <IconButton
             icon={<AddIcon />}
@@ -203,6 +262,7 @@ const SubtaskCard = ({
               onAddSubtask={onAddSubtask}
               onToggleComplete={onToggleComplete}
               onUpdateName={onUpdateName}
+              onUpdateDescription={onUpdateDescription}
               onDragStart={onDragStart}
               onDrop={onDrop}
               dragState={dragState}
@@ -210,6 +270,32 @@ const SubtaskCard = ({
           ))}
         </VStack>
       )}
+
+      {/* Description Edit Modal */}
+      <Modal isOpen={isDescriptionModalOpen} onClose={handleDescriptionCancel} data-aot-mode={isAotMode}>
+        <ModalOverlay />
+        <ModalContent data-aot-mode={isAotMode}>
+          <ModalHeader data-aot-mode={isAotMode}>Edit Subtask Description</ModalHeader>
+          <ModalCloseButton data-aot-mode={isAotMode} />
+          <ModalBody>
+            <Textarea
+              value={editedDescription}
+              onChange={(e) => setEditedDescription(e.target.value)}
+              placeholder="Enter subtask description..."
+              rows={6}
+              data-aot-mode={isAotMode}
+            />
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="ghost" mr={3} onClick={handleDescriptionCancel} data-aot-mode={isAotMode}>
+              Cancel
+            </Button>
+            <Button colorScheme="blue" onClick={handleDescriptionSave} data-aot-mode={isAotMode}>
+              Save
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 };
