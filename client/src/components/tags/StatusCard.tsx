@@ -47,18 +47,10 @@ const StatusCard = (props: StatusCardProps) => {
   const { isAotMode } = useTheme();
   const { status, selectedLogo, onLogoChange } = props;
 
-  // Define fixed heights for collapsed and stretched states.
-  const collapsedHeight = '150px';
-  const stretchedHeight = '200px';
-
-  // Use the stretched height if a valid logo is selected, otherwise use collapsed height.
-  const cardHeight = selectedLogo ? stretchedHeight : collapsedHeight;
-
   return (
     <Box
       className="status-card"
       data-aot-mode={isAotMode}
-      style={{ height: cardHeight }}
       p={3}
     >
       <Flex className="status-card-container">
