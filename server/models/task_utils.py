@@ -191,28 +191,42 @@ def delete_task(session: Session, task_id: int, user_id: int = None) -> bool:
         )
         descendant_ids = [row[0] for row in descendants_query]
 
-        # Remove hierarchy references
-        session.execute(
-            text("""
-                DELETE FROM task_hierarchy
-                WHERE ancestor = :task_id OR descendant = :task_id
-                OR ancestor IN :descendant_ids OR descendant IN :descendant_ids
-            """),
-            {"task_id": task_id, "descendant_ids": tuple(descendant_ids) if descendant_ids else (-1,)}
-        )
-
-        # Delete the subtasks
+        # Remove hierarchy references and delete tasks
         if descendant_ids:
+            # If there are descendants, include them in the deletion
+            all_ids = [task_id] + descendant_ids
+            placeholders = ','.join([':id' + str(i) for i in range(len(all_ids))])
+            params = {'id' + str(i): all_ids[i] for i in range(len(all_ids))}
+            
+            session.execute(
+                text(f"""
+                    DELETE FROM task_hierarchy
+                    WHERE ancestor IN ({placeholders}) OR descendant IN ({placeholders})
+                """),
+                params
+            )
+            
+            # Delete all tasks (including parent and subtasks)
+            session.execute(
+                text(f"""
+                    DELETE FROM tasks
+                    WHERE id IN ({placeholders})
+                """),
+                params
+            )
+        else:
+            # No descendants, just delete the task's hierarchy entry
             session.execute(
                 text("""
-                    DELETE FROM tasks
-                    WHERE id IN :ids
+                    DELETE FROM task_hierarchy
+                    WHERE ancestor = :task_id OR descendant = :task_id
                 """),
-                {"ids": tuple(descendant_ids)}
+                {"task_id": task_id}
             )
-
-        # Finally, delete the main task
-        session.delete(task)
+            
+            # Delete the main task
+            session.delete(task)
+        
         session.commit()
         return True
     except Exception as e:
