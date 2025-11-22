@@ -3,6 +3,7 @@ from flask_jwt_extended import create_access_token, set_access_cookies, unset_jw
 from models import User, db
 from . import auth_bp
 from flask_cors import cross_origin
+from services.supabase_auth import SupabaseAuthService
 
 
 @auth_bp.route('/register', methods=['POST'])
@@ -118,5 +119,43 @@ def verify_password():
             
         return jsonify({'valid': True}), 200
 
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@auth_bp.route('/oauth/callback', methods=['POST'])
+@cross_origin(supports_credentials=True)
+def oauth_callback():
+    """Handle OAuth callback from Supabase frontend"""
+    try:
+        data = request.get_json()
+        
+        if not data or 'user' not in data or 'provider' not in data:
+            return jsonify({'error': 'Missing user data or provider'}), 400
+        
+        supabase_user = data['user']
+        provider = data['provider']
+        
+        # Process OAuth authentication
+        result, status_code = SupabaseAuthService.handle_oauth_callback(provider, supabase_user)
+        
+        if status_code == 200:
+            response = jsonify(result)
+            # Set JWT cookie for our application
+            set_access_cookies(response, result['access_token'])
+            return response, 200
+        else:
+            return jsonify(result), status_code
+            
+    except Exception as e:
+        return jsonify({'error': f'OAuth callback failed: {str(e)}'}), 500
+
+@auth_bp.route('/logout', methods=['POST'])
+@cross_origin(supports_credentials=True)
+def logout():
+    """Logout and clear JWT cookies"""
+    try:
+        response = jsonify({'message': 'Logout successful'})
+        unset_jwt_cookies(response)
+        return response, 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500

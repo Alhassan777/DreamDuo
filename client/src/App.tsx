@@ -9,6 +9,7 @@ import TagsPage from './pages/TagsPage';
 import CalendarPage from './pages/CalendarPage';
 import DashboardPage from './pages/DashboardPage';
 import ThemeCustomizationPage from './pages/ThemeCustomizationPage';
+import AuthCallbackPage from './pages/AuthCallbackPage';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { SidebarProvider } from './contexts/SidebarContext';
 
@@ -21,6 +22,7 @@ function App() {
           <Routes>
             <Route path="/" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
+            <Route path="/auth/callback" element={<AuthCallbackPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/tasks" element={<TasksPage />} />
             <Route path="/edit-profile" element={<EditProfilePage />} />

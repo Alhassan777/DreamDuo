@@ -6,6 +6,7 @@ import surveyCorpsLogo from '../assets/survey_corps.png';
 import hidePasswordIcon from '../assets/show_password.png';
 import showPasswordIcon from '../assets/hide_password.png';
 import api from '../services/api';
+import OAuthButtons from '../components/auth/OAuthButtons';
 const SignupPage = () => {
   const navigate = useNavigate();
   const toast = useToast();
@@ -229,6 +230,8 @@ const SignupPage = () => {
               </Button>
             </VStack>
           </form>
+
+          <OAuthButtons mode="signup" />
 
           <Text className="login-link-text">
             Already have an account?{' '}

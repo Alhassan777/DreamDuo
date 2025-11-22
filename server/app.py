@@ -85,7 +85,21 @@ def create_app():
             app.register_blueprint(user_bp)
             app.register_blueprint(tags_bp, url_prefix='/api/tags')
 
-            # Create database tables
+            # Run migrations automatically if AUTO_MIGRATE is enabled (for deployment)
+            auto_migrate = os.getenv('AUTO_MIGRATE', 'false').lower() == 'true'
+            if auto_migrate:
+                try:
+                    from flask_migrate import upgrade
+                    print('🔄 Auto-migration enabled, running migrations...')
+                    upgrade()
+                    print('✅ Migrations completed successfully')
+                except Exception as migration_error:
+                    print(f'⚠️  Migration error (continuing anyway): {str(migration_error)}')
+                    # In production, you might want to raise here instead
+                    if os.getenv('FLASK_ENV') == 'production':
+                        raise
+
+            # Create database tables (fallback if migrations not used)
             db.create_all()
             print('Database initialized successfully')
         except Exception as e:
