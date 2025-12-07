@@ -64,12 +64,12 @@
 .edge-customization-style-button {
   flex: 1;
   font-size: 0.875rem;
-  border-width: 1px;
+  border-width: 1px !important;
   border-radius: 0;
   transition: all var(--animation-duration) var(--animation-timing);
-  background: transparent;
-  color: var(--color-text);
-  border-color: var(--color-border);
+  background: transparent !important;
+  color: var(--color-text) !important;
+  border-color: var(--color-border) !important;
 }
 
 .edge-customization-style-button:first-child {
@@ -83,17 +83,17 @@
 }
 
 .edge-customization-style-button:hover {
-  background: var(--color-hover-overlay);
+  background: var(--color-hover-overlay) !important;
 }
 
 .edge-customization-style-button.selected {
-  background: var(--color-button-primary);
-  color: var(--color-button-primary-text);
-  border-color: var(--color-primary);
+  background: var(--color-button-primary) !important;
+  color: var(--color-button-primary-text) !important;
+  border-color: var(--color-primary) !important;
 }
 
 .edge-customization-style-button.selected:hover {
-  background: var(--color-button-primary-hover);
+  background: var(--color-button-primary-hover) !important;
 }
 
 .edge-customization-width-label {
@@ -133,18 +133,18 @@
 }
 
 .edge-customization-apply-button {
-  background: var(--color-button-primary);
-  color: var(--color-button-primary-text);
+  background: var(--color-button-primary) !important;
+  color: var(--color-button-primary-text) !important;
 }
 
 .edge-customization-apply-button:hover:not(:disabled) {
-  background: var(--color-button-primary-hover);
+  background: var(--color-button-primary-hover) !important;
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
 
 .edge-customization-apply-button:active:not(:disabled) {
-  background: var(--color-active-state);
+  background: var(--color-active-state) !important;
 }
 
 .edge-customization-apply-button:disabled {
@@ -153,12 +153,12 @@
 }
 
 .edge-customization-reset-button {
-  background: var(--color-button-secondary);
-  color: var(--color-button-secondary-text);
+  background: var(--color-button-secondary) !important;
+  color: var(--color-button-secondary-text) !important;
 }
 
 .edge-customization-reset-button:hover:not(:disabled) {
-  background: var(--color-button-secondary-hover);
+  background: var(--color-button-secondary-hover) !important;
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
@@ -170,11 +170,11 @@
 
 .edge-customization-close-button {
   font-size: 0.875rem;
-  color: var(--color-text);
+  color: var(--color-text) !important;
   transition: all var(--animation-duration) var(--animation-timing);
 }
 
 .edge-customization-close-button:hover {
-  background: var(--color-hover-overlay);
+  background: var(--color-hover-overlay) !important;
 }
 
