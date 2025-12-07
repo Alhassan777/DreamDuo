@@ -193,54 +193,54 @@
   }
 
   .tasks-empty-clear-button {
-    border-color: var(--color-primary);
-    color: var(--color-primary);
-    background-color: transparent;
+    border-color: var(--color-primary) !important;
+    color: var(--color-primary) !important;
+    background-color: transparent !important;
     transition: all var(--animation-duration) ease;
   }
 
   .tasks-empty-clear-button:hover {
-    background-color: var(--color-hover-overlay);
+    background-color: var(--color-hover-overlay) !important;
     transform: translateY(-2px);
   }
 
   .tasks-empty-clear-button[data-aot-mode="true"] {
-    border-color: var(--aot-accent);
-    color: var(--aot-accent);
+    border-color: var(--aot-accent) !important;
+    color: var(--aot-accent) !important;
   }
 
   .tasks-empty-clear-button[data-aot-mode="true"]:hover {
-    background-color: rgba(220, 162, 83, 0.1);
+    background-color: rgba(220, 162, 83, 0.1) !important;
     transform: translateY(-2px);
   }
 
   /* Add Category Button */
   .tasks-add-category-button {
-    background-color: var(--color-button-secondary);
-    color: var(--color-button-secondary-text);
-    border-width: 1px;
-    border-color: var(--color-border);
+    background-color: var(--color-button-secondary) !important;
+    color: var(--color-button-secondary-text) !important;
+    border-width: 1px !important;
+    border-color: var(--color-border) !important;
     border-radius: var(--border-radius-md);
     transition: all var(--animation-duration) var(--animation-timing);
   }
 
   .tasks-add-category-button:hover {
-    background-color: var(--color-button-secondary-hover);
-    border-color: var(--color-primary);
+    background-color: var(--color-button-secondary-hover) !important;
+    border-color: var(--color-primary) !important;
     transform: translateY(-1px);
     box-shadow: var(--shadow-md);
   }
 
   .tasks-add-category-button[data-aot-mode="true"] {
-    background-color: var(--aot-accent);
-    color: var(--aot-background);
-    border-color: var(--aot-accent);
+    background-color: var(--aot-accent) !important;
+    color: var(--aot-background) !important;
+    border-color: var(--aot-accent) !important;
   }
 
   .tasks-add-category-button[data-aot-mode="true"]:hover {
-    background-color: var(--aot-accent);
+    background-color: var(--aot-accent) !important;
     filter: brightness(1.2);
-    border-color: var(--aot-accent);
+    border-color: var(--aot-accent) !important;
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(220, 162, 83, 0.3);
   }
@@ -373,33 +373,33 @@
   }
   
   .tasks-form-input {
-    background-color: var(--color-surface);
-    color: var(--color-text);
-    border-color: var(--color-border);
+    background-color: var(--color-surface) !important;
+    color: var(--color-text) !important;
+    border-color: var(--color-border) !important;
   }
   
   /* Emoji picker in the form */
   .tasks-emoji-picker {
     width: 60px;
     height: 60px;
-    background-color: var(--color-surface);
+    background-color: var(--color-surface) !important;
     border-radius: 9999px;
     cursor: pointer;
     transition: all var(--animation-duration);
-    border: 1px solid var(--color-border);
+    border: 1px solid var(--color-border) !important;
   }
-  
+
   .tasks-emoji-picker:hover {
     transform: scale(1.1);
-    background-color: var(--color-card-background);
-    border-color: var(--color-primary);
+    background-color: var(--color-card-background) !important;
+    border-color: var(--color-primary) !important;
   }
   
   /* Modal Footer Button */
   .tasks-modal-cancel[data-aot-mode="true"] {
-    color: var(--aot-accent);
-    background-color: var(--aot-primary);
-    border: 2px solid var(--aot-accent);
+    color: var(--aot-accent) !important;
+    background-color: var(--aot-primary) !important;
+    border: 2px solid var(--aot-accent) !important;
     transition: all 0.3s ease;
   }
 
@@ -409,40 +409,40 @@
   }
 
   .tasks-modal-cancel[data-aot-mode="false"] {
-    color: var(--color-text);
-    background-color: var(--color-surface);
+    color: var(--color-text) !important;
+    background-color: var(--color-surface) !important;
     transition: all var(--animation-duration) ease;
-    border-color: var(--color-border);
+    border-color: var(--color-border) !important;
   }
   
   .tasks-modal-cancel:hover {
-    background-color: var(--color-card-background);
-    border-color: var(--color-primary);
+    background-color: var(--color-card-background) !important;
+    border-color: var(--color-primary) !important;
   }
 
   /* Cancel Button - Using CSS Variables */
   .cancel-button {
-    background-color: var(--color-surface);
-    color: var(--color-text-secondary);
-    border: 1px solid var(--color-border);
+    background-color: var(--color-surface) !important;
+    color: var(--color-text-secondary) !important;
+    border: 1px solid var(--color-border) !important;
     transition: all var(--animation-duration) ease;
   }
 
   .cancel-button:hover {
     transform: translateY(-2px);
-    background-color: var(--color-card-background);
-    border-color: var(--color-primary);
+    background-color: var(--color-card-background) !important;
+    border-color: var(--color-primary) !important;
   }
 
   .cancel-button[data-aot-mode="true"] {
-    background-color: var(--aot-primary);
-    color: var(--aot-accent);
-    border: 1px solid var(--aot-accent);
+    background-color: var(--aot-primary) !important;
+    color: var(--aot-accent) !important;
+    border: 1px solid var(--aot-accent) !important;
     transition: all var(--animation-duration) ease;
   }
 
   .cancel-button[data-aot-mode="true"]:hover {
-    background-color: var(--aot-primary);
+    background-color: var(--aot-primary) !important;
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(139, 69, 19, 0.3);
   }
