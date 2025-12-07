@@ -5,8 +5,21 @@ axios.defaults.withCredentials = true;
 // Use environment variable for API URL, fallback to localhost for development
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
+// Debug logging (only in development or if env var is missing)
+if (import.meta.env.DEV || !import.meta.env.VITE_API_URL) {
+  console.log('🔧 API Configuration:', {
+    'VITE_API_URL env var': import.meta.env.VITE_API_URL,
+    'Resolved API_BASE_URL': API_BASE_URL,
+    'Mode': import.meta.env.MODE,
+    'All env vars': Object.keys(import.meta.env).filter(key => key.startsWith('VITE_'))
+  });
+}
+
+// Ensure no trailing slash
+const cleanApiUrl = API_BASE_URL.replace(/\/$/, '');
+
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: cleanApiUrl,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',

@@ -18,7 +18,16 @@
 [build.environment]
   NODE_VERSION = "18.0.0"
 
-# Production environment variables (these will be set in Netlify UI)
-# VITE_API_URL will need to be set in Netlify dashboard
-# VITE_WEBSOCKET_URL will need to be set in Netlify dashboard
+# Production environment variables (these MUST be set in Netlify UI)
+# 
+# IMPORTANT: These variables must be set in Netlify Dashboard BEFORE building:
+# 1. Go to Site Settings → Environment Variables
+# 2. Add the following variables:
+#    - VITE_API_URL = https://your-backend.onrender.com/api (NO trailing slash)
+#    - VITE_WEBSOCKET_URL = https://your-backend.onrender.com (NO trailing slash)
+#    - VITE_SUPABASE_URL = your-supabase-url
+#    - VITE_SUPABASE_ANON_KEY = your-supabase-anon-key
+# 3. After setting, trigger a NEW DEPLOY (the build must happen AFTER env vars are set)
+#
+# Note: Vite bakes env vars into the build at compile time, so you MUST rebuild after setting them
 

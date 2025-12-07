@@ -34,8 +34,20 @@ class WebSocketService {
     // Use environment variable for WebSocket URL, fallback to localhost for development
     const WEBSOCKET_URL = import.meta.env.VITE_WEBSOCKET_URL || 'http://localhost:3001';
     
+    // Debug logging (only in development or if env var is missing)
+    if (import.meta.env.DEV || !import.meta.env.VITE_WEBSOCKET_URL) {
+      console.log('🔧 WebSocket Configuration:', {
+        'VITE_WEBSOCKET_URL env var': import.meta.env.VITE_WEBSOCKET_URL,
+        'Resolved WEBSOCKET_URL': WEBSOCKET_URL,
+        'Mode': import.meta.env.MODE
+      });
+    }
+    
+    // Ensure no trailing slash
+    const cleanWebSocketUrl = WEBSOCKET_URL.replace(/\/$/, '');
+    
     // Connect to the same host as the API but on the WebSocket port
-    this.socket = io(WEBSOCKET_URL, {
+    this.socket = io(cleanWebSocketUrl, {
       withCredentials: true,
       transports: ['websocket', 'polling']
     });

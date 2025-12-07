@@ -19,7 +19,7 @@ services:
       - key: JWT_SECRET_KEY
         generateValue: true
       - key: FRONTEND_URL
-        value: https://your-app.netlify.app
+        value: https://dreamduo.netlify.app
 
 databases:
   # PostgreSQL Database

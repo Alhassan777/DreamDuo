@@ -41,10 +41,22 @@ class SupabaseAuthService {
     }
 
     try {
+      // Build redirect URL - use current origin (works for both dev and production)
+      const redirectUrl = `${window.location.origin}/auth/callback`;
+      
+      // Debug logging
+      console.log('🔐 OAuth Configuration:', {
+        provider,
+        redirectUrl,
+        currentOrigin: window.location.origin,
+        currentPath: window.location.pathname,
+        supabaseUrl: import.meta.env.VITE_SUPABASE_URL
+      });
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: redirectUrl,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -52,7 +64,12 @@ class SupabaseAuthService {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('OAuth error from Supabase:', error);
+        throw error;
+      }
+      
+      console.log('OAuth redirect initiated:', data.url);
       return data;
     } catch (error) {
       console.error(`OAuth sign in with ${provider} failed:`, error);
