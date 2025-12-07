@@ -27,19 +27,38 @@ interface Subtask {
   name: string;
   description?: string;
   completed: boolean;
+  priority?: { color: string; level: string } | string;
+  category?: string;
+  categoryIcon?: string;
+  category_id?: number;
+  deadline?: string;
   children: Subtask[];
   subtasks?: Subtask[];
   parent_id: number | null;
 }
 
+interface Category {
+  id?: number;
+  name: string;
+  icon?: string;
+}
+
+interface PriorityColor {
+  level: string;
+  color: string;
+}
+
 interface SubtaskCardProps {
   taskId: number;
   subtask: Subtask;
+  categories?: Category[];
+  priorities?: PriorityColor[];
   onDelete: (taskId: number, subtaskId: number) => void;
   onAddSubtask: (taskId: number, parentSubtaskId: number) => void;
   onToggleComplete: (taskId: number, subtaskId: number) => void;
   onUpdateName: (taskId: number, subtaskId: number, newName: string) => void;
   onUpdateDescription: (taskId: number, subtaskId: number, description: string) => void;
+  onUpdateTask?: (taskId: number, updates: any) => Promise<void>;
   onDragStart: (
     type: 'subtask' | 'sub-subtask', 
     taskId: number, 
@@ -53,19 +72,24 @@ interface SubtaskCardProps {
     sourceParentId?: number;
     itemId: number;
   } | null;
+  newlyCreatedSubtaskId?: number | null;
 }
 
 const SubtaskCard = ({
   taskId,
   subtask,
+  categories = [],
+  priorities = [],
   onDelete,
   onAddSubtask,
   onToggleComplete,
   onUpdateName,
   onUpdateDescription,
+  onUpdateTask,
   onDragStart,
   onDrop,
-  dragState
+  dragState,
+  newlyCreatedSubtaskId
 }: SubtaskCardProps) => {
   const { isAotMode } = useTheme();
   const [isEditing, setIsEditing] = useState(false);
@@ -81,6 +105,13 @@ const SubtaskCard = ({
     setEditedDescription(subtask.description || '');
   }, [subtask.name, subtask.description]);
 
+  // Automatically enter edit mode if this is a newly created subtask
+  useEffect(() => {
+    if (subtask.id && newlyCreatedSubtaskId === subtask.id) {
+      setIsEditing(true);
+    }
+  }, [newlyCreatedSubtaskId, subtask.id]);
+
   // Enter rename mode by double-click
   const handleDoubleClick = () => {
     setIsEditing(true);
@@ -92,6 +123,11 @@ const SubtaskCard = ({
   };
 
   const handleNameSubmit = () => {
+    if (!subtask.id) {
+      console.error('Cannot update subtask: subtask.id is undefined', subtask);
+      // Don't exit edit mode - let user try again when data loads
+      return;
+    }
     if (editedName.trim()) {
       onUpdateName(taskId, subtask.id, editedName.trim());
       setIsEditing(false);
@@ -258,14 +294,18 @@ const SubtaskCard = ({
               key={nestedSubtask.id}
               taskId={taskId}
               subtask={nestedSubtask}
+              categories={categories}
+              priorities={priorities}
               onDelete={onDelete}
               onAddSubtask={onAddSubtask}
               onToggleComplete={onToggleComplete}
               onUpdateName={onUpdateName}
               onUpdateDescription={onUpdateDescription}
+              onUpdateTask={onUpdateTask}
               onDragStart={onDragStart}
               onDrop={onDrop}
               dragState={dragState}
+              newlyCreatedSubtaskId={newlyCreatedSubtaskId}
             />
           ))}
         </VStack>
@@ -277,7 +317,7 @@ const SubtaskCard = ({
         <ModalContent data-aot-mode={isAotMode}>
           <ModalHeader data-aot-mode={isAotMode}>Edit Subtask Description</ModalHeader>
           <ModalCloseButton data-aot-mode={isAotMode} />
-          <ModalBody>
+          <ModalBody data-aot-mode={isAotMode}>
             <Textarea
               value={editedDescription}
               onChange={(e) => setEditedDescription(e.target.value)}
@@ -286,11 +326,11 @@ const SubtaskCard = ({
               data-aot-mode={isAotMode}
             />
           </ModalBody>
-          <ModalFooter>
-            <Button variant="ghost" mr={3} onClick={handleDescriptionCancel} data-aot-mode={isAotMode}>
+          <ModalFooter data-aot-mode={isAotMode}>
+            <Button mr={3} onClick={handleDescriptionCancel} data-aot-mode={isAotMode}>
               Cancel
             </Button>
-            <Button colorScheme="blue" onClick={handleDescriptionSave} data-aot-mode={isAotMode}>
+            <Button onClick={handleDescriptionSave} data-aot-mode={isAotMode}>
               Save
             </Button>
           </ModalFooter>

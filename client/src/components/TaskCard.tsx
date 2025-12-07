@@ -30,10 +30,12 @@ import {
   StarIcon,
   TimeIcon,
   InfoOutlineIcon,
+  EditIcon,
 } from '@chakra-ui/icons';
 import { format, isValid, parseISO } from 'date-fns';
 
 import SubtaskCard from './SubtaskCard';
+import TaskEditModal from './tasks/TaskEditModal';
 import './styles/TaskCard.css';
 
 /** Interface for each Task,
@@ -47,12 +49,24 @@ interface Task {
   priority?: { color: string; level: string; } | string; // Support both new object format and legacy string format
   category?: string;
   categoryIcon?: string;
+  category_id?: number;
   parent_id: number | null;
   deadline?: string;
   /** Nested subtasks for hierarchical structure */
   children: Task[];
   // Keep subtasks for backward compatibility
   subtasks?: Task[];
+}
+
+interface Category {
+  id?: number;
+  name: string;
+  icon?: string;
+}
+
+interface PriorityColor {
+  level: string;
+  color: string;
 }
 
 /** Props for drag-and-drop. Remove if you don't need them. */
@@ -75,6 +89,8 @@ interface DragProps {
 /** Props for TaskCard. */
 interface TaskCardProps extends Partial<DragProps> {
   task: Task;
+  categories?: Category[];
+  priorities?: PriorityColor[];
   onDelete: (taskId: number, subtaskId?: number) => void;
   onToggleCollapse: (taskId: number) => void;
   onAddSubtask: (taskId: number, parentSubtaskId?: number) => void;
@@ -84,10 +100,14 @@ interface TaskCardProps extends Partial<DragProps> {
   onUpdateSubtaskName: (taskId: number, subtaskId: number, newName: string) => void;
   onUpdateDescription: (taskId: number, description: string) => void;
   onUpdateSubtaskDescription: (taskId: number, subtaskId: number, description: string) => void;
+  onUpdateTask?: (taskId: number, updates: any) => Promise<void>;
+  newlyCreatedSubtaskId?: number | null;
 }
 
 const TaskCard: React.FC<TaskCardProps> = ({
   task,
+  categories = [],
+  priorities = [],
   onDelete,
   onToggleCollapse,
   onAddSubtask,
@@ -97,6 +117,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
   onUpdateSubtaskName,
   onUpdateDescription,
   onUpdateSubtaskDescription,
+  onUpdateTask,
+  newlyCreatedSubtaskId,
   onDragStart,
   onDrop,
   dragState,
@@ -109,6 +131,9 @@ const TaskCard: React.FC<TaskCardProps> = ({
   // Modal state for description editing
   const { isOpen: isDescriptionModalOpen, onOpen: onDescriptionModalOpen, onClose: onDescriptionModalClose } = useDisclosure();
   const [editedDescription, setEditedDescription] = useState(task.description || '');
+  
+  // Modal state for comprehensive task editing
+  const { isOpen: isEditModalOpen, onOpen: onEditModalOpen, onClose: onEditModalClose } = useDisclosure();
   
   // Update local state when task prop changes
   useEffect(() => {
@@ -161,6 +186,13 @@ const TaskCard: React.FC<TaskCardProps> = ({
   const handleDescriptionCancel = () => {
     setEditedDescription(task.description || '');
     onDescriptionModalClose();
+  };
+
+  /** Handle comprehensive task update */
+  const handleTaskUpdate = async (taskId: number, updates: any) => {
+    if (onUpdateTask) {
+      await onUpdateTask(taskId, updates);
+    }
   };
 
   // Use children property if available, otherwise fall back to subtasks for compatibility
@@ -234,8 +266,22 @@ const TaskCard: React.FC<TaskCardProps> = ({
             </Text>
           )}
 
-          {/* Right side: description, collapse, add subtask */}
+          {/* Right side: edit, description, collapse, add subtask */}
           <Flex gap={2}>
+            {/* Edit button for comprehensive task editing */}
+            {onUpdateTask && (
+              <Tooltip label="Edit task" placement="top">
+                <IconButton
+                  icon={<EditIcon />}
+                  aria-label="Edit task"
+                  size="sm"
+                  onClick={onEditModalOpen}
+                  data-aot-mode={isAotMode}
+                  colorScheme="purple"
+                  variant="solid"
+                />
+              </Tooltip>
+            )}
             {/* Description button with tooltip */}
             <Tooltip 
               label={task.description || 'No description. Click to add one.'}
@@ -317,15 +363,19 @@ const TaskCard: React.FC<TaskCardProps> = ({
                   key={sub.id}
                   taskId={task.id}
                   subtask={sub}
+                  categories={categories}
+                  priorities={priorities}
                   onDelete={onDelete}
                   onAddSubtask={(taskId, parentSubtaskId) => onAddSubtask(taskId, parentSubtaskId)}
                   onToggleComplete={onToggleSubtaskComplete}
                   onUpdateName={onUpdateSubtaskName}
                   onUpdateDescription={onUpdateSubtaskDescription}
+                  onUpdateTask={onUpdateTask}
                   /* Drag + drop optional */
                   onDragStart={onDragStart ? onDragStart : () => {}}
                   onDrop={onDrop ? onDrop : () => {}}
                   dragState={dragState || null}
+                  newlyCreatedSubtaskId={newlyCreatedSubtaskId}
                 />
               ))}
             </VStack>
@@ -339,7 +389,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
         <ModalContent data-aot-mode={isAotMode}>
           <ModalHeader data-aot-mode={isAotMode}>Edit Task Description</ModalHeader>
           <ModalCloseButton data-aot-mode={isAotMode} />
-          <ModalBody>
+          <ModalBody data-aot-mode={isAotMode}>
             <Textarea
               value={editedDescription}
               onChange={(e) => setEditedDescription(e.target.value)}
@@ -348,16 +398,28 @@ const TaskCard: React.FC<TaskCardProps> = ({
               data-aot-mode={isAotMode}
             />
           </ModalBody>
-          <ModalFooter>
-            <Button variant="ghost" mr={3} onClick={handleDescriptionCancel} data-aot-mode={isAotMode}>
+          <ModalFooter data-aot-mode={isAotMode}>
+            <Button mr={3} onClick={handleDescriptionCancel} data-aot-mode={isAotMode}>
               Cancel
             </Button>
-            <Button colorScheme="blue" onClick={handleDescriptionSave} data-aot-mode={isAotMode}>
+            <Button onClick={handleDescriptionSave} data-aot-mode={isAotMode}>
               Save
             </Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
+
+      {/* Comprehensive Task Edit Modal */}
+      {onUpdateTask && (
+        <TaskEditModal
+          isOpen={isEditModalOpen}
+          onClose={onEditModalClose}
+          task={task}
+          categories={categories}
+          priorities={priorities}
+          onSave={handleTaskUpdate}
+        />
+      )}
     </Box>
   );
 };

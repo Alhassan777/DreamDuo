@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Box,
   Flex,
@@ -51,6 +52,7 @@ const TasksPage: React.FC = () => {
   const toast = useToast();
   const { isAotMode } = useTheme();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [searchParams, setSearchParams] = useSearchParams();
   
   // Use task filters hook
   const {
@@ -68,6 +70,31 @@ const TasksPage: React.FC = () => {
     clearFilter,
   } = useTaskFilters();
 
+  // Read date from URL params (e.g., from calendar navigation)
+  useEffect(() => {
+    const dateParam = searchParams.get('date');
+    if (dateParam) {
+      // Parse the date string (YYYY-MM-DD format)
+      const [year, month, day] = dateParam.split('-').map(Number);
+      const selectedDate = new Date(year, month - 1, day);
+      
+      // Only update if the date is valid and different from current anchor date
+      if (!isNaN(selectedDate.getTime())) {
+        const currentAnchor = filters.anchorDate;
+        if (
+          selectedDate.getFullYear() !== currentAnchor.getFullYear() ||
+          selectedDate.getMonth() !== currentAnchor.getMonth() ||
+          selectedDate.getDate() !== currentAnchor.getDate()
+        ) {
+          setAnchorDate(selectedDate);
+        }
+        // Clear the date param from URL after setting it
+        searchParams.delete('date');
+        setSearchParams(searchParams, { replace: true });
+      }
+    }
+  }, [searchParams, setSearchParams, setAnchorDate, filters.anchorDate]);
+
   // View mode state - load from localStorage or default to 'list'
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     const stored = getStorageItem<ViewMode>(STORAGE_KEYS.VIEW_MODE);
@@ -84,6 +111,9 @@ const TasksPage: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [priorities, setPriorities] = useState<PriorityColor[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Track newly created subtask for auto-edit
+  const [newlyCreatedSubtaskId, setNewlyCreatedSubtaskId] = useState<number | null>(null);
 
   // For new category creation
   const [newCategory, setNewCategory] = useState({
@@ -105,9 +135,6 @@ const TasksPage: React.FC = () => {
 
   // Decide whether the modal is for a Task or Category
   const [isTaskMode, setIsTaskMode] = useState(true);
-
-  // Drag-and-drop
-  const { dragState, handleDragStart, handleDrop } = useDragAndDrop(tasks, setTasks);
 
   // Handle emoji selection for category creation
   const handleEmojiClick = (emojiData: EmojiClickData) => {
@@ -201,6 +228,9 @@ const TasksPage: React.FC = () => {
   useEffect(() => {
     fetchTasks();
   }, [fetchTasks]);
+
+  // Drag-and-drop with refresh callback (must be after fetchTasks is defined)
+  const { dragState, handleDragStart, handleDrop } = useDragAndDrop(tasks, setTasks, fetchTasks);
 
   const handleCreateTask = async (taskData?: TaskCreateRequest) => {
     const taskToCreate = taskData || newTask;
@@ -353,7 +383,10 @@ const TasksPage: React.FC = () => {
   const addSubtask = async (taskId: number, parentSubtaskId?: number) => {
     try {
       const parentId = parentSubtaskId !== undefined ? parentSubtaskId : taskId;
-      await tasksService.addSubtask(parentId, { name: 'New Subtask' });
+      const response = await tasksService.addSubtask(parentId, { name: 'New Subtask' });
+      
+      // Extract the actual task data from the response (might be wrapped)
+      const newSubtaskData = response.data || response;
       
       // Refresh tasks
       const anchorDateStr = `${filters.anchorDate.getFullYear()}-${String(filters.anchorDate.getMonth() + 1).padStart(2, '0')}-${String(filters.anchorDate.getDate()).padStart(2, '0')}`;
@@ -362,6 +395,18 @@ const TasksPage: React.FC = () => {
         anchorDate: anchorDateStr,
       });
       setTasks(fetchedTasks);
+      
+      // Set the newly created subtask ID to trigger auto-edit AFTER state update
+      setTimeout(() => {
+        if (newSubtaskData.id) {
+          setNewlyCreatedSubtaskId(newSubtaskData.id);
+        }
+      }, 150);
+      
+      // Clear the newly created subtask ID after a delay
+      setTimeout(() => {
+        setNewlyCreatedSubtaskId(null);
+      }, 2000);
     } catch (error) {
       console.error('Error adding subtask:', error);
     }
@@ -460,6 +505,38 @@ const TasksPage: React.FC = () => {
       setTasks(fetchedTasks);
     } catch (error) {
       console.error('Error updating subtask description:', error);
+    }
+  };
+
+  // Comprehensive task update handler
+  const updateTask = async (taskId: number, updates: any) => {
+    try {
+      await tasksService.updateTask(taskId, updates);
+      
+      // Refresh tasks
+      const anchorDateStr = `${filters.anchorDate.getFullYear()}-${String(filters.anchorDate.getMonth() + 1).padStart(2, '0')}-${String(filters.anchorDate.getDate()).padStart(2, '0')}`;
+      const fetchedTasks = await tasksService.searchTasksWithFilters({
+        timeScope: filters.timeScope,
+        anchorDate: anchorDateStr,
+      });
+      setTasks(fetchedTasks);
+      
+      toast({
+        title: 'Task Updated',
+        description: 'Task has been successfully updated',
+        status: 'success',
+        duration: 2000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error('Error updating task:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update task',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
     }
   };
 
@@ -660,6 +737,8 @@ const TasksPage: React.FC = () => {
                 <TaskCard
                   key={task.id}
                   task={task}
+                  categories={categories}
+                  priorities={priorities}
                   onDelete={handleDeleteTask}
                   onToggleCollapse={toggleCollapse}
                   onAddSubtask={addSubtask}
@@ -669,9 +748,11 @@ const TasksPage: React.FC = () => {
                   onUpdateSubtaskName={updateSubtaskName}
                   onUpdateDescription={updateTaskDescription}
                   onUpdateSubtaskDescription={updateSubtaskDescription}
+                  onUpdateTask={updateTask}
                   onDragStart={handleDragStart}
                   onDrop={handleDrop}
                   dragState={dragState}
+                  newlyCreatedSubtaskId={newlyCreatedSubtaskId}
                 />
               ))}
               <AddTaskCard
