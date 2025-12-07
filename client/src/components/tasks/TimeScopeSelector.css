@@ -19,10 +19,10 @@
 }
 
 .time-scope-button {
-  background-color: var(--color-surface);
-  color: var(--color-text);
-  border-width: 1px;
-  border-color: var(--color-border);
+  background-color: var(--color-surface) !important;
+  color: var(--color-text) !important;
+  border-width: 1px !important;
+  border-color: var(--color-border) !important;
   transition: all var(--animation-duration) var(--animation-timing);
   padding: 0.5rem 1rem;
   font-weight: 400;
@@ -30,44 +30,44 @@
 }
 
 [data-aot-mode="true"] .time-scope-button {
-  background-color: rgba(255, 255, 255, 0.05);
-  color: var(--aot-text);
-  border-color: rgba(220, 162, 83, 0.3);
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: var(--aot-text) !important;
+  border-color: rgba(220, 162, 83, 0.3) !important;
 }
 
 .time-scope-button:hover {
-  background-color: var(--color-card-background);
-  border-color: var(--color-primary);
+  background-color: var(--color-card-background) !important;
+  border-color: var(--color-primary) !important;
   transform: translateY(-1px);
 }
 
 [data-aot-mode="true"] .time-scope-button:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  border-color: var(--aot-accent);
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: var(--aot-accent) !important;
 }
 
 .time-scope-button.selected {
-  background-color: var(--color-button-primary);
-  color: var(--color-button-primary-text);
-  border-color: var(--color-primary);
+  background-color: var(--color-button-primary) !important;
+  color: var(--color-button-primary-text) !important;
+  border-color: var(--color-primary) !important;
   font-weight: 600;
   box-shadow: var(--shadow-sm);
 }
 
 [data-aot-mode="true"] .time-scope-button.selected {
-  background-color: var(--aot-primary-bg);
-  color: var(--aot-primary-text-color);
-  border-color: var(--aot-primary);
+  background-color: var(--aot-primary-bg) !important;
+  color: var(--aot-primary-text-color) !important;
+  border-color: var(--aot-primary) !important;
 }
 
 .time-scope-button.selected:hover {
-  background-color: var(--color-button-primary-hover);
+  background-color: var(--color-button-primary-hover) !important;
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
 
 [data-aot-mode="true"] .time-scope-button.selected:hover {
-  background-color: var(--aot-primary-bg-hover);
+  background-color: var(--aot-primary-bg-hover) !important;
 }
 
 /* First button - rounded left */
