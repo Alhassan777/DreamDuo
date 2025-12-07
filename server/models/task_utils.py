@@ -243,6 +243,7 @@ def move_subtask(session: Session, subtask_id: int, new_parent_id: int = None, u
 
     subtask = subtask_query.first()
     if not subtask:
+        print(f"Move failed: Task {subtask_id} not found for user {user_id}")
         return False
 
     # If new_parent_id is None, we're making this a root task
@@ -252,10 +253,12 @@ def move_subtask(session: Session, subtask_id: int, new_parent_id: int = None, u
             new_parent_query = new_parent_query.filter(Task.user_id == user_id)
         new_parent = new_parent_query.first()
         if not new_parent:
+            print(f"Move failed: New parent {new_parent_id} not found for user {user_id}")
             return False
 
         # Prevent circular references
         if subtask_id == new_parent_id:
+            print(f"Move failed: Cannot move task {subtask_id} to be its own parent")
             return False
 
         # Check if new_parent is a descendant of subtask
@@ -264,6 +267,7 @@ def move_subtask(session: Session, subtask_id: int, new_parent_id: int = None, u
             TaskHierarchy.descendant == new_parent_id
         ).first()
         if is_descendant:
+            print(f"Move failed: Task {new_parent_id} is a descendant of {subtask_id}, would create circular reference")
             return False
             
         # Removing the restriction that prevents root tasks from becoming subtasks
@@ -282,15 +286,24 @@ def move_subtask(session: Session, subtask_id: int, new_parent_id: int = None, u
             {"subtask_id": subtask_id}
         )
         descendant_ids = [row[0] for row in descendants_query]
+        
+        # If no descendants found (including self), return False
+        if not descendant_ids:
+            print(f"No hierarchy entries found for task {subtask_id}")
+            return False
 
         # Remove old hierarchy entries that connect subtask's chain to old ancestors
+        # Build a safe IN clause for the descendant_ids
+        descendant_placeholders = ','.join([f':id{i}' for i in range(len(descendant_ids))])
+        params = {f'id{i}': descendant_ids[i] for i in range(len(descendant_ids))}
+        
         session.execute(
-            text("""
+            text(f"""
                 DELETE FROM task_hierarchy
-                WHERE descendant IN :descendant_ids
-                AND ancestor NOT IN :descendant_ids
+                WHERE descendant IN ({descendant_placeholders})
+                AND ancestor NOT IN ({descendant_placeholders})
             """),
-            {"descendant_ids": tuple(descendant_ids)}
+            params
         )
 
         if new_parent_id is not None:
@@ -401,21 +414,47 @@ def get_tasks_with_filters(
     priority_levels: Optional[List[str]] = None,
     deadline_before: Optional[datetime] = None,
     deadline_after: Optional[datetime] = None,
-    completion_status: str = 'all'
+    completion_status: str = 'all',
+    client_today: Optional[Any] = None
 ) -> List[Dict[str, Any]]:
     """
     Get tasks with comprehensive filtering support.
     Returns root tasks with nested subtask structure, expanding parent tasks when subtasks match search.
+    
+    Tasks are shown if the query date range overlaps with their active period:
+    - Tasks with deadline: Show from creation_date to deadline
+    - Tasks without deadline (not completed): Only show on TODAY (rolls forward daily)
+    - Tasks without deadline (completed): No longer shown
+    
+    client_today: The client's local "today" date for timezone support
     """
     from sqlalchemy import or_, and_
     from models.category import Category
     
-    # Build base query for root tasks within date range
+    # Use client's today if provided, otherwise fall back to server's today
+    today = client_today if client_today else datetime.now().date()
+    
+    # Build base query for root tasks that are active within the date range
+    # For tasks WITH deadline: creation_date <= end_date AND deadline >= start_date
+    # For tasks WITHOUT deadline: Only show on today if not completed and today is in range
     query = session.query(Task).filter(
         Task.user_id == user_id,
         Task.parent_id == None,
-        db.func.date(Task.creation_date) >= start_date.date(),
-        db.func.date(Task.creation_date) <= end_date.date()
+        db.func.date(Task.creation_date) <= end_date.date(),
+        or_(
+            # Tasks with deadline - show in their date range
+            and_(
+                Task.deadline != None,
+                db.func.date(Task.deadline) >= start_date.date()
+            ),
+            # Tasks without deadline and not completed - only if today is in the query range
+            and_(
+                Task.deadline == None,
+                Task.completed == False,
+                start_date.date() <= today,
+                today <= end_date.date()
+            )
+        )
     )
     
     # Apply completion status filter
@@ -520,128 +559,133 @@ def get_tasks_with_filters(
     return result
 
 
-def get_tasks_stats_by_date_range(session: Session, user_id: int, start_date: datetime, end_date: datetime) -> List[Dict[str, Any]]:
-    """Get task statistics for each day in a date range, including parent tasks in calculations."""
-    stats = session.execute(
-        text("""
-            WITH RECURSIVE task_stats AS (
-                SELECT 
-                    t.id,
-                    t.parent_id,
-                    t.completed,
-                    DATE(CASE WHEN t.parent_id IS NULL THEN t.creation_date ELSE p.creation_date END) as task_date,
-                    EXTRACT(DOW FROM CASE WHEN t.parent_id IS NULL THEN t.creation_date ELSE p.creation_date END) as weekday,
-                    CASE 
-                        WHEN EXISTS (SELECT 1 FROM tasks st WHERE st.parent_id = t.id) THEN true
-                        ELSE false
-                    END as has_subtasks
-                FROM tasks t
-                LEFT JOIN tasks p ON t.parent_id = p.id
-                WHERE t.user_id = :user_id
-                AND (
-                    (t.parent_id IS NULL AND DATE(t.creation_date) BETWEEN DATE(:start_date) AND DATE(:end_date))
-                    OR
-                    (t.parent_id IS NOT NULL AND DATE(p.creation_date) BETWEEN DATE(:start_date) AND DATE(:end_date))
-                )
+def get_tasks_stats_by_date_range(
+    session: Session,
+    user_id: int,
+    start_date: datetime,
+    end_date: datetime,
+    category_ids: Optional[List[int]] = None,
+    priority_levels: Optional[List[str]] = None,
+    client_today: Optional[Any] = None
+) -> List[Dict[str, Any]]:
+    """
+    Get task statistics for each day in a date range.
+    
+    Tasks are counted on each day they are active:
+    - Tasks with deadline: Active from creation_date to deadline
+    - Tasks without deadline (not completed): Only active on TODAY (rolls forward daily)
+    - Tasks without deadline (completed): No longer active
+    
+    Optionally filter by category_ids and priority_levels.
+    client_today: The client's local "today" date for timezone support
+    """
+    from sqlalchemy import or_, and_
+    
+    # Use client's today if provided, otherwise fall back to server's today
+    today = client_today if client_today else datetime.now().date()
+    
+    # Build base query for tasks that could be active in the date range
+    # For tasks WITH deadline: creation_date <= end_date AND deadline >= start_date
+    # For tasks WITHOUT deadline: Only show on today if not completed
+    query = session.query(Task).filter(
+        Task.user_id == user_id,
+        Task.parent_id == None,  # Only root tasks
+        db.func.date(Task.creation_date) <= end_date.date(),
+        or_(
+            # Tasks with deadline - show in their date range
+            and_(
+                Task.deadline != None,
+                db.func.date(Task.deadline) >= start_date.date()
             ),
-            task_hierarchy AS (
-                SELECT 
-                    t.id,
-                    t.parent_id,
-                    t.completed,
-                    t.task_date,
-                    t.weekday,
-                    t.has_subtasks,
-                    CASE
-                        WHEN t.has_subtasks THEN (
-                            SELECT bool_and(COALESCE(st.completed, false))
-                            FROM tasks st
-                            WHERE st.parent_id = t.id
-                        )
-                        ELSE t.completed
-                    END as is_fully_completed
-                FROM task_stats t
-            ),
-            daily_stats AS (
-                SELECT 
-                    task_date,
-                    weekday,
-                    COUNT(DISTINCT id) as total_tasks,
-                    SUM(CASE 
-                        WHEN parent_id IS NULL AND is_fully_completed THEN 1
-                        WHEN parent_id IS NOT NULL AND completed THEN 1
-                        ELSE 0
-                    END) as completed_tasks,
-                    SUM(CASE
-                        WHEN parent_id IS NULL AND NOT is_fully_completed AND EXISTS (
-                            SELECT 1 FROM tasks st 
-                            WHERE st.parent_id = task_hierarchy.id 
-                            AND st.completed = true
-                            AND DATE(st.creation_date) = task_hierarchy.task_date
-                        ) THEN 1
-                        WHEN parent_id IS NOT NULL AND NOT completed THEN 1
-                        ELSE 0
-                    END) as in_progress_tasks
-                FROM task_hierarchy
-                GROUP BY task_date, weekday
+            # Tasks without deadline and not completed - only if today is in range
+            and_(
+                Task.deadline == None,
+                Task.completed == False
             )
-            SELECT 
-                task_date,
-                weekday,
-                total_tasks,
-                completed_tasks,
-                CASE 
-                    WHEN total_tasks = 0 THEN 'Free'
-                    WHEN completed_tasks = total_tasks THEN 'Completed'
-                    WHEN in_progress_tasks > 0 THEN 'inprogress'
-                    ELSE 'Not started'
-                END as status,
-                CASE 
-                    WHEN total_tasks > 0 THEN 
-                        CAST(ROUND(CAST(completed_tasks AS NUMERIC) / CAST(total_tasks AS NUMERIC) * 100, 2) AS NUMERIC)
-                    ELSE 0
-                END as completion_percentage
-            FROM daily_stats
-            ORDER BY task_date
-        """),
-        {
-            "user_id": user_id,
-            "start_date": start_date,
-            "end_date": end_date
-        }
+        )
     )
     
-    # Convert query results to a dictionary for easier lookup
-    stats_dict = {}
-    for row in stats:
-        stats_dict[str(row.task_date)] = {
-            "date": str(row.task_date),
-            "weekday": row.weekday,  # 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-            "total_tasks": row.total_tasks,
-            "completed_tasks": row.completed_tasks,
-            "status": row.status,
-            "completion_percentage": row.completion_percentage
-        }
+    # Apply category filter
+    if category_ids and len(category_ids) > 0:
+        query = query.filter(Task.category_id.in_(category_ids))
     
-    # Generate a complete list of dates in the range
+    # Apply priority filter
+    if priority_levels and len(priority_levels) > 0:
+        query = query.filter(Task.priority.in_(priority_levels))
+    
+    # Get all potentially active tasks
+    all_tasks = query.all()
+    
+    # Generate stats for each day in the range
     complete_stats = []
     current_date = start_date.date()
     end_date_only = end_date.date()
     
     while current_date <= end_date_only:
-        date_str = current_date.strftime('%Y-%m-%d')
-        if date_str in stats_dict:
-            complete_stats.append(stats_dict[date_str])
+        # Count tasks active on this specific day
+        total_tasks = 0
+        completed_tasks = 0
+        in_progress_tasks = 0
+        
+        for task in all_tasks:
+            task_creation = task.creation_date.date() if task.creation_date else None
+            task_deadline = task.deadline.date() if task.deadline else None
+            
+            # Check if task is active on current_date
+            # For tasks WITH deadline: Active from creation_date to deadline
+            # For tasks WITHOUT deadline: Only active on TODAY if not completed
+            is_active = False
+            
+            if task_creation and task_creation <= current_date:
+                if task_deadline is not None:
+                    # Task has deadline - show in date range
+                    if task_deadline >= current_date:
+                        is_active = True
+                else:
+                    # Task has no deadline - only show on TODAY if not completed
+                    # (rolls forward day by day until resolved)
+                    if current_date == today and not task.completed:
+                        is_active = True
+            
+            if is_active:
+                total_tasks += 1
+                
+                # Check completion status
+                # A task with subtasks is complete only if all subtasks are complete
+                subtasks = session.query(Task).filter(Task.parent_id == task.id).all()
+                
+                if subtasks:
+                    all_subtasks_completed = all(st.completed for st in subtasks)
+                    if all_subtasks_completed:
+                        completed_tasks += 1
+                    elif any(st.completed for st in subtasks):
+                        in_progress_tasks += 1
+                else:
+                    if task.completed:
+                        completed_tasks += 1
+        
+        # Determine status
+        if total_tasks == 0:
+            status = "Free"
+        elif completed_tasks == total_tasks:
+            status = "Completed"
+        elif in_progress_tasks > 0 or completed_tasks > 0:
+            status = "inprogress"
         else:
-            # Add empty stats for dates with no tasks
-            complete_stats.append({
-                "date": date_str,
-                "weekday": current_date.weekday(),  # Add weekday for empty dates too
-                "total_tasks": 0,
-                "completed_tasks": 0,
-                "status": "Free",
-                "completion_percentage": 0
-            })
+            status = "Not started"
+        
+        # Calculate completion percentage
+        completion_percentage = round((completed_tasks / total_tasks * 100), 2) if total_tasks > 0 else 0
+        
+        complete_stats.append({
+            "date": current_date.strftime('%Y-%m-%d'),
+            "weekday": current_date.weekday(),  # 0 = Monday, 6 = Sunday
+            "total_tasks": total_tasks,
+            "completed_tasks": completed_tasks,
+            "status": status,
+            "completion_percentage": completion_percentage
+        })
+        
         current_date += timedelta(days=1)
     
     return complete_stats
