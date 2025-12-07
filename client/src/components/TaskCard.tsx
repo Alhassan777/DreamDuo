@@ -415,7 +415,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
           isOpen={isEditModalOpen}
           onClose={onEditModalClose}
           task={task}
-          categories={categories}
+          categories={categories.filter((cat): cat is Category & { id: number } => cat.id !== undefined)}
           priorities={priorities}
           onSave={handleTaskUpdate}
         />

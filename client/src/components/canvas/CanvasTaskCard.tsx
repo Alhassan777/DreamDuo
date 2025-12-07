@@ -21,6 +21,7 @@ import './CanvasTaskCard.css';
 interface Task {
   id: number;
   name: string;
+  description?: string;
   completed: boolean;
   collapsed?: boolean;
   priority?: { color: string; level: string } | string;
@@ -380,7 +381,7 @@ const CanvasTaskCard: React.FC<CanvasTaskCardProps> = ({
           isOpen={isEditModalOpen}
           onClose={onEditModalClose}
           task={task}
-          categories={categories}
+          categories={categories.filter((cat): cat is Category & { id: number } => cat.id !== undefined)}
           priorities={priorities}
           onSave={handleTaskUpdate}
         />
