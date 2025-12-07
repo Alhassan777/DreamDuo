@@ -16,8 +16,20 @@ from socket_events import emit_task_created, emit_task_updated, emit_task_delete
 @tasks_bp.route('/', methods=['GET'])
 @jwt_required()
 def get_tasks():
+    from sqlalchemy import or_, and_
+    
     user_id = get_jwt_identity()
     date_str = request.args.get('date')
+    
+    # Use client's today if provided, otherwise fall back to server's today
+    client_today_str = request.args.get('client_today')
+    if client_today_str:
+        try:
+            today = datetime.strptime(client_today_str, '%Y-%m-%d').date()
+        except ValueError:
+            today = datetime.now().date()
+    else:
+        today = datetime.now().date()
     
     # Get tasks filtered by date if provided
     query = Task.query.filter_by(user_id=user_id)
@@ -26,7 +38,27 @@ def get_tasks():
         try:
             # Parse date without timezone information - treats date as local timezone
             filter_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-            query = query.filter(db.func.date(Task.creation_date) == filter_date)
+            
+            # A task is active on a date based on these rules:
+            # - Tasks WITH deadline: Active from creation_date to deadline
+            # - Tasks WITHOUT deadline (not completed): Only active on TODAY (rolls forward daily)
+            # - Tasks WITHOUT deadline (completed): No longer active
+            query = query.filter(
+                db.func.date(Task.creation_date) <= filter_date,
+                or_(
+                    # Tasks with deadline - show in their date range
+                    and_(
+                        Task.deadline != None,
+                        db.func.date(Task.deadline) >= filter_date
+                    ),
+                    # Tasks without deadline and not completed - only show on today
+                    and_(
+                        Task.deadline == None,
+                        Task.completed == False,
+                        filter_date == today
+                    )
+                )
+            )
         except ValueError:
             return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD without timezone'}), 400
     
@@ -128,6 +160,16 @@ def update_task(task_id):
         task.priority = data['priority']
     if 'category_id' in data:
         task.category_id = data['category_id']
+    if 'deadline' in data:
+        deadline_str = data['deadline']
+        if deadline_str:
+            try:
+                task.deadline = datetime.fromisoformat(deadline_str)
+            except ValueError:
+                return jsonify({'error': 'Invalid deadline format'}), 400
+        else:
+            # Allow setting deadline to None/null
+            task.deadline = None
 
     db.session.commit()
 
@@ -193,9 +235,14 @@ def move_task_route(task_id):
     user_id = get_jwt_identity()
     data = request.get_json()
     new_parent_id = data.get('parent_id')
+    
+    # Validate that we're not trying to move a task to be its own child
+    if new_parent_id == task_id:
+        return jsonify({'error': 'Cannot move a task to be its own child'}), 400
 
-    if not move_subtask(db.session, task_id, new_parent_id, user_id):
-        return jsonify({'error': 'Failed to move task'}), 400
+    result = move_subtask(db.session, task_id, new_parent_id, user_id)
+    if not result:
+        return jsonify({'error': 'Failed to move task. The task may not exist or would create a circular reference.'}), 400
 
     # Get the updated task with its subtasks
     task_data = get_task_with_subtasks(db.session, task_id, user_id)
@@ -215,6 +262,7 @@ def search_tasks():
     Query params:
     - time_scope: 'daily' | 'weekly' | 'monthly' | 'yearly'
     - anchor_date: YYYY-MM-DD (default: today)
+    - client_today: YYYY-MM-DD (client's local today for timezone support)
     - search_query: text search
     - category_ids: comma-separated IDs
     - priority_levels: comma-separated levels
@@ -227,6 +275,7 @@ def search_tasks():
     # Get time scope and anchor date
     time_scope = request.args.get('time_scope', 'daily')
     anchor_date_str = request.args.get('anchor_date')
+    client_today_str = request.args.get('client_today')
     
     try:
         # Parse anchor date or use today
@@ -234,6 +283,12 @@ def search_tasks():
             anchor_date = datetime.strptime(anchor_date_str, '%Y-%m-%d')
         else:
             anchor_date = datetime.now()
+        
+        # Use client's today if provided, otherwise fall back to server's today
+        if client_today_str:
+            client_today = datetime.strptime(client_today_str, '%Y-%m-%d').date()
+        else:
+            client_today = datetime.now().date()
         
         # Calculate date range based on time scope
         from datetime import timedelta
@@ -298,7 +353,8 @@ def search_tasks():
             priority_levels=priority_levels,
             deadline_before=deadline_before,
             deadline_after=deadline_after,
-            completion_status=completion_status
+            completion_status=completion_status,
+            client_today=client_today
         )
         
         return jsonify(tasks)
@@ -316,6 +372,7 @@ def get_tasks_stats():
     end_date = request.args.get('end_date')
     category_ids_str = request.args.get('category_ids')
     priority_levels_str = request.args.get('priority_levels')
+    client_today_str = request.args.get('client_today')
 
     if not start_date or not end_date:
         return jsonify({'error': 'Both start_date and end_date are required'}), 400
@@ -324,12 +381,32 @@ def get_tasks_stats():
         start_dt = datetime.strptime(start_date, '%Y-%m-%d')
         end_dt = datetime.strptime(end_date, '%Y-%m-%d')
         
-        # For now, get all stats - filtering will be applied on frontend
-        # TODO: Implement backend filtering for stats if needed for performance
-        stats = get_tasks_stats_by_date_range(db.session, user_id, start_dt, end_dt)
+        # Use client's today if provided, otherwise fall back to server's today
+        if client_today_str:
+            client_today = datetime.strptime(client_today_str, '%Y-%m-%d').date()
+        else:
+            client_today = datetime.now().date()
         
-        # If filters are provided, we could filter the stats here
-        # This is a simplified implementation - full filtering would require updating the SQL query
+        # Parse category IDs if provided
+        category_ids = None
+        if category_ids_str:
+            category_ids = [int(cid.strip()) for cid in category_ids_str.split(',') if cid.strip()]
+        
+        # Parse priority levels if provided
+        priority_levels = None
+        if priority_levels_str:
+            priority_levels = [p.strip() for p in priority_levels_str.split(',') if p.strip()]
+        
+        # Get stats with optional filters
+        stats = get_tasks_stats_by_date_range(
+            db.session,
+            user_id,
+            start_dt,
+            end_dt,
+            category_ids=category_ids,
+            priority_levels=priority_levels,
+            client_today=client_today
+        )
         
         return jsonify(stats)
     except ValueError:
