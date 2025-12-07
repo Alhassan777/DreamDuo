@@ -22,6 +22,7 @@ export interface TaskCreateRequest {
  * The backend returns tasks in this shape, using ISO strings for dates.
  */
 export interface TaskResponse {
+  data: TaskResponse;
   id: number;
   name: string;
   description?: string;
@@ -114,13 +115,23 @@ export function mapTaskResponseToTask(taskRes: TaskResponse): Task {
 // Task service
 // ------------------
 
+/**
+ * Gets the client's local "today" date in YYYY-MM-DD format.
+ * This is used for timezone-aware API calls.
+ */
+const getClientToday = (): string => {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+};
+
 export const tasksService = {
   /**
    * Fetches all root tasks. Each task can contain nested 'subtasks'.
    */
   getTasks: async (): Promise<Task[]> => {
     try {
-      const response = await api.get<TaskResponse[]>('/tasks/');
+      const clientToday = getClientToday();
+      const response = await api.get<TaskResponse[]>(`/tasks/?client_today=${encodeURIComponent(clientToday)}`);
       const taskResponses = response.data;
       return taskResponses.map(mapTaskResponseToTask);
     } catch (error) {
@@ -137,7 +148,8 @@ export const tasksService = {
     try {
       // Ensure we're only sending the date part (YYYY-MM-DD) as the server expects
       const dateOnly = isoString.split('T')[0];
-      const response = await api.get<TaskResponse[]>(`/tasks/?date=${encodeURIComponent(dateOnly)}`);
+      const clientToday = getClientToday();
+      const response = await api.get<TaskResponse[]>(`/tasks/?date=${encodeURIComponent(dateOnly)}&client_today=${encodeURIComponent(clientToday)}`);
       const taskResponses = response.data;
       return taskResponses.map(mapTaskResponseToTask);
     } catch (error) {
@@ -234,15 +246,33 @@ export const tasksService = {
   /**
    * Gets task statistics for a date range.
    * Returns counts of total and completed tasks for each day in the range.
+   * Optionally filter by category IDs and priority levels.
    */
-  getTaskStatsByDateRange: async (startDate: string, endDate: string): Promise<Array<{
+  getTaskStatsByDateRange: async (
+    startDate: string,
+    endDate: string,
+    categoryIds?: number[],
+    priorityLevels?: string[]
+  ): Promise<Array<{
     date: string;
     total_tasks: number;
     completed_tasks: number;
     completion_percentage: number;
   }>> => {
     try {
-      const response = await api.get(`/tasks/stats?start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}`);
+      const params = new URLSearchParams();
+      params.append('start_date', startDate);
+      params.append('end_date', endDate);
+      params.append('client_today', getClientToday()); // Include client's local today
+      
+      if (categoryIds && categoryIds.length > 0) {
+        params.append('category_ids', categoryIds.join(','));
+      }
+      if (priorityLevels && priorityLevels.length > 0) {
+        params.append('priority_levels', priorityLevels.join(','));
+      }
+      
+      const response = await api.get(`/tasks/stats?${params.toString()}`);
       return response.data;
     } catch (error) {
       throw error;
@@ -296,6 +326,7 @@ export const tasksService = {
       const queryParams = new URLSearchParams();
       queryParams.append('time_scope', params.timeScope);
       queryParams.append('anchor_date', params.anchorDate);
+      queryParams.append('client_today', getClientToday()); // Include client's local today
       
       if (params.searchQuery) {
         queryParams.append('search_query', params.searchQuery);
