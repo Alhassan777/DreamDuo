@@ -1,6 +1,6 @@
 import React from 'react';
 import { Handle, Position } from '@xyflow/react';
-import { Box, VStack, Text, Flex, Tag, IconButton, Collapse, Input, Circle, Tooltip } from '@chakra-ui/react';
+import { Box, VStack, Text, Flex, Tag, IconButton, Collapse, Input, Circle, Tooltip, useDisclosure, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, Button, Textarea } from '@chakra-ui/react';
 import { useTheme } from '../../contexts/ThemeContext';
 import {
   AddIcon,
@@ -9,9 +9,12 @@ import {
   ChevronDownIcon,
   StarIcon,
   TimeIcon,
+  EditIcon,
+  InfoOutlineIcon,
 } from '@chakra-ui/icons';
 import { format, isValid, parseISO } from 'date-fns';
 import CanvasSubtaskCard from './CanvasSubtaskCard';
+import TaskEditModal from '../tasks/TaskEditModal';
 import '../styles/TaskCard.css';
 import './CanvasTaskCard.css';
 
@@ -23,6 +26,7 @@ interface Task {
   priority?: { color: string; level: string } | string;
   category?: string;
   categoryIcon?: string;
+  category_id?: number;
   parent_id: number | null;
   deadline?: string;
   children: Task[];
@@ -31,9 +35,22 @@ interface Task {
   canvas_shape?: string | null;
 }
 
+interface Category {
+  id?: number;
+  name: string;
+  icon?: string;
+}
+
+interface PriorityColor {
+  level: string;
+  color: string;
+}
+
 interface CanvasTaskCardProps {
   task: Task;
   selected?: boolean;
+  categories?: Category[];
+  priorities?: PriorityColor[];
   onDelete: (taskId: number, subtaskId?: number) => void;
   onToggleCollapse: (taskId: number) => void;
   onAddSubtask: (taskId: number, parentSubtaskId?: number) => void;
@@ -41,11 +58,15 @@ interface CanvasTaskCardProps {
   onToggleSubtaskComplete: (taskId: number, subtaskId: number) => void;
   onUpdateName: (taskId: number, newName: string) => void;
   onUpdateSubtaskName: (taskId: number, subtaskId: number, newName: string) => void;
+  onUpdateTask?: (taskId: number, updates: any) => Promise<void>;
+  newlyCreatedSubtaskId?: number | null;
 }
 
 const CanvasTaskCard: React.FC<CanvasTaskCardProps> = ({
   task,
   selected,
+  categories = [],
+  priorities = [],
   onDelete,
   onToggleCollapse,
   onAddSubtask,
@@ -53,15 +74,25 @@ const CanvasTaskCard: React.FC<CanvasTaskCardProps> = ({
   onToggleSubtaskComplete,
   onUpdateName,
   onUpdateSubtaskName,
+  onUpdateTask,
+  newlyCreatedSubtaskId,
 }) => {
   const { isAotMode } = useTheme();
   const [isEditing, setIsEditing] = React.useState(false);
   const [editedName, setEditedName] = React.useState(task.name);
+  
+  // Modal state for description editing
+  const { isOpen: isDescriptionModalOpen, onOpen: onDescriptionModalOpen, onClose: onDescriptionModalClose } = useDisclosure();
+  const [editedDescription, setEditedDescription] = React.useState(task.description || '');
+  
+  // Modal state for comprehensive task editing
+  const { isOpen: isEditModalOpen, onOpen: onEditModalOpen, onClose: onEditModalClose } = useDisclosure();
 
   // Update local state when task prop changes
   React.useEffect(() => {
     setEditedName(task.name);
-  }, [task.name]);
+    setEditedDescription(task.description || '');
+  }, [task.name, task.description]);
 
   const handleDoubleClick = () => {
     setIsEditing(true);
@@ -86,6 +117,33 @@ const CanvasTaskCard: React.FC<CanvasTaskCardProps> = ({
     } else if (e.key === 'Escape') {
       setIsEditing(false);
       setEditedName(task.name);
+    }
+  };
+
+  /** Handle description modal open */
+  const handleDescriptionOpen = () => {
+    setEditedDescription(task.description || '');
+    onDescriptionModalOpen();
+  };
+
+  /** Handle description save */
+  const handleDescriptionSave = () => {
+    if (onUpdateTask) {
+      onUpdateTask(task.id, { description: editedDescription });
+    }
+    onDescriptionModalClose();
+  };
+
+  /** Handle description cancel */
+  const handleDescriptionCancel = () => {
+    setEditedDescription(task.description || '');
+    onDescriptionModalClose();
+  };
+
+  /** Handle comprehensive task update */
+  const handleTaskUpdate = async (taskId: number, updates: any) => {
+    if (onUpdateTask) {
+      await onUpdateTask(taskId, updates);
     }
   };
 
@@ -159,8 +217,37 @@ const CanvasTaskCard: React.FC<CanvasTaskCardProps> = ({
               </Text>
             )}
 
-            {/* Right side: collapse + add subtask */}
+            {/* Right side: edit, description, collapse + add subtask */}
             <Flex gap={2}>
+              {/* Edit button for comprehensive task editing */}
+              {onUpdateTask && (
+                <Tooltip label="Edit task" placement="top">
+                  <IconButton
+                    icon={<EditIcon />}
+                    aria-label="Edit task"
+                    size="sm"
+                    onClick={onEditModalOpen}
+                    data-aot-mode={isAotMode}
+                    colorScheme="purple"
+                    variant="solid"
+                  />
+                </Tooltip>
+              )}
+              {/* Description button with tooltip */}
+              <Tooltip 
+                label={task.description || 'No description. Click to add one.'}
+                placement="top"
+              >
+                <IconButton
+                  icon={<InfoOutlineIcon />}
+                  aria-label="Edit description"
+                  size="sm"
+                  onClick={handleDescriptionOpen}
+                  data-aot-mode={isAotMode}
+                  className="description-button"
+                  variant="solid"
+                />
+              </Tooltip>
               <IconButton
                 icon={task.collapsed ? <ChevronDownIcon /> : <ChevronUpIcon />}
                 aria-label="Toggle collapse"
@@ -234,13 +321,17 @@ const CanvasTaskCard: React.FC<CanvasTaskCardProps> = ({
                     key={sub.id}
                     taskId={task.id}
                     subtask={sub}
+                    categories={categories}
+                    priorities={priorities}
                     onDelete={onDelete}
                     onAddSubtask={(taskId, parentSubtaskId) => onAddSubtask(taskId, parentSubtaskId)}
                     onToggleComplete={onToggleSubtaskComplete}
                     onUpdateName={onUpdateSubtaskName}
+                    onUpdateTask={onUpdateTask}
                     onDragStart={() => {}}
                     onDrop={() => {}}
                     dragState={null}
+                    newlyCreatedSubtaskId={newlyCreatedSubtaskId}
                   />
                 ))}
               </VStack>
@@ -256,6 +347,44 @@ const CanvasTaskCard: React.FC<CanvasTaskCardProps> = ({
         id={`task-${task.id}-source`}
         className="canvas-task-handle-bottom"
       />
+
+      {/* Description Edit Modal */}
+      <Modal isOpen={isDescriptionModalOpen} onClose={handleDescriptionCancel} data-aot-mode={isAotMode}>
+        <ModalOverlay />
+        <ModalContent data-aot-mode={isAotMode}>
+          <ModalHeader data-aot-mode={isAotMode}>Edit Task Description</ModalHeader>
+          <ModalCloseButton data-aot-mode={isAotMode} />
+          <ModalBody data-aot-mode={isAotMode}>
+            <Textarea
+              value={editedDescription}
+              onChange={(e) => setEditedDescription(e.target.value)}
+              placeholder="Enter task description..."
+              rows={6}
+              data-aot-mode={isAotMode}
+            />
+          </ModalBody>
+          <ModalFooter data-aot-mode={isAotMode}>
+            <Button mr={3} onClick={handleDescriptionCancel} data-aot-mode={isAotMode}>
+              Cancel
+            </Button>
+            <Button onClick={handleDescriptionSave} data-aot-mode={isAotMode}>
+              Save
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Comprehensive Task Edit Modal */}
+      {onUpdateTask && (
+        <TaskEditModal
+          isOpen={isEditModalOpen}
+          onClose={onEditModalClose}
+          task={task}
+          categories={categories}
+          priorities={priorities}
+          onSave={handleTaskUpdate}
+        />
+      )}
     </Box>
   );
 };

@@ -4,19 +4,33 @@ import { Task, tasksService, TaskDependency } from '../services/tasks';
 import { TaskNodeData } from '../components/canvas/CustomTaskNode';
 import { useToast } from '@chakra-ui/react';
 
+interface Category {
+  id?: number;
+  name: string;
+  icon?: string;
+}
+
+interface PriorityColor {
+  level: string;
+  color: string;
+}
+
 interface UseCanvasViewProps {
   tasks: Task[];
   setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
+  categories?: Category[];
+  priorities?: PriorityColor[];
   onRefresh?: () => void;
 }
 
-export const useCanvasView = ({ tasks, setTasks, onRefresh }: UseCanvasViewProps) => {
+export const useCanvasView = ({ tasks, setTasks, categories = [], priorities = [], onRefresh }: UseCanvasViewProps) => {
   const [nodes, setNodes] = useState<Node<TaskNodeData>[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [dependencies, setDependencies] = useState<TaskDependency[]>([]);
   const [selectedNodeIds, setSelectedNodeIds] = useState<number[]>([]);
   const [connectMode, setConnectMode] = useState(false);
   const [sourceNodeForConnection, setSourceNodeForConnection] = useState<number | null>(null);
+  const [newlyCreatedSubtaskId, setNewlyCreatedSubtaskId] = useState<number | null>(null);
   const toast = useToast();
 
   // Helper function to find a task by ID recursively
@@ -101,20 +115,38 @@ export const useCanvasView = ({ tasks, setTasks, onRefresh }: UseCanvasViewProps
     async (taskId: number, parentSubtaskId?: number) => {
       try {
         const parentId = parentSubtaskId || taskId;
-        const newSubtaskResponse = await tasksService.createTask({
+        const response = await tasksService.createTask({
           name: 'New Subtask',
           parent_id: parentId,
         });
 
+        // Extract the actual task data from the response
+        const newSubtaskData = response.data || response;
+        
+        if (!newSubtaskData.id) {
+          console.error('No ID in subtask data!', newSubtaskData);
+          toast({
+            title: 'Error creating subtask',
+            description: 'Subtask was created but no ID was returned',
+            status: 'error',
+            duration: 3000,
+            isClosable: true,
+          });
+          if (onRefresh) {
+            onRefresh();
+          }
+          return;
+        }
+
         // Convert TaskResponse to Task format
         const newSubtask: Task = {
-          ...newSubtaskResponse,
-          parent_id: newSubtaskResponse.parent_id ?? null,
-          category: typeof newSubtaskResponse.category === 'string' 
-            ? newSubtaskResponse.category 
-            : newSubtaskResponse.category?.name,
-          categoryIcon: typeof newSubtaskResponse.category === 'object' 
-            ? newSubtaskResponse.category?.icon 
+          ...newSubtaskData,
+          parent_id: newSubtaskData.parent_id ?? null,
+          category: typeof newSubtaskData.category === 'string' 
+            ? newSubtaskData.category 
+            : newSubtaskData.category?.name,
+          categoryIcon: typeof newSubtaskData.category === 'object' 
+            ? newSubtaskData.category?.icon 
             : undefined,
           children: [],
           collapsed: false,
@@ -138,6 +170,16 @@ export const useCanvasView = ({ tasks, setTasks, onRefresh }: UseCanvasViewProps
           };
           return addSubtaskToParent(prevTasks);
         });
+
+        // Set the newly created subtask ID to trigger auto-edit AFTER state update
+        setTimeout(() => {
+          setNewlyCreatedSubtaskId(newSubtaskData.id);
+        }, 150);
+
+        // Clear the newly created subtask ID after a delay
+        setTimeout(() => {
+          setNewlyCreatedSubtaskId(null);
+        }, 2000);
 
         toast({
           title: 'Subtask added',
@@ -360,24 +402,70 @@ export const useCanvasView = ({ tasks, setTasks, onRefresh }: UseCanvasViewProps
     [toast, onRefresh, setTasks]
   );
 
+  // Handler: Comprehensive task update
+  const handleUpdateTask = useCallback(
+    async (taskId: number, updates: any) => {
+      try {
+        await tasksService.updateTask(taskId, updates);
+        
+        // Refresh tasks after update
+        if (onRefresh) {
+          onRefresh();
+        }
+
+        toast({
+          title: 'Task Updated',
+          description: 'Task has been successfully updated',
+          status: 'success',
+          duration: 2000,
+          isClosable: true,
+        });
+      } catch (error) {
+        console.error('Failed to update task:', error);
+        toast({
+          title: 'Failed to update task',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+        // Revert on error
+        if (onRefresh) {
+          onRefresh();
+        }
+      }
+    },
+    [toast, onRefresh]
+  );
+
   // Convert tasks to nodes
-  const tasksToNodes = useCallback((taskList: Task[]): Node<TaskNodeData>[] => {
+  const tasksToNodes = useCallback((taskList: Task[], existingNodes: Node<TaskNodeData>[] = []): Node<TaskNodeData>[] => {
     const nodeList: Node<TaskNodeData>[] = [];
+    
+    // Create a map of existing positions
+    const existingPositions = new Map<string, { x: number; y: number }>();
+    existingNodes.forEach(node => {
+      existingPositions.set(node.id, node.position);
+    });
 
     // Only process top-level tasks (parent_id === null)
     // Children will be rendered inside the task cards
     taskList.forEach((task) => {
       if (task.parent_id === null) {
-        // Calculate position with auto-layout if not set
-        const xPos = task.position_x ?? (nodeList.length * 350 % 1200);
-        const yPos = task.position_y ?? (Math.floor(nodeList.length / 4) * 250);
+        const taskIdStr = task.id.toString();
+        
+        // Preserve existing position if available, otherwise use stored position or auto-layout
+        const existingPos = existingPositions.get(taskIdStr);
+        const xPos = existingPos?.x ?? task.position_x ?? (nodeList.length * 350 % 1200);
+        const yPos = existingPos?.y ?? task.position_y ?? (Math.floor(nodeList.length / 4) * 250);
 
         nodeList.push({
-          id: task.id.toString(),
+          id: taskIdStr,
           type: 'customTask',
           position: { x: xPos, y: yPos },
           data: {
             task: task,
+            categories: categories,
+            priorities: priorities,
             onDelete: handleDelete,
             onToggleCollapse: handleToggleCollapse,
             onAddSubtask: handleAddSubtask,
@@ -385,6 +473,8 @@ export const useCanvasView = ({ tasks, setTasks, onRefresh }: UseCanvasViewProps
             onToggleSubtaskComplete: handleToggleSubtaskComplete,
             onUpdateName: handleUpdateName,
             onUpdateSubtaskName: handleUpdateSubtaskName,
+            onUpdateTask: handleUpdateTask,
+            newlyCreatedSubtaskId: newlyCreatedSubtaskId,
           },
         });
       }
@@ -399,6 +489,10 @@ export const useCanvasView = ({ tasks, setTasks, onRefresh }: UseCanvasViewProps
     handleToggleSubtaskComplete,
     handleUpdateName,
     handleUpdateSubtaskName,
+    handleUpdateTask,
+    newlyCreatedSubtaskId,
+    categories,
+    priorities,
   ]);
 
   // Helper to find the root parent task for any task/subtask
@@ -480,7 +574,7 @@ export const useCanvasView = ({ tasks, setTasks, onRefresh }: UseCanvasViewProps
 
   // Initialize nodes and load dependencies
   useEffect(() => {
-    setNodes(tasksToNodes(tasks));
+    setNodes(prevNodes => tasksToNodes(tasks, prevNodes));
     loadDependencies();
   }, [tasks, tasksToNodes, loadDependencies]);
 

@@ -58,7 +58,7 @@ const TaskCanvasView: React.FC<TaskCanvasViewProps> = ({
     customizeTasks,
     customizeEdges,
     deleteDependency,
-  } = useCanvasView({ tasks, setTasks, onRefresh });
+  } = useCanvasView({ tasks, setTasks, categories, priorities, onRefresh });
 
   // Define custom node types
   const nodeTypes = useMemo(

@@ -18,8 +18,21 @@ interface Task {
   canvas_shape?: string | null;
 }
 
+interface Category {
+  id?: number;
+  name: string;
+  icon?: string;
+}
+
+interface PriorityColor {
+  level: string;
+  color: string;
+}
+
 export interface TaskNodeData extends Record<string, unknown> {
   task: Task;
+  categories?: Category[];
+  priorities?: PriorityColor[];
   onDelete: (taskId: number, subtaskId?: number) => void;
   onToggleCollapse: (taskId: number) => void;
   onAddSubtask: (taskId: number, parentSubtaskId?: number) => void;
@@ -27,8 +40,10 @@ export interface TaskNodeData extends Record<string, unknown> {
   onToggleSubtaskComplete: (taskId: number, subtaskId: number) => void;
   onUpdateName: (taskId: number, newName: string) => void;
   onUpdateSubtaskName: (taskId: number, subtaskId: number, newName: string) => void;
+  onUpdateTask?: (taskId: number, updates: any) => Promise<void>;
   onNodeClick?: (taskId: number) => void;
   connectMode?: boolean;
+  newlyCreatedSubtaskId?: number | null;
 }
 
 const CustomTaskNode = ({ data: rawData, selected }: NodeProps) => {
@@ -61,6 +76,8 @@ const CustomTaskNode = ({ data: rawData, selected }: NodeProps) => {
       <CanvasTaskCard
         task={data.task}
         selected={selected}
+        categories={data.categories}
+        priorities={data.priorities}
         onDelete={data.onDelete}
         onToggleCollapse={data.onToggleCollapse}
         onAddSubtask={data.onAddSubtask}
@@ -68,6 +85,8 @@ const CustomTaskNode = ({ data: rawData, selected }: NodeProps) => {
         onToggleSubtaskComplete={data.onToggleSubtaskComplete}
         onUpdateName={data.onUpdateName}
         onUpdateSubtaskName={data.onUpdateSubtaskName}
+        onUpdateTask={data.onUpdateTask}
+        newlyCreatedSubtaskId={data.newlyCreatedSubtaskId}
       />
     </div>
   );
