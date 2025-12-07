@@ -135,8 +135,8 @@
 }
 
 .theme-toggle {
-  background-color: var(--color-surface);
-  color: var(--color-text);
+  background-color: var(--color-surface) !important;
+  color: var(--color-text) !important;
 }
 
 /* Icon Wrapper Styles */
@@ -153,26 +153,26 @@
 
 /* Navigation Item States */
 .nav-item.active {
-  background-color: var(--color-card-background);
-  color: var(--color-text);
+  background-color: var(--color-card-background) !important;
+  color: var(--color-text) !important;
 }
 
 .nav-item:not(.active) {
-  color: var(--color-text-secondary);
+  color: var(--color-text-secondary) !important;
 }
 
 .nav-item:hover {
-  background-color: var(--color-surface);
+  background-color: var(--color-surface) !important;
 }
 
 /* Sidebar Toggle Button States */
 .sidebar-toggle-button {
-  background-color: var(--color-surface);
-  color: var(--color-text);
+  background-color: var(--color-surface) !important;
+  color: var(--color-text) !important;
 }
 
 .sidebar-toggle-button:hover {
-  background-color: var(--color-card-background);
+  background-color: var(--color-card-background) !important;
   opacity: 0.9;
 }
 

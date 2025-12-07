@@ -64,27 +64,27 @@
 .task-customization-shape-button {
   flex: 1;
   font-size: 0.875rem;
-  border-width: 1px;
+  border-width: 1px !important;
   border-radius: var(--border-radius-md);
   transition: all var(--animation-duration) var(--animation-timing);
-  background: transparent;
-  color: var(--color-text);
-  border-color: var(--color-border);
+  background: transparent !important;
+  color: var(--color-text) !important;
+  border-color: var(--color-border) !important;
 }
 
 .task-customization-shape-button:hover {
-  background: var(--color-hover-overlay);
-  border-color: var(--color-primary);
+  background: var(--color-hover-overlay) !important;
+  border-color: var(--color-primary) !important;
 }
 
 .task-customization-shape-button.selected {
-  background: var(--color-button-primary);
-  color: var(--color-button-primary-text);
-  border-color: var(--color-primary);
+  background: var(--color-button-primary) !important;
+  color: var(--color-button-primary-text) !important;
+  border-color: var(--color-primary) !important;
 }
 
 .task-customization-shape-button.selected:hover {
-  background: var(--color-button-primary-hover);
+  background: var(--color-button-primary-hover) !important;
 }
 
 .task-customization-actions {
@@ -99,18 +99,18 @@
 }
 
 .task-customization-apply-button {
-  background: var(--color-button-primary);
-  color: var(--color-button-primary-text);
+  background: var(--color-button-primary) !important;
+  color: var(--color-button-primary-text) !important;
 }
 
 .task-customization-apply-button:hover:not(:disabled) {
-  background: var(--color-button-primary-hover);
+  background: var(--color-button-primary-hover) !important;
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
 
 .task-customization-apply-button:active:not(:disabled) {
-  background: var(--color-active-state);
+  background: var(--color-active-state) !important;
 }
 
 .task-customization-apply-button:disabled {
@@ -119,12 +119,12 @@
 }
 
 .task-customization-reset-button {
-  background: var(--color-button-secondary);
-  color: var(--color-button-secondary-text);
+  background: var(--color-button-secondary) !important;
+  color: var(--color-button-secondary-text) !important;
 }
 
 .task-customization-reset-button:hover:not(:disabled) {
-  background: var(--color-button-secondary-hover);
+  background: var(--color-button-secondary-hover) !important;
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
@@ -136,11 +136,11 @@
 
 .task-customization-close-button {
   font-size: 0.875rem;
-  color: var(--color-text);
+  color: var(--color-text) !important;
   transition: all var(--animation-duration) var(--animation-timing);
 }
 
 .task-customization-close-button:hover {
-  background: var(--color-hover-overlay);
+  background: var(--color-hover-overlay) !important;
 }
 
