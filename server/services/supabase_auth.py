@@ -85,8 +85,17 @@ class SupabaseAuthService:
             
         except Exception as e:
             db.session.rollback()
-            logger.error(f"OAuth callback error: {str(e)}")
-            return {'error': f'OAuth authentication failed: {str(e)}'}, 500
+            error_str = str(e)
+            logger.error(f"OAuth callback error: {error_str}")
+            
+            # Check if error is due to missing database columns
+            if 'auth_provider' in error_str or 'does not exist' in error_str.lower():
+                return {
+                    'error': 'Database migration required. Please run database migrations to add OAuth support columns (auth_provider, provider_id, provider_data) to the users table.',
+                    'details': error_str
+                }, 500
+            
+            return {'error': f'OAuth authentication failed: {error_str}'}, 500
     
     @staticmethod
     def verify_supabase_token(access_token: str) -> Optional[Dict]:

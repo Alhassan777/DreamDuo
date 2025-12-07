@@ -85,11 +85,14 @@ def create_app():
             app.register_blueprint(user_bp)
             app.register_blueprint(tags_bp, url_prefix='/api/tags')
 
-            # Run migrations automatically if AUTO_MIGRATE is enabled (for deployment)
+            # Run migrations automatically (always attempt, but respect AUTO_MIGRATE for strict mode)
             auto_migrate = os.getenv('AUTO_MIGRATE', 'false').lower() == 'true'
             migration_success = False
             
-            if auto_migrate:
+            # Always attempt migrations in production, or if AUTO_MIGRATE is explicitly enabled
+            should_migrate = auto_migrate or os.getenv('FLASK_ENV') == 'production'
+            
+            if should_migrate:
                 try:
                     from flask_migrate import upgrade, stamp
                     from alembic import command
@@ -103,15 +106,21 @@ def create_app():
                     tables = inspector.get_table_names()
                     
                     if 'alembic_version' not in tables:
-                        print('⚠️  alembic_version table not found, initializing...')
-                        # Stamp the database with the latest revision without running migrations
-                        # This is useful when the database already has the schema
+                        print('⚠️  alembic_version table not found, attempting to run migrations...')
+                        # Try to run migrations first - Alembic will create the version table
                         try:
-                            stamp(revision='head')
-                            print('✅ Database stamped with latest migration version')
+                            upgrade()
+                            print('✅ Migrations completed successfully')
                             migration_success = True
-                        except Exception as stamp_error:
-                            print(f'⚠️  Could not stamp database: {str(stamp_error)}')
+                        except Exception as upgrade_error:
+                            print(f'⚠️  Could not run migrations: {str(upgrade_error)}')
+                            # If upgrade fails, try to stamp (useful if schema already exists)
+                            try:
+                                stamp(revision='head')
+                                print('✅ Database stamped with latest migration version')
+                                migration_success = True
+                            except Exception as stamp_error:
+                                print(f'⚠️  Could not stamp database: {str(stamp_error)}')
                     else:
                         # Run migrations normally
                         upgrade()

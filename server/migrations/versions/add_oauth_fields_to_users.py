@@ -21,6 +21,7 @@ def upgrade():
     """Add OAuth fields to users table"""
     # Get connection to check if columns already exist
     conn = op.get_bind()
+    dialect_name = conn.dialect.name
     
     # Check if auth_provider column exists
     inspector = sa.inspect(conn)
@@ -37,8 +38,13 @@ def upgrade():
         print("✅ Added provider_id column")
     
     # Add provider_data column if it doesn't exist (idempotent)
+    # Use JSON for PostgreSQL, Text for SQLite
     if 'provider_data' not in columns:
-        op.add_column('users', sa.Column('provider_data', sa.Text(), nullable=True))
+        if dialect_name == 'postgresql':
+            op.add_column('users', sa.Column('provider_data', sa.JSON(), nullable=True))
+        else:
+            # SQLite doesn't have native JSON, use Text
+            op.add_column('users', sa.Column('provider_data', sa.Text(), nullable=True))
         print("✅ Added provider_data column")
 
 
