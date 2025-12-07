@@ -24,8 +24,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       useCredentials: true,  // ✅ Ensures the manifest request includes credentials
       manifest: {
-        name: 'AOT To Do',
-        short_name: 'AOT To Do',
+        name: 'DreamDuo',
+        short_name: 'DreamDuo',
         description: 'A modern task management application',
         theme_color: '#ffffff',
         icons: [

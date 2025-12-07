@@ -11,7 +11,8 @@ interface DragState {
 
 export const useDragAndDrop = (
   tasks: Task[],
-  setTasks: React.Dispatch<React.SetStateAction<Task[]>>
+  setTasks: React.Dispatch<React.SetStateAction<Task[]>>,
+  onRefresh?: () => Promise<void>
 ) => {
   const [dragState, setDragState] = useState<DragState | null>(null);
 
@@ -48,12 +49,17 @@ export const useDragAndDrop = (
       
       await tasksService.moveTask(dragState.itemId, newParentId);
       
-      // Get the current date from the task's creation_date
-      const movedTask = tasks.find(t => t.id === dragState.itemId);
-      if (movedTask && movedTask.creation_date) {
-        // Fetch tasks for the specific date
-        const updatedTasks = await tasksService.getTasksByDate(movedTask.creation_date);
-        setTasks(updatedTasks);
+      // Use the provided refresh callback if available
+      if (onRefresh) {
+        await onRefresh();
+      } else {
+        // Fallback: Get the current date from the task's creation_date
+        const movedTask = tasks.find(t => t.id === dragState.itemId);
+        if (movedTask && movedTask.creation_date) {
+          // Fetch tasks for the specific date
+          const updatedTasks = await tasksService.getTasksByDate(movedTask.creation_date);
+          setTasks(updatedTasks);
+        }
       }
     } catch (error) {
       console.error('Error moving task/subtask:', error);

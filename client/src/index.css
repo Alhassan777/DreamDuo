@@ -105,3 +105,18 @@ h5 { font-size: var(--font-size-base); }
 h6 { font-size: calc(var(--font-size-base) * 0.9); }
 
 /* Theme colors are controlled by ThemeContext, not media queries */
+
+/* Global Select/Option dropdown styling - fix dark mode visibility */
+select option,
+.chakra-select option {
+  background-color: var(--color-card-background, #1a1a2e) !important;
+  color: var(--color-text, #ffffff) !important;
+}
+
+select option:hover,
+.chakra-select option:hover,
+select option:checked,
+.chakra-select option:checked {
+  background-color: var(--color-primary, #3182ce) !important;
+  color: var(--color-button-primary-text, #ffffff) !important;
+}

@@ -167,7 +167,7 @@ const DashboardPage: React.FC = () => {
     fetchTags();
   }, []);
 
-  // Refresh stats every minute to keep streak updated
+  // Refresh stats when filters change or on mount
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -183,8 +183,13 @@ const DashboardPage: React.FC = () => {
         // Format today's date for daily stats
         const todayFormatted = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-${String(now.getUTCDate()).padStart(2, '0')}`;
 
-        // Get monthly data for the streak and monthly view
-        const monthlyData = await tasksService.getTaskStatsByDateRange(startDate, endDate);
+        // Get monthly data for the streak and monthly view (with filters applied)
+        const monthlyData = await tasksService.getTaskStatsByDateRange(
+          startDate,
+          endDate,
+          selectedCategoryIds.length > 0 ? selectedCategoryIds : undefined,
+          selectedPriorityLevels.length > 0 ? selectedPriorityLevels : undefined
+        );
         
         // Get today's data for daily goal progress
         const todayData = monthlyData.find(day => day.date === todayFormatted) || {
@@ -262,7 +267,7 @@ const DashboardPage: React.FC = () => {
     };
 
     fetchStats();
-  }, [toast]);
+  }, [toast, selectedCategoryIds, selectedPriorityLevels]);
 
 
 
@@ -340,68 +345,96 @@ const DashboardPage: React.FC = () => {
               </Flex>
               
               <Box className="weekly-chart">
-                {stats.weeklyStats.map((day) => (
-                  <Flex key={day.day} align="center" mb={2} width="100%">
-                    <Text className="chart-label" data-aot-mode={isAotMode} width="60px">
-                      {day.day}
-                    </Text>
-                    
-                    {viewType === 'bar' ? (
-                      <Box flex="1" position="relative" ml={2}>
-                        <Box
-                          className="chart-bar-background"
-                          bg={isAotMode ? 'rgba(255, 59, 48, 0.3)' : 'rgba(66, 153, 225, 0.3)'}
-                          w="100%"
-                          h="20px"
-                          borderRadius="4px"
-                        >
+                {stats.weeklyStats.map((day) => {
+                  const isFreeDay = day.assigned === 0;
+                  const isNotStarted = day.assigned > 0 && day.completed === 0;
+                  const isCompleted = day.assigned > 0 && day.completed === day.assigned;
+                  
+                  // Get bar colors based on status
+                  const getBarColor = () => {
+                    if (isFreeDay) return isAotMode ? 'gray.600' : 'gray.400';
+                    if (isCompleted) return isAotMode ? 'var(--aot-accent)' : 'var(--dashboard-chart-purple)';
+                    if (isNotStarted) return isAotMode ? 'red.500' : 'orange.400';
+                    return isAotMode ? 'rgba(255, 59, 48, 0.7)' : '#3182ce';
+                  };
+                  
+                  const getTrackColor = () => {
+                    if (isFreeDay) return isAotMode ? 'gray.800' : 'gray.200';
+                    if (isNotStarted) return isAotMode ? 'red.900' : 'orange.100';
+                    return isAotMode ? 'rgba(255, 59, 48, 0.3)' : 'rgba(66, 153, 225, 0.3)';
+                  };
+                  
+                  return (
+                    <Flex key={day.day} align="center" mb={2} width="100%" opacity={isFreeDay ? 0.5 : 1}>
+                      <Text className="chart-label" data-aot-mode={isAotMode} width="60px">
+                        {day.day}
+                      </Text>
+                      
+                      {viewType === 'bar' ? (
+                        <Box flex="1" position="relative" ml={2}>
                           <Box
-                            className="chart-bar"
-                            bg={isAotMode
-                              ? (day.completed === day.assigned ? 'var(--aot-accent)' : 'rgba(255, 59, 48, 0.7)')
-                              : (day.completed === day.assigned ? 'var(--dashboard-chart-purple)' : '#3182ce')
-                            }
-                            w={`${(day.assigned > 0 ? (day.completed / day.assigned) * 100 : 0)}%`}
+                            className="chart-bar-background"
+                            bg={getTrackColor()}
+                            w="100%"
                             h="20px"
                             borderRadius="4px"
-                            position="absolute"
-                            top="0"
-                            left="0"
-                          />
+                            borderStyle={isFreeDay ? 'dashed' : 'solid'}
+                            borderWidth={isFreeDay ? '1px' : '0'}
+                            borderColor={isAotMode ? 'gray.600' : 'gray.400'}
+                          >
+                            {!isFreeDay && (
+                              <Box
+                                className="chart-bar"
+                                bg={getBarColor()}
+                                w={`${(day.completed / day.assigned) * 100}%`}
+                                h="20px"
+                                borderRadius="4px"
+                                position="absolute"
+                                top="0"
+                                left="0"
+                              />
+                            )}
+                          </Box>
                         </Box>
-                      </Box>
-                    ) : (
-                      <Box flex="1" position="relative" ml={2}>
-                        <Box
-                          className="chart-bar-assigned"
-                          bg={isAotMode ? 'rgba(255, 59, 48, 0.3)' : 'rgba(66, 153, 225, 0.3)'}
-                          w="100%"
-                          h="20px"
-                          borderRadius="4px"
-                        >
+                      ) : (
+                        <Box flex="1" position="relative" ml={2}>
                           <Box
-                            className="chart-bar-completed"
-                            bg={isAotMode ? (day.completed === day.assigned ? 'var(--aot-accent)' : 'rgba(255, 59, 48, 0.7)') : (day.completed === day.assigned ? 'var(--dashboard-chart-purple)' : '#3182ce')}
-
-                            w={`${(day.completed / day.assigned) * 100}%`}
+                            className="chart-bar-assigned"
+                            bg={getTrackColor()}
+                            w="100%"
                             h="20px"
                             borderRadius="4px"
-                            position="absolute"
-                            top="0"
-                            left="0"
-                          />
+                            borderStyle={isFreeDay ? 'dashed' : 'solid'}
+                            borderWidth={isFreeDay ? '1px' : '0'}
+                            borderColor={isAotMode ? 'gray.600' : 'gray.400'}
+                          >
+                            {!isFreeDay && (
+                              <Box
+                                className="chart-bar-completed"
+                                bg={getBarColor()}
+                                w={`${(day.completed / day.assigned) * 100}%`}
+                                h="20px"
+                                borderRadius="4px"
+                                position="absolute"
+                                top="0"
+                                left="0"
+                              />
+                            )}
+                          </Box>
                         </Box>
-                      </Box>
-                    )}
-                    
-                    <Text ml={4} width="70px" textAlign="right">
-                      {viewType === 'bar' ? 
-                        day.completed : 
-                        `${day.completed}/${day.assigned}`
-                      }
-                    </Text>
-                  </Flex>
-                ))}
+                      )}
+                      
+                      <Text ml={4} width="70px" textAlign="right" color={isFreeDay ? (isAotMode ? 'gray.500' : 'gray.400') : undefined}>
+                        {isFreeDay 
+                          ? 'Free' 
+                          : viewType === 'bar' 
+                            ? `${day.completed}/${day.assigned}`
+                            : `${day.completed}/${day.assigned}`
+                        }
+                      </Text>
+                    </Flex>
+                  );
+                })}
               </Box>
             </Box>
           </Grid>
@@ -415,41 +448,102 @@ const DashboardPage: React.FC = () => {
             </Flex>
             
             <Grid templateColumns="repeat(auto-fit, minmax(120px, 1fr))" gap={4} className="monthly-chart" maxW="100%" overflowX="auto" p={4}>
-              {stats.monthlyStats.map((day) => (
-                <Box key={day.day} p={3} textAlign="center" className="monthly-day-box" data-aot-mode={isAotMode} borderRadius="md" boxShadow="sm">
-                  <Text fontSize="sm" fontWeight="bold" mb={2}>{day.day}</Text>
-                  
-                  {viewType === 'bar' ? (
-                    <CircularProgress 
-                      value={day.assigned > 0 ? (day.completed / day.assigned) * 100 : 0}
-                      size="50px"
-                      thickness="8px"
-                      color={isAotMode ? (day.completed === day.assigned ? 'var(--aot-accent)' : 'var(--aot-primary)') : (day.completed === day.assigned ? 'var(--dashboard-chart-purple)' : '#3182ce')}
-                    >
-                      <CircularProgressLabel fontSize="xs">
-                        {day.completed}
-                      </CircularProgressLabel>
-                    </CircularProgress>
-                  ) : (
-                    <Flex direction="column" align="center" mt={2}>
-                      <Text fontSize="sm" mb={2}>{day.completed}/{day.assigned}</Text>
-                      <Box 
-                        w="100%" 
-                        h="8px" 
-                        bg={isAotMode ? 'var(--aot-primary)' : 'rgba(66, 153, 225, 0.3)'}
-                        borderRadius="full"
-                      >
-                        <Box 
-                          w={`${day.assigned > 0 ? (day.completed / day.assigned) * 100 : 0}%`} 
-                          h="8px"
-                          bg={isAotMode ? (day.completed === day.assigned ? 'var(--aot-accent)' : 'rgba(255, 59, 48, 0.7)') : (day.completed === day.assigned ? 'var(--dashboard-chart-purple)' : '#3182ce')}
+              {stats.monthlyStats.map((day) => {
+                // Determine day status for visual differentiation
+                const isFreeDay = day.assigned === 0;
+                const isNotStarted = day.assigned > 0 && day.completed === 0;
+                const isCompleted = day.assigned > 0 && day.completed === day.assigned;
+                const isInProgress = day.assigned > 0 && day.completed > 0 && day.completed < day.assigned;
+                
+                // Get appropriate colors based on status
+                const getProgressColor = () => {
+                  if (isFreeDay) return isAotMode ? 'gray.600' : 'gray.400';
+                  if (isCompleted) return isAotMode ? 'var(--aot-accent)' : 'var(--dashboard-chart-purple)';
+                  if (isNotStarted) return isAotMode ? 'red.400' : 'orange.400';
+                  return isAotMode ? 'var(--aot-primary)' : '#3182ce';
+                };
+                
+                const getBgOpacity = () => {
+                  if (isFreeDay) return 0.3;
+                  return 1;
+                };
+                
+                return (
+                  <Box 
+                    key={day.day} 
+                    p={3} 
+                    textAlign="center" 
+                    className="monthly-day-box" 
+                    data-aot-mode={isAotMode} 
+                    borderRadius="md" 
+                    boxShadow="sm"
+                    opacity={getBgOpacity()}
+                    border={isFreeDay ? '1px dashed' : 'none'}
+                    borderColor={isAotMode ? 'gray.600' : 'gray.500'}
+                  >
+                    <Text fontSize="sm" fontWeight="bold" mb={2}>{day.day}</Text>
+                    
+                    {viewType === 'bar' ? (
+                      isFreeDay ? (
+                        // Free day - show empty state
+                        <Flex 
+                          justify="center" 
+                          align="center" 
+                          w="50px" 
+                          h="50px" 
+                          mx="auto"
                           borderRadius="full"
-                        />
-                      </Box>
-                    </Flex>
-                  )}
-                </Box>
-              ))}
+                          border="2px dashed"
+                          borderColor={isAotMode ? 'gray.600' : 'gray.500'}
+                        >
+                          <Text fontSize="xs" color={isAotMode ? 'gray.500' : 'gray.400'}>Free</Text>
+                        </Flex>
+                      ) : (
+                        <CircularProgress 
+                          value={(day.completed / day.assigned) * 100}
+                          size="50px"
+                          thickness="8px"
+                          color={getProgressColor()}
+                          trackColor={isNotStarted ? (isAotMode ? 'red.900' : 'orange.100') : undefined}
+                        >
+                          <CircularProgressLabel fontSize="xs">
+                            {day.completed}/{day.assigned}
+                          </CircularProgressLabel>
+                        </CircularProgress>
+                      )
+                    ) : (
+                      <Flex direction="column" align="center" mt={2}>
+                        <Text fontSize="sm" mb={2}>
+                          {isFreeDay ? 'Free' : `${day.completed}/${day.assigned}`}
+                        </Text>
+                        <Box 
+                          w="100%" 
+                          h="8px" 
+                          bg={isFreeDay 
+                            ? (isAotMode ? 'gray.700' : 'gray.300')
+                            : isNotStarted 
+                              ? (isAotMode ? 'red.900' : 'orange.100')
+                              : (isAotMode ? 'var(--aot-primary)' : 'rgba(66, 153, 225, 0.3)')
+                          }
+                          borderRadius="full"
+                          borderStyle={isFreeDay ? 'dashed' : 'solid'}
+                          borderWidth={isFreeDay ? '1px' : '0'}
+                          borderColor={isAotMode ? 'gray.600' : 'gray.400'}
+                        >
+                          {!isFreeDay && (
+                            <Box 
+                              w={`${(day.completed / day.assigned) * 100}%`} 
+                              h="8px"
+                              bg={getProgressColor()}
+                              borderRadius="full"
+                            />
+                          )}
+                        </Box>
+                      </Flex>
+                    )}
+                  </Box>
+                );
+              })}
             </Grid>
           </Box>
         </Container>

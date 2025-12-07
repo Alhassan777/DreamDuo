@@ -164,10 +164,16 @@ const CanvasAddTaskPanel: React.FC<CanvasAddTaskPanelProps> = ({
                 color="var(--color-text)"
                 _hover={{ borderColor: 'var(--color-primary)' }}
                 _focus={{ borderColor: 'var(--color-focus-ring)', boxShadow: `0 0 0 1px var(--color-focus-ring)` }}
+                sx={{
+                  '& option': {
+                    bg: 'var(--color-card-background)',
+                    color: 'var(--color-text)',
+                  }
+                }}
               >
-                <option value="">No Category</option>
+                <option value="" style={{ backgroundColor: 'var(--color-card-background)', color: 'inherit' }}>No Category</option>
                 {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
+                  <option key={cat.id} value={cat.id} style={{ backgroundColor: 'var(--color-card-background)', color: 'inherit' }}>
                     {cat.name}
                   </option>
                 ))}
@@ -190,10 +196,16 @@ const CanvasAddTaskPanel: React.FC<CanvasAddTaskPanelProps> = ({
                 color="var(--color-text)"
                 _hover={{ borderColor: 'var(--color-primary)' }}
                 _focus={{ borderColor: 'var(--color-focus-ring)', boxShadow: `0 0 0 1px var(--color-focus-ring)` }}
+                sx={{
+                  '& option': {
+                    bg: 'var(--color-card-background)',
+                    color: 'var(--color-text)',
+                  }
+                }}
               >
-                <option value="">No Priority</option>
+                <option value="" style={{ backgroundColor: 'var(--color-card-background)', color: 'inherit' }}>No Priority</option>
                 {priorities.map((p) => (
-                  <option key={p.level} value={p.level}>
+                  <option key={p.level} value={p.level} style={{ backgroundColor: 'var(--color-card-background)', color: 'inherit' }}>
                     {p.level}
                   </option>
                 ))}

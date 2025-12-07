@@ -111,10 +111,16 @@ const CalendarPage = () => {
     }
   };
   
-  // Handle day click to navigate to TasksPage
-  const handleDayClick = (_day: number) => {
-    // Just navigate to tasks page - the TasksPage will handle showing tasks for the selected date
-    navigate('/tasks');
+  // Handle day click to navigate to TasksPage with selected date
+  const handleDayClick = (day: number) => {
+    // Build the selected date in YYYY-MM-DD format
+    const year = currentDate.getFullYear();
+    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const dayStr = String(day).padStart(2, '0');
+    const dateParam = `${year}-${month}-${dayStr}`;
+    
+    // Navigate to tasks page with the date as a query parameter
+    navigate(`/tasks?date=${dateParam}`);
   };
   
   // Task CRUD operations
