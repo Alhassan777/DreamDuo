@@ -11,7 +11,12 @@ config = context.config
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
-fileConfig(config.config_file_name)
+try:
+    fileConfig(config.config_file_name)
+except Exception as e:
+    # In production, alembic.ini might not be available, so just use basic logging
+    logging.basicConfig(level=logging.INFO)
+    print(f'Note: Could not load alembic.ini config, using default logging: {e}')
 logger = logging.getLogger('alembic.env')
 
 

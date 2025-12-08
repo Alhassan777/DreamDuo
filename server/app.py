@@ -85,71 +85,76 @@ def create_app():
             app.register_blueprint(user_bp)
             app.register_blueprint(tags_bp, url_prefix='/api/tags')
 
-            # Run migrations automatically (always attempt, but respect AUTO_MIGRATE for strict mode)
+            # Run migrations automatically in production
             auto_migrate = os.getenv('AUTO_MIGRATE', 'false').lower() == 'true'
+            is_production = os.getenv('FLASK_ENV') == 'production'
+            # Also detect production by DATABASE_URL (Render, Heroku, etc. use postgres://)
+            database_url = os.getenv('DATABASE_URL', '')
+            is_postgres = 'postgres' in database_url.lower()
             migration_success = False
             
+            print(f'🔍 Environment Check:')
+            print(f'   - FLASK_ENV: {os.getenv("FLASK_ENV")}')
+            print(f'   - AUTO_MIGRATE: {auto_migrate}')
+            print(f'   - Database: {"PostgreSQL" if is_postgres else "SQLite"}')
+            
             # Always attempt migrations in production, or if AUTO_MIGRATE is explicitly enabled
-            should_migrate = auto_migrate or os.getenv('FLASK_ENV') == 'production'
+            # Also run if using PostgreSQL (production database)
+            should_migrate = auto_migrate or is_production or is_postgres
             
             if should_migrate:
+                print('🔄 Attempting to run database migrations...')
                 try:
                     from flask_migrate import upgrade, stamp
-                    from alembic import command
-                    from alembic.config import Config
                     import sqlalchemy as sa
-                    
-                    print('🔄 Auto-migration enabled, running migrations...')
                     
                     # Check if alembic_version table exists
                     inspector = sa.inspect(db.engine)
                     tables = inspector.get_table_names()
                     
+                    print(f'📊 Existing tables: {tables}')
+                    
                     if 'alembic_version' not in tables:
-                        print('⚠️  alembic_version table not found, attempting to run migrations...')
-                        # Try to run migrations first - Alembic will create the version table
-                        try:
-                            upgrade()
-                            print('✅ Migrations completed successfully')
-                            migration_success = True
-                        except Exception as upgrade_error:
-                            print(f'⚠️  Could not run migrations: {str(upgrade_error)}')
-                            # If upgrade fails, try to stamp (useful if schema already exists)
-                            try:
-                                stamp(revision='head')
-                                print('✅ Database stamped with latest migration version')
-                                migration_success = True
-                            except Exception as stamp_error:
-                                print(f'⚠️  Could not stamp database: {str(stamp_error)}')
+                        print('⚠️  alembic_version table not found, creating and running migrations...')
+                        # Run migrations - this will create alembic_version table
+                        upgrade()
+                        print('✅ Migrations completed successfully (first time)')
+                        migration_success = True
                     else:
-                        # Run migrations normally
+                        # Check current migration version
+                        print('📌 alembic_version table exists, running upgrade...')
                         upgrade()
                         print('✅ Migrations completed successfully')
                         migration_success = True
                         
                 except Exception as migration_error:
                     error_str = str(migration_error)
-                    print(f'⚠️  Migration error: {error_str}')
+                    print(f'❌ Migration error: {error_str}')
                     
                     # If error is due to duplicate columns/tables, database is likely already up to date
                     if 'already exists' in error_str.lower() or 'duplicate' in error_str.lower():
-                        print('⚠️  Database appears to already have the schema, marking migrations as complete')
+                        print('⚠️  Database appears to already have the schema, trying to stamp...')
                         try:
                             from flask_migrate import stamp
                             stamp(revision='head')
                             print('✅ Database stamped with latest migration version')
                             migration_success = True
                         except Exception as stamp_error:
-                            print(f'⚠️  Could not stamp database: {str(stamp_error)}')
+                            print(f'❌ Could not stamp database: {str(stamp_error)}')
+                            # Try db.create_all as last resort
+                            print('⚠️  Falling back to db.create_all()...')
                     else:
+                        print(f'❌ Migration failed with unexpected error: {error_str}')
                         print('⚠️  Falling back to db.create_all()...')
+            else:
+                print('ℹ️  Auto-migration disabled, using db.create_all()')
 
             # Create database tables (fallback if migrations not used or failed)
             if not migration_success:
                 db.create_all()
                 print('✅ Database initialized successfully using db.create_all()')
             else:
-                print('✅ Database initialized successfully')
+                print('✅ Database initialized with migrations')
         except Exception as e:
             print(f'Error initializing database: {str(e)}')
             raise
