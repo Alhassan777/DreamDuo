@@ -104,6 +104,7 @@ def create_app():
             
             if should_migrate:
                 print('🔄 Attempting to run database migrations...')
+                print(f'   Database URL: {database_url[:30]}...')
                 try:
                     from flask_migrate import upgrade, stamp
                     import sqlalchemy as sa
@@ -112,7 +113,15 @@ def create_app():
                     inspector = sa.inspect(db.engine)
                     tables = inspector.get_table_names()
                     
-                    print(f'📊 Existing tables: {tables}')
+                    print(f'📊 Existing tables: {", ".join(tables)}')
+                    
+                    # Check if OAuth columns exist
+                    if 'users' in tables:
+                        user_columns = [col['name'] for col in inspector.get_columns('users')]
+                        print(f'📊 Users table columns: {", ".join(user_columns)}')
+                        
+                        if 'auth_provider' not in user_columns:
+                            print('⚠️  OAuth columns missing! Running migrations...')
                     
                     if 'alembic_version' not in tables:
                         print('⚠️  alembic_version table not found, creating and running migrations...')
@@ -122,10 +131,33 @@ def create_app():
                         migration_success = True
                     else:
                         # Check current migration version
-                        print('📌 alembic_version table exists, running upgrade...')
-                        upgrade()
-                        print('✅ Migrations completed successfully')
-                        migration_success = True
+                        with db.engine.connect() as conn:
+                            result = conn.execute(sa.text("SELECT version_num FROM alembic_version"))
+                            current_version = result.fetchone()
+                            if current_version:
+                                print(f'📌 Current migration version: {current_version[0]}')
+                        
+                        print('📌 Running upgrade to latest...')
+                        try:
+                            upgrade()
+                            print('✅ Migrations completed successfully')
+                            migration_success = True
+                        except Exception as upgrade_error:
+                            print(f'⚠️  Upgrade error: {str(upgrade_error)}')
+                            # If upgrade fails but columns already exist, that's okay
+                            if 'already exists' in str(upgrade_error).lower():
+                                print('✅ Columns already exist, marking as success')
+                                migration_success = True
+                            else:
+                                raise
+                        
+                        # Verify OAuth columns were added
+                        if 'users' in tables:
+                            user_columns = [col['name'] for col in inspector.get_columns('users')]
+                            if 'auth_provider' in user_columns:
+                                print('✅ OAuth columns verified!')
+                            else:
+                                print('❌ OAuth columns still missing after migration!')
                         
                 except Exception as migration_error:
                     error_str = str(migration_error)
