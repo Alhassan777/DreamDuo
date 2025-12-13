@@ -66,6 +66,56 @@ def get_root_tasks(session: Session, user_id: int) -> List[Task]:
     return session.query(Task).filter(Task.user_id == user_id, Task.parent_id == None).all()
 
 
+def calculate_overdue_status(task: Task, user_id: int, session: Session) -> Dict[str, Any]:
+    """
+    Calculate if a task is overdue and by how many days.
+    
+    Returns dict with:
+    - is_overdue: boolean
+    - days_overdue: integer (positive number, or 0 if not overdue)
+    """
+    from models.user_settings import UserSettings
+    
+    if task.completed:
+        return {'is_overdue': False, 'days_overdue': 0}
+    
+    today = datetime.now().date()
+    
+    # Get user's overdue_warning_threshold setting (default 7 days)
+    user_settings = session.query(UserSettings).filter_by(user_id=user_id).first()
+    threshold = user_settings.overdue_warning_threshold if user_settings and user_settings.overdue_warning_threshold else 7
+    
+    if task.deadline:
+        # Task has deadline - check if deadline has passed
+        # Convert deadline to date object properly
+        if isinstance(task.deadline, str):
+            deadline_date = datetime.fromisoformat(task.deadline.replace('Z', '+00:00')).date()
+        elif hasattr(task.deadline, 'date'):
+            deadline_date = task.deadline.date()
+        else:
+            deadline_date = task.deadline
+            
+        if deadline_date < today:
+            days_overdue = (today - deadline_date).days
+            return {'is_overdue': True, 'days_overdue': days_overdue}
+    else:
+        # Task has no deadline - check if creation_date + threshold has passed
+        # Convert creation_date to date object properly
+        if isinstance(task.creation_date, str):
+            creation_date = datetime.fromisoformat(task.creation_date.replace('Z', '+00:00')).date()
+        elif hasattr(task.creation_date, 'date'):
+            creation_date = task.creation_date.date()
+        else:
+            creation_date = task.creation_date
+            
+        if creation_date:
+            days_since_creation = (today - creation_date).days
+            if days_since_creation > threshold:
+                return {'is_overdue': True, 'days_overdue': days_since_creation}
+    
+    return {'is_overdue': False, 'days_overdue': 0}
+
+
 def get_task_with_subtasks(session: Session, task_id: int, user_id: int = None) -> Dict[str, Any]:
     """
     Retrieves one task plus all its subtasks in a nested structure.
@@ -79,6 +129,8 @@ def get_task_with_subtasks(session: Session, task_id: int, user_id: int = None) 
         return None
 
     # Query the hierarchy table for all descendants
+    # Note: SQLite/PostgreSQL will return all columns from tasks table including
+    # creation_date, deadline, completed_date, etc.
     subtasks_query = session.execute(
         text("""
             SELECT t.*, h.depth, c.name as category_name, c.icon as category_icon,
@@ -118,6 +170,9 @@ def get_task_with_subtasks(session: Session, task_id: int, user_id: int = None) 
                 'level': priority_query[1]
             }
 
+    # Calculate overdue status
+    overdue_status = calculate_overdue_status(task, user_id, session) if user_id else {'is_overdue': False, 'days_overdue': 0}
+
     task_dict = {
         'id': task.id,
         'name': task.name,
@@ -129,6 +184,9 @@ def get_task_with_subtasks(session: Session, task_id: int, user_id: int = None) 
         'parent_id': task.parent_id,
         'creation_date': task.creation_date.isoformat() if task.creation_date else None,
         'deadline': task.deadline.isoformat() if task.deadline else None,
+        'completed_date': task.completed_date.isoformat() if task.completed_date else None,
+        'is_overdue': overdue_status['is_overdue'],
+        'days_overdue': overdue_status['days_overdue'],
         'position_x': task.position_x,
         'position_y': task.position_y,
         'canvas_color': task.canvas_color,
@@ -157,7 +215,7 @@ def build_subtask_hierarchy(subtasks_flat: List[Dict[str, Any]], parent_id: int)
             'id': child['id'],
             'name': child['name'],
             'completed': child['completed'],
-            'priority': priority_info,  # now includes both color and level
+            'priority': priority_info,
             'category_id': child.get('category_id'),
             'parent_id': child.get('parent_id'),
             'position_x': child.get('position_x'),
@@ -396,6 +454,13 @@ def toggle_task_completion(session: Session, task_id: int, user_id: int = None) 
 
     # Flip the completed status
     task.completed = not task.completed
+    
+    # Set completed_date when completing, clear it when uncompleting
+    if task.completed:
+        task.completed_date = datetime.now()
+    else:
+        task.completed_date = None
+    
     session.commit()
 
     return {
@@ -421,38 +486,59 @@ def get_tasks_with_filters(
     Get tasks with comprehensive filtering support.
     Returns root tasks with nested subtask structure, expanding parent tasks when subtasks match search.
     
-    Tasks are shown if the query date range overlaps with their active period:
-    - Tasks with deadline: Show from creation_date to deadline
-    - Tasks without deadline (not completed): Only show on TODAY (rolls forward daily)
-    - Tasks without deadline (completed): No longer shown
+    UPDATED visibility logic:
+    1. Tasks WITH deadline (not completed): Show from creation_date to MAX(deadline, today)
+       - If deadline is in future: show from creation_date to deadline
+       - If deadline passed: show from creation_date to today
+    2. Tasks WITHOUT deadline (not completed): Show from creation_date to today
+    3. Completed tasks: Show from creation_date to completed_date
     
     client_today: The client's local "today" date for timezone support
     """
-    from sqlalchemy import or_, and_
+    from sqlalchemy import or_, and_, func, case
     from models.category import Category
     
     # Use client's today if provided, otherwise fall back to server's today
     today = client_today if client_today else datetime.now().date()
     
     # Build base query for root tasks that are active within the date range
-    # For tasks WITH deadline: creation_date <= end_date AND deadline >= start_date
-    # For tasks WITHOUT deadline: Only show on today if not completed and today is in range
     query = session.query(Task).filter(
         Task.user_id == user_id,
         Task.parent_id == None,
-        db.func.date(Task.creation_date) <= end_date.date(),
         or_(
-            # Tasks with deadline - show in their date range
+            # NOT completed tasks WITH deadline: Show from creation_date to MAX(deadline, today)
             and_(
+                Task.completed == False,
                 Task.deadline != None,
+        db.func.date(Task.creation_date) <= end_date.date(),
+                # Show if query range overlaps with task's active period
+                # Task is active from creation_date to MAX(deadline, today)
+        or_(
+                    # If deadline is in future, show until deadline
+            and_(
+                        db.func.date(Task.deadline) >= today,
                 db.func.date(Task.deadline) >= start_date.date()
             ),
-            # Tasks without deadline and not completed - only if today is in the query range
+                    # If deadline passed, show until today
+                    and_(
+                        db.func.date(Task.deadline) < today,
+                        start_date.date() <= today
+                    )
+                )
+            ),
+            # NOT completed tasks WITHOUT deadline: Show from creation_date to today
             and_(
-                Task.deadline == None,
                 Task.completed == False,
-                start_date.date() <= today,
-                today <= end_date.date()
+                Task.deadline == None,
+                db.func.date(Task.creation_date) <= end_date.date(),
+                start_date.date() <= today
+            ),
+            # Completed tasks: Show from creation_date to completed_date
+            and_(
+                Task.completed == True,
+                Task.completed_date != None,
+                db.func.date(Task.creation_date) <= end_date.date(),
+                db.func.date(Task.completed_date) >= start_date.date()
             )
         )
     )
@@ -571,10 +657,10 @@ def get_tasks_stats_by_date_range(
     """
     Get task statistics for each day in a date range.
     
-    Tasks are counted on each day they are active:
-    - Tasks with deadline: Active from creation_date to deadline
-    - Tasks without deadline (not completed): Only active on TODAY (rolls forward daily)
-    - Tasks without deadline (completed): No longer active
+    UPDATED visibility logic for stats:
+    1. Tasks WITH deadline (not completed): Show from creation_date to MAX(deadline, today)
+    2. Tasks WITHOUT deadline (not completed): Show from creation_date to today
+    3. Completed tasks: Show from creation_date to completed_date
     
     Optionally filter by category_ids and priority_levels.
     client_today: The client's local "today" date for timezone support
@@ -585,22 +671,39 @@ def get_tasks_stats_by_date_range(
     today = client_today if client_today else datetime.now().date()
     
     # Build base query for tasks that could be active in the date range
-    # For tasks WITH deadline: creation_date <= end_date AND deadline >= start_date
-    # For tasks WITHOUT deadline: Only show on today if not completed
     query = session.query(Task).filter(
         Task.user_id == user_id,
         Task.parent_id == None,  # Only root tasks
+        or_(
+            # NOT completed tasks WITH deadline: Show from creation_date to MAX(deadline, today)
+            and_(
+                Task.completed == False,
+                Task.deadline != None,
         db.func.date(Task.creation_date) <= end_date.date(),
         or_(
-            # Tasks with deadline - show in their date range
             and_(
-                Task.deadline != None,
+                        db.func.date(Task.deadline) >= today,
                 db.func.date(Task.deadline) >= start_date.date()
             ),
-            # Tasks without deadline and not completed - only if today is in range
+                    and_(
+                        db.func.date(Task.deadline) < today,
+                        start_date.date() <= today
+                    )
+                )
+            ),
+            # NOT completed tasks WITHOUT deadline: Show from creation_date to today
             and_(
+                Task.completed == False,
                 Task.deadline == None,
-                Task.completed == False
+                db.func.date(Task.creation_date) <= end_date.date(),
+                start_date.date() <= today
+            ),
+            # Completed tasks: Show from creation_date to completed_date
+            and_(
+                Task.completed == True,
+                Task.completed_date != None,
+                db.func.date(Task.creation_date) <= end_date.date(),
+                db.func.date(Task.completed_date) >= start_date.date()
             )
         )
     )
@@ -630,21 +733,33 @@ def get_tasks_stats_by_date_range(
         for task in all_tasks:
             task_creation = task.creation_date.date() if task.creation_date else None
             task_deadline = task.deadline.date() if task.deadline else None
+            task_completed_date = task.completed_date.date() if task.completed_date else None
             
-            # Check if task is active on current_date
-            # For tasks WITH deadline: Active from creation_date to deadline
-            # For tasks WITHOUT deadline: Only active on TODAY if not completed
+            # Check if task is active on current_date using UPDATED visibility logic:
+            # With deadline (not completed): Show from creation_date to MAX(deadline, today)
+            # Without deadline (not completed): Show from creation_date to today
+            # Completed: Show from creation_date to completed_date
             is_active = False
             
             if task_creation and task_creation <= current_date:
-                if task_deadline is not None:
-                    # Task has deadline - show in date range
-                    if task_deadline >= current_date:
-                        is_active = True
+                if not task.completed:
+                    if task_deadline:
+                        # Has deadline: Show from creation_date to MAX(deadline, today)
+                        if task_deadline >= today:
+                            # Deadline in future: show until deadline
+                            if current_date <= task_deadline:
+                                is_active = True
+                        else:
+                            # Deadline passed: show until today
+                            if current_date <= today:
+                                is_active = True
+                    else:
+                        # No deadline: Show from creation_date to today
+                        if current_date <= today:
+                            is_active = True
                 else:
-                    # Task has no deadline - only show on TODAY if not completed
-                    # (rolls forward day by day until resolved)
-                    if current_date == today and not task.completed:
+                    # Completed: Show from creation_date to completed_date
+                    if task_completed_date and current_date <= task_completed_date:
                         is_active = True
             
             if is_active:
