@@ -1,10 +1,12 @@
 import React, { memo } from 'react';
 import { NodeProps } from '@xyflow/react';
 import CanvasTaskCard from './CanvasTaskCard';
+import { Category } from '../../services/tags';
 
 interface Task {
   id: number;
   name: string;
+  description?: string;
   completed: boolean;
   collapsed?: boolean;
   priority?: { color: string; level: string } | string;
@@ -12,16 +14,13 @@ interface Task {
   categoryIcon?: string;
   parent_id: number | null;
   deadline?: string;
+  completed_date?: string;
+  is_overdue?: boolean;
+  days_overdue?: number;
   children: Task[];
   subtasks?: Task[];
   canvas_color?: string | null;
   canvas_shape?: string | null;
-}
-
-interface Category {
-  id?: number;
-  name: string;
-  icon?: string;
 }
 
 interface PriorityColor {
