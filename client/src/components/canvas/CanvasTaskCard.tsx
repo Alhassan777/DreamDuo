@@ -17,12 +17,14 @@ import {
 import { format, isValid, parseISO } from 'date-fns';
 import CanvasSubtaskCard from './CanvasSubtaskCard';
 import TaskEditModal from '../tasks/TaskEditModal';
+import { Category } from '../../services/tags';
 import '../styles/TaskCard.css';
 import './CanvasTaskCard.css';
 
 interface Task {
   id: number;
   name: string;
+  description?: string;
   completed: boolean;
   collapsed?: boolean;
   priority?: { color: string; level: string } | string;
@@ -38,12 +40,6 @@ interface Task {
   subtasks?: Task[];
   canvas_color?: string | null;
   canvas_shape?: string | null;
-}
-
-interface Category {
-  id?: number;
-  name: string;
-  icon?: string;
 }
 
 interface PriorityColor {

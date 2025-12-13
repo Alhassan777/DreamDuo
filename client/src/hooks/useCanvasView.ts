@@ -2,13 +2,8 @@ import { useState, useCallback, useEffect } from 'react';
 import { Node, Edge, OnNodesChange, OnEdgesChange, applyNodeChanges, applyEdgeChanges } from '@xyflow/react';
 import { Task, tasksService, TaskDependency } from '../services/tasks';
 import { TaskNodeData } from '../components/canvas/CustomTaskNode';
+import { Category } from '../services/tags';
 import { useToast } from '@chakra-ui/react';
-
-interface Category {
-  id?: number;
-  name: string;
-  icon?: string;
-}
 
 interface PriorityColor {
   level: string;
