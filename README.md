@@ -1,4 +1,4 @@
-# Attack On Titan To-Do List
+# DreamDuo
 
 A full-stack task management application with hierarchical task organization, real-time multi-device synchronization, and an interactive canvas visualization. Built with React/TypeScript on the frontend and Flask/Python on the backend.
 
