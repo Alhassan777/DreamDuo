@@ -28,6 +28,7 @@ class UserSettings(db.Model):
     status_logos = db.Column(JSONEncodedDict, default={})
     theme_preferences = db.Column(JSONEncodedDict, default={})
     custom_themes = db.Column(JSONEncodedDict, default={})  # Store multiple custom themes
+    overdue_warning_threshold = db.Column(db.Integer, default=7)  # Days before warning for tasks without deadline
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
