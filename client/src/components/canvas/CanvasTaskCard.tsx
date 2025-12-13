@@ -11,6 +11,8 @@ import {
   TimeIcon,
   EditIcon,
   InfoOutlineIcon,
+  WarningIcon,
+  WarningTwoIcon,
 } from '@chakra-ui/icons';
 import { format, isValid, parseISO } from 'date-fns';
 import CanvasSubtaskCard from './CanvasSubtaskCard';
@@ -21,7 +23,6 @@ import './CanvasTaskCard.css';
 interface Task {
   id: number;
   name: string;
-  description?: string;
   completed: boolean;
   collapsed?: boolean;
   priority?: { color: string; level: string } | string;
@@ -30,6 +31,9 @@ interface Task {
   category_id?: number;
   parent_id: number | null;
   deadline?: string;
+  completed_date?: string;
+  is_overdue?: boolean;
+  days_overdue?: number;
   children: Task[];
   subtasks?: Task[];
   canvas_color?: string | null;
@@ -295,15 +299,33 @@ const CanvasTaskCard: React.FC<CanvasTaskCardProps> = ({
               if (isValid(deadlineDate)) {
                 return (
                   <Tooltip label={format(deadlineDate, "PPpp")}>
-                    <Tag size="sm" colorScheme="blue" className="deadline-tag" data-aot-mode={isAotMode}>
+                    <Tag 
+                      size="sm" 
+                      colorScheme={task.is_overdue ? "red" : "blue"} 
+                      className="deadline-tag" 
+                      data-aot-mode={isAotMode}
+                    >
                       <TimeIcon className="deadline-time-icon" />
                       {format(deadlineDate, "MMM do, h:mm a")}
+                      {task.is_overdue && (
+                        <WarningIcon ml={1} />
+                      )}
                     </Tag>
                   </Tooltip>
                 );
               }
               return null;
             })()}
+            
+            {/* Show overdue warning for tasks without deadline */}
+            {!task.deadline && task.is_overdue && (
+              <Tooltip label={`This task is ${task.days_overdue} days old and has no deadline`}>
+                <Tag size="sm" colorScheme="orange" className="overdue-tag" data-aot-mode={isAotMode}>
+                  <WarningTwoIcon className="overdue-icon" mr={1} />
+                  {task.days_overdue} days old
+                </Tag>
+              </Tooltip>
+            )}
           </Flex>
 
           {/* SUBTASKS: expand/collapse with Canvas handles */}
@@ -381,7 +403,7 @@ const CanvasTaskCard: React.FC<CanvasTaskCardProps> = ({
           isOpen={isEditModalOpen}
           onClose={onEditModalClose}
           task={task}
-          categories={categories.filter((cat): cat is Category & { id: number } => cat.id !== undefined)}
+          categories={categories}
           priorities={priorities}
           onSave={handleTaskUpdate}
         />
