@@ -39,23 +39,43 @@ def get_tasks():
             # Parse date without timezone information - treats date as local timezone
             filter_date = datetime.strptime(date_str, '%Y-%m-%d').date()
             
-            # A task is active on a date based on these rules:
-            # - Tasks WITH deadline: Active from creation_date to deadline
-            # - Tasks WITHOUT deadline (not completed): Only active on TODAY (rolls forward daily)
-            # - Tasks WITHOUT deadline (completed): No longer active
+            # UPDATED visibility logic:
+            # 1. Tasks WITH deadline (not completed): Show from creation_date to MAX(deadline, today)
+            # 2. Tasks WITHOUT deadline (not completed): Show from creation_date to today
+            # 3. Completed tasks: Show from creation_date to completed_date
             query = query.filter(
+                or_(
+                    # NOT completed WITH deadline: Show from creation_date to MAX(deadline, today)
+                    and_(
+                        Task.completed == False,
+                        Task.deadline != None,
                 db.func.date(Task.creation_date) <= filter_date,
                 or_(
-                    # Tasks with deadline - show in their date range
+                            # Deadline in future: show until deadline
+                            and_(
+                                db.func.date(Task.deadline) >= today,
+                                filter_date <= db.func.date(Task.deadline)
+                            ),
+                            # Deadline passed: show until today
                     and_(
-                        Task.deadline != None,
-                        db.func.date(Task.deadline) >= filter_date
+                                db.func.date(Task.deadline) < today,
+                                filter_date <= today
+                            )
+                        )
                     ),
-                    # Tasks without deadline and not completed - only show on today
+                    # NOT completed WITHOUT deadline: Show from creation_date to today
                     and_(
-                        Task.deadline == None,
                         Task.completed == False,
-                        filter_date == today
+                        Task.deadline == None,
+                        db.func.date(Task.creation_date) <= filter_date,
+                        filter_date <= today
+                    ),
+                    # Completed: Show from creation_date to completed_date
+                    and_(
+                        Task.completed == True,
+                        Task.completed_date != None,
+                        db.func.date(Task.creation_date) <= filter_date,
+                        filter_date <= db.func.date(Task.completed_date)
                     )
                 )
             )
