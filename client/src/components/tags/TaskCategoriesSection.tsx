@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import CategoryCard from './CategoryCard';
 import '../styles/TaskCategoriesSection.css';
-import { tagsService, Category as CategoryType } from '../../services/tags';
+import { tagsService, Category as CategoryType, CategoryCreateRequest } from '../../services/tags';
 
 // Using the Category type from our service
 interface CategoryWithUI extends CategoryType {
@@ -21,7 +21,7 @@ const TaskCategoriesSection: React.FC<TaskCategoriesSectionProps> = ({ setCatego
   const { isAotMode } = useTheme();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [categoryList, setCategoryList] = useState<CategoryWithUI[]>([]);
-  const [newCategory, setNewCategory] = useState<CategoryWithUI>({
+  const [newCategory, setNewCategory] = useState<CategoryCreateRequest>({
     name: '',
     description: '',
     icon: '📋'
@@ -142,7 +142,7 @@ const TaskCategoriesSection: React.FC<TaskCategoriesSectionProps> = ({ setCatego
     }
   };
 
-  const handleUpdateCategory = async (index: number, updatedCategory: CategoryWithUI) => {
+  const handleUpdateCategory = async (index: number, updatedCategory: CategoryCreateRequest) => {
     const categoryToUpdate = categoryList[index];
     if (!categoryToUpdate.id) {
       toast({
