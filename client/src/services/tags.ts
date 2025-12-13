@@ -2,7 +2,13 @@ import api from './api';
 
 // Types
 export interface Category {
-  id?: number;
+  id: number;
+  name: string;
+  description?: string;
+  icon?: string;
+}
+
+export interface CategoryCreateRequest {
   name: string;
   description?: string;
   icon?: string;
@@ -31,7 +37,7 @@ export const tagsService = {
     }
   },
 
-  createCategory: async (category: Category): Promise<Category> => {
+  createCategory: async (category: CategoryCreateRequest): Promise<Category> => {
     try {
       const response = await api.post('/tags/categories', category);
       return response.data;
@@ -40,7 +46,7 @@ export const tagsService = {
     }
   },
 
-  updateCategory: async (categoryId: number, category: Category): Promise<Category> => {
+  updateCategory: async (categoryId: number, category: CategoryCreateRequest): Promise<Category> => {
     try {
       const response = await api.put(`/tags/categories/${categoryId}`, category);
       return response.data;
