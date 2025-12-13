@@ -136,6 +136,14 @@ const TasksPage: React.FC = () => {
   // Decide whether the modal is for a Task or Category
   const [isTaskMode, setIsTaskMode] = useState(true);
 
+  // For past deadline confirmation
+  const {
+    isOpen: isPastDeadlineDialogOpen,
+    onOpen: onPastDeadlineDialogOpen,
+    onClose: onPastDeadlineDialogClose
+  } = useDisclosure();
+  const [pendingTaskData, setPendingTaskData] = useState<TaskCreateRequest | null>(null);
+
   // Handle emoji selection for category creation
   const handleEmojiClick = (emojiData: EmojiClickData) => {
     setNewCategory(prev => ({ ...prev, icon: emojiData.emoji }));
@@ -232,9 +240,24 @@ const TasksPage: React.FC = () => {
   // Drag-and-drop with refresh callback (must be after fetchTasks is defined)
   const { dragState, handleDragStart, handleDrop } = useDragAndDrop(tasks, setTasks, fetchTasks);
 
-  const handleCreateTask = async (taskData?: TaskCreateRequest) => {
+  const handleCreateTask = async (taskData?: TaskCreateRequest, bypassWarning = false) => {
     const taskToCreate = taskData || newTask;
     if (!taskToCreate.name.trim()) return;
+    
+    // Check if deadline is in the past BEFORE creating the task
+    if (taskToCreate.deadline && !bypassWarning) {
+      const deadlineDate = new Date(taskToCreate.deadline);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (deadlineDate < today) {
+        // Store the task data and show confirmation dialog
+        setPendingTaskData(taskToCreate);
+        onPastDeadlineDialogOpen();
+        return;
+      }
+    }
+    
     setIsLoading(true);
   
     try {
@@ -290,6 +313,20 @@ const TasksPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const confirmPastDeadlineTask = () => {
+    if (pendingTaskData) {
+      handleCreateTask(pendingTaskData, true);
+      setPendingTaskData(null);
+      onPastDeadlineDialogClose();
+    }
+  };
+
+  const cancelPastDeadlineTask = () => {
+    setPendingTaskData(null);
+    onPastDeadlineDialogClose();
+    setIsLoading(false);
   };
 
   const handleCreateCategory = async () => {
@@ -823,6 +860,48 @@ const TasksPage: React.FC = () => {
               data-aot-mode={isAotMode}
             >
               {isTaskMode ? 'Create Task' : 'Create Category'}
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      {/* Confirmation Dialog for Past Deadline */}
+      <Modal 
+        isOpen={isPastDeadlineDialogOpen} 
+        onClose={cancelPastDeadlineTask} 
+        data-aot-mode={isAotMode}
+      >
+        <ModalOverlay />
+        <ModalContent className="tasks-modal" data-aot-mode={isAotMode}>
+          <ModalHeader className="tasks-modal-header" data-aot-mode={isAotMode}>
+            Deadline Has Passed
+          </ModalHeader>
+          <ModalCloseButton className="tasks-modal-close" data-aot-mode={isAotMode} />
+          <ModalBody>
+            <VStack spacing={4} align="stretch">
+              <Text>
+                The deadline you've set has already passed. Are you adding this task for record-keeping purposes?
+              </Text>
+              <Text fontSize="sm" color="gray.500">
+                The task will be marked as overdue and will display a warning indicator.
+              </Text>
+            </VStack>
+          </ModalBody>
+          <ModalFooter>
+            <Button 
+              variant="ghost" 
+              mr={3} 
+              onClick={cancelPastDeadlineTask}
+              data-aot-mode={isAotMode}
+            >
+              Cancel
+            </Button>
+            <Button 
+              colorScheme="blue" 
+              onClick={confirmPastDeadlineTask}
+              data-aot-mode={isAotMode}
+            >
+              Yes, Create Task
             </Button>
           </ModalFooter>
         </ModalContent>
