@@ -32,12 +32,22 @@ export interface TaskResponse {
   parent_id?: number | null;
   creation_date: string;          // An ISO date string from the backend
   deadline?: string;             // Optional ISO string for deadline
+  completed_date?: string;        // ISO string for when task was completed
+  is_overdue?: boolean;           // Whether task is overdue
+  days_overdue?: number;          // How many days overdue (0 if not overdue)
   subtasks?: TaskResponse[];      // 'subtasks' are nested tasks
   category?: CategoryResponse;    // Additional info about the category
   position_x?: number | null;     // Canvas X position
   position_y?: number | null;     // Canvas Y position
   canvas_color?: string | null;   // Custom canvas color
   canvas_shape?: string | null;   // Canvas shape: 'rectangle', 'rounded', 'circle'
+}
+
+/**
+ * Response from creating a task, includes warning flag for past deadlines
+ */
+export interface TaskCreateResponse extends TaskResponse {
+  has_past_deadline?: boolean;    // Whether the task was created with a deadline in the past
 }
 
 export interface CategoryResponse {
@@ -71,6 +81,9 @@ export interface Task {
   parent_id: number | null;
   creation_date: string; // Keep as ISO string
   deadline?: string;    // Optional ISO string for deadline
+  completed_date?: string;  // ISO string for when task was completed
+  is_overdue?: boolean;     // Whether task is overdue
+  days_overdue?: number;    // How many days overdue (0 if not overdue)
   collapsed?: boolean;
   children: Task[]; 
   category?: string;
@@ -100,6 +113,9 @@ export function mapTaskResponseToTask(taskRes: TaskResponse): Task {
     category_id: taskRes.category_id,
     creation_date: taskRes.creation_date,         // Keep the ISO string 
     deadline: taskRes.deadline,                   // Add deadline field
+    completed_date: taskRes.completed_date,       // When task was completed
+    is_overdue: taskRes.is_overdue,               // Overdue status from backend
+    days_overdue: taskRes.days_overdue,           // Days overdue from backend
     collapsed: false,                             // Default UI preference
     children: (taskRes.subtasks || []).map(mapTaskResponseToTask),
     category: taskRes.category?.name,
@@ -187,7 +203,7 @@ export const tasksService = {
    *
    *   task.creation_date = task.creation_date ?? new Date().toISOString();
    */
-  createTask: async (task: TaskCreateRequest): Promise<TaskResponse> => {
+  createTask: async (task: TaskCreateRequest): Promise<TaskCreateResponse> => {
     try {
       // Optional: Provide a default date if none is supplied
       if (!task.creation_date) {
