@@ -8,6 +8,7 @@ services:
     branch: main
     rootDir: server
     buildCommand: "pip install -r requirements.txt"
+    preDeployCommand: "python run_migrations.py"
     startCommand: "python app.py"
     envVars:
       - key: FLASK_ENV
@@ -20,6 +21,8 @@ services:
         generateValue: true
       - key: FRONTEND_URL
         value: https://dreamduo.netlify.app
+      - key: AUTO_MIGRATE
+        value: "true"
 
 databases:
   # PostgreSQL Database
