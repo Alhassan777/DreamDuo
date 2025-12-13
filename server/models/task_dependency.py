@@ -148,9 +148,9 @@ def would_create_cycle(session, source_id: int, target_id: int, user_id: int) ->
         graph[dep.source_task_id].append(dep.target_task_id)
     
     # Add the proposed new edge
-    if target_id not in graph:
-        graph[target_id] = []
-    graph[target_id].append(source_id)
+    if source_id not in graph:
+        graph[source_id] = []
+    graph[source_id].append(target_id)
     
     # Check for cycle using DFS from source_id
     visited = set()
