@@ -3,6 +3,8 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import User, db
 from models.user_settings import UserSettings
 from flask_cors import cross_origin
+from datetime import datetime
+from sqlalchemy.orm.attributes import flag_modified
 import re
 
 user_bp = Blueprint('user', __name__, url_prefix='/api')
@@ -37,8 +39,12 @@ def user_profile():
             }), 200
 
         elif request.method == 'PUT':
-            data = request.get_json()
-            if not data:
+            try:
+                data = request.get_json()
+            except Exception:
+                return jsonify({'error': 'Invalid JSON data'}), 400
+                
+            if data is None or (isinstance(data, dict) and len(data) == 0):
                 return jsonify({'error': 'No data provided'}), 400
 
             # Validate data types
@@ -195,8 +201,12 @@ def user_theme():
             }), 200
         
         elif request.method == 'PUT':
-            data = request.get_json()
-            if not data:
+            try:
+                data = request.get_json()
+            except Exception:
+                return jsonify({'error': 'Invalid JSON data'}), 400
+                
+            if data is None or (isinstance(data, dict) and len(data) == 0):
                 return jsonify({'error': 'No data provided'}), 400
             
             # Validate theme preferences
@@ -281,6 +291,7 @@ def manage_custom_themes():
                 'updatedAt': datetime.utcnow().isoformat()
             }
             user_settings.custom_themes = custom_themes
+            flag_modified(user_settings, 'custom_themes')  # Force SQLAlchemy to detect change
             
             try:
                 db.session.commit()
@@ -326,6 +337,7 @@ def update_delete_custom_theme(theme_id):
         if request.method == 'DELETE':
             del custom_themes[theme_id]
             user_settings.custom_themes = custom_themes
+            flag_modified(user_settings, 'custom_themes')  # Force SQLAlchemy to detect change
             
             try:
                 db.session.commit()
@@ -355,12 +367,73 @@ def update_delete_custom_theme(theme_id):
             
             custom_themes[theme_id]['updatedAt'] = datetime.utcnow().isoformat()
             user_settings.custom_themes = custom_themes
+            flag_modified(user_settings, 'custom_themes')  # Force SQLAlchemy to detect change
             
             try:
                 db.session.commit()
                 return jsonify({
                     'customThemes': user_settings.custom_themes,
                     'message': 'Custom theme updated successfully'
+                }), 200
+            except Exception as e:
+                db.session.rollback()
+                return jsonify({'error': 'Database error occurred'}), 500
+    
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+
+@user_bp.route('/user/settings/overdue-threshold', methods=['GET', 'PUT', 'OPTIONS'])
+@jwt_required()
+@cross_origin(supports_credentials=True, methods=['GET', 'PUT', 'OPTIONS'])
+def overdue_threshold_settings():
+    """Get or update user's overdue warning threshold setting"""
+    try:
+        if request.method == 'OPTIONS':
+            return jsonify({'message': 'CORS preflight OK'}), 200
+        
+        current_user_id = get_jwt_identity()
+        if not current_user_id:
+            return jsonify({'error': 'Invalid or missing authentication token'}), 401
+        
+        user = User.query.get(current_user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        # Get or create user settings
+        user_settings = UserSettings.query.filter_by(user_id=current_user_id).first()
+        if not user_settings:
+            user_settings = UserSettings(user_id=current_user_id, overdue_warning_threshold=7)
+            db.session.add(user_settings)
+            db.session.commit()
+        
+        if request.method == 'GET':
+            return jsonify({
+                'overdue_warning_threshold': user_settings.overdue_warning_threshold or 7
+            }), 200
+        
+        elif request.method == 'PUT':
+            data = request.get_json()
+            if not data:
+                return jsonify({'error': 'No data provided'}), 400
+            
+            threshold = data.get('overdue_warning_threshold')
+            if threshold is None:
+                return jsonify({'error': 'overdue_warning_threshold is required'}), 400
+            
+            # Validate threshold (must be positive integer)
+            if not isinstance(threshold, int) or threshold < 1:
+                return jsonify({'error': 'overdue_warning_threshold must be a positive integer'}), 400
+            
+            # Update threshold
+            user_settings.overdue_warning_threshold = threshold
+            
+            try:
+                db.session.commit()
+                return jsonify({
+                    'overdue_warning_threshold': user_settings.overdue_warning_threshold,
+                    'message': 'Overdue warning threshold updated successfully'
                 }), 200
             except Exception as e:
                 db.session.rollback()

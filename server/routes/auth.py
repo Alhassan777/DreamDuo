@@ -15,6 +15,10 @@ def register():
         # Validate required fields
         if not all(k in data for k in ['first_name', 'last_name', 'email', 'password']):
             return jsonify({'error': 'Missing required fields'}), 400
+        
+        # Validate that fields are not empty strings
+        if not data.get('first_name') or not data.get('last_name') or not data.get('email') or not data.get('password'):
+            return jsonify({'error': 'All fields must have valid values'}), 400
 
         # Check if user already exists
         if User.query.filter_by(email=data['email']).first():
