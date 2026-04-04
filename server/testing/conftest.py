@@ -41,6 +41,7 @@ from models.priority import Priority
 from models.task_dependency import TaskDependency
 from models.task_hierarchy import TaskHierarchy
 from models.user_settings import UserSettings
+from models.time_log import TimeLog
 
 
 # =============================================================================
@@ -541,6 +542,123 @@ def test_dependency(app, test_user, test_tasks_for_dependencies):
         db.session.add(dependency)
         db.session.commit()
         return dependency.id
+
+
+# =============================================================================
+# HELPER FUNCTIONS
+# =============================================================================
+
+# =============================================================================
+# TIME LOG FIXTURES
+# =============================================================================
+
+@pytest.fixture(scope='function')
+def test_time_log(app, test_user, test_task):
+    """
+    Create a completed time log entry for testing.
+    
+    Returns:
+        TimeLog: A completed time log with 30 minutes duration
+    """
+    with app.app_context():
+        start = datetime.now() - timedelta(hours=1)
+        end = start + timedelta(minutes=30)
+        time_log = TimeLog(
+            task_id=test_task.id,
+            user_id=test_user.id,
+            start_time=start,
+            end_time=end,
+            duration_seconds=1800,
+            notes='Test time log',
+            source='web'
+        )
+        db.session.add(time_log)
+        db.session.commit()
+        db.session.refresh(time_log)
+        return time_log
+
+
+@pytest.fixture(scope='function')
+def active_timer(app, test_user, test_task):
+    """
+    Create an active (running) timer for testing.
+    
+    Returns:
+        TimeLog: A running timer with no end_time
+    """
+    with app.app_context():
+        time_log = TimeLog(
+            task_id=test_task.id,
+            user_id=test_user.id,
+            start_time=datetime.now() - timedelta(minutes=10),
+            end_time=None,
+            duration_seconds=None,
+            notes=None,
+            source='web'
+        )
+        db.session.add(time_log)
+        db.session.commit()
+        db.session.refresh(time_log)
+        return time_log
+
+
+@pytest.fixture(scope='function')
+def multiple_time_logs(app, test_user, test_task):
+    """
+    Create multiple completed time logs across different dates for stats testing.
+    
+    Returns:
+        list: List of TimeLog IDs
+    """
+    with app.app_context():
+        log_ids = []
+        now = datetime.now()
+        for i in range(5):
+            start = (now - timedelta(days=i)).replace(hour=9, minute=0, second=0, microsecond=0)
+            end = start + timedelta(minutes=45 + i * 10)
+            duration = int((end - start).total_seconds())
+            time_log = TimeLog(
+                task_id=test_task.id,
+                user_id=test_user.id,
+                start_time=start,
+                end_time=end,
+                duration_seconds=duration,
+                notes=f'Log entry {i+1}',
+                source='web'
+            )
+            db.session.add(time_log)
+            db.session.flush()
+            log_ids.append(time_log.id)
+        db.session.commit()
+        return log_ids
+
+
+@pytest.fixture(scope='function')
+def test_task_user_2(app, test_user_2):
+    """
+    Create a task owned by the second user for isolation testing.
+    
+    Returns:
+        Task: A task belonging to test_user_2
+    """
+    with app.app_context():
+        task = Task(
+            name='User 2 Task',
+            description='Task for the second user',
+            user_id=test_user_2.id,
+            creation_date=datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        )
+        db.session.add(task)
+        db.session.flush()
+        hierarchy = TaskHierarchy(
+            ancestor=task.id,
+            descendant=task.id,
+            depth=0
+        )
+        db.session.add(hierarchy)
+        db.session.commit()
+        db.session.refresh(task)
+        return task
 
 
 # =============================================================================

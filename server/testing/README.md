@@ -2,7 +2,7 @@
 
 ## Overview
 
-Comprehensive test suite for the DreamDuo task management backend with **196 unit tests** covering all API endpoints, models, utility functions, edge cases, and the complete overdue task system.
+Comprehensive test suite for the DreamDuo task management backend with **~240 unit tests** covering all API endpoints, models, utility functions, edge cases, time tracking, and the complete overdue task system.
 
 ## Test Coverage by Module
 
@@ -326,6 +326,111 @@ def test_task_updated_event_broadcasting(self, authenticated_socketio_client, te
     # Tests: Event broadcasting, room-based delivery
 ```
 
+### ⏱️ Time Tracking Tests (`test_time.py`) - 38 tests
+
+**What we test**: Complete time tracking lifecycle including timer start/stop, active timer queries, time log CRUD, statistics, and per-task aggregation.
+
+#### Timer Start Testing
+```python
+def test_start_timer_success(self, client, auth_headers, test_task):
+    """Test starting a timer for a valid task returns 201 with timer data"""
+    # Tests: Timer creation, task ownership, running state
+
+def test_start_timer_already_running(self, client, auth_headers, active_timer, test_task):
+    """Test starting a second timer returns 409 conflict"""
+    # Tests: Single-timer enforcement, active timer detection
+
+def test_start_timer_other_users_task(self, client, auth_headers, test_task_user_2):
+    """Test that a user cannot start a timer on another user's task"""
+    # Tests: Cross-user access prevention, task ownership validation
+```
+
+#### Timer Stop Testing
+```python
+def test_stop_timer_success(self, client, auth_headers, active_timer):
+    """Test stopping an active timer calculates duration and returns 200"""
+    # Tests: Duration calculation, end_time population, state transition
+
+def test_stop_timer_no_active_timer(self, client, auth_headers):
+    """Test stopping when no timer is running returns 404"""
+    # Tests: Active timer detection, proper error response
+
+def test_stop_timer_with_notes_update(self, client, auth_headers, active_timer):
+    """Test stopping a timer and updating its notes simultaneously"""
+    # Tests: Notes update on stop, combined operation
+```
+
+#### Active Timer Query Testing
+```python
+def test_get_active_timer(self, client, auth_headers, active_timer):
+    """Test retrieving the currently active timer includes elapsed_seconds"""
+    # Tests: Running timer data, elapsed time calculation
+
+def test_get_active_timer_none_running(self, client, auth_headers):
+    """Test querying active timer when none is running returns null data"""
+    # Tests: Null handling, empty state response
+```
+
+#### Time Log Retrieval Testing
+```python
+def test_get_time_logs_all(self, client, auth_headers, multiple_time_logs):
+    """Test retrieving all time logs for the authenticated user"""
+    # Tests: Log retrieval, correct count, user scoping
+
+def test_get_time_logs_filter_by_task(self, client, auth_headers, test_task, multiple_time_logs):
+    """Test filtering time logs by task_id"""
+    # Tests: Task-based filtering, query parameter handling
+
+def test_get_time_logs_pagination(self, client, auth_headers, multiple_time_logs):
+    """Test pagination with limit and offset"""
+    # Tests: Result limiting, offset skipping, total count
+
+def test_get_time_logs_user_isolation(self, client, auth_headers_user_2, multiple_time_logs):
+    """Test that a user cannot see another user's time logs"""
+    # Tests: Cross-user data isolation
+```
+
+#### Time Log CRUD Testing
+```python
+def test_delete_time_log_success(self, client, auth_headers, test_time_log):
+    """Test deleting a time log returns 200 and removes it"""
+    # Tests: Log deletion, database removal confirmation
+
+def test_update_time_log_notes(self, client, auth_headers, test_time_log):
+    """Test updating notes on a time log entry"""
+    # Tests: Notes modification, data persistence
+
+def test_delete_time_log_user_isolation(self, client, auth_headers_user_2, test_time_log):
+    """Test that a user cannot delete another user's time log"""
+    # Tests: Cross-user delete prevention
+```
+
+#### Statistics Testing
+```python
+def test_get_stats_default_month(self, client, auth_headers, multiple_time_logs):
+    """Test retrieving stats defaults to current month"""
+    # Tests: Default date range, response structure, all stat fields
+
+def test_get_stats_weekly_stats_structure(self, client, auth_headers, multiple_time_logs):
+    """Test that weekly_stats has 7 entries (Mon-Sun) with correct fields"""
+    # Tests: Day-of-week structure, weekly aggregation
+
+def test_get_stats_empty(self, client, auth_headers):
+    """Test stats with no time logs returns zero totals"""
+    # Tests: Zero-state handling, empty data response
+```
+
+#### Task Total Time Testing
+```python
+def test_get_task_total_time(self, client, auth_headers, test_task, multiple_time_logs):
+    """Test retrieving total time for a task with multiple logs"""
+    # Tests: Time aggregation, log count, formatted output
+
+def test_get_task_total_time_excludes_running(self, client, auth_headers, test_task, active_timer):
+    """Test that active (running) timers are excluded from the total"""
+    # Tests: Running timer exclusion, completed-only aggregation
+```
+
 ## Running Tests
 
 ### Run All Tests
@@ -524,6 +629,34 @@ def authenticated_socketio_client(socketio_client, test_user):
     # WebSocket client with JWT authentication
     # Joined to user's room
     # Used for authenticated WebSocket tests
+```
+
+### Time Tracking Fixtures
+```python
+@pytest.fixture
+def test_time_log(app, test_user, test_task):
+    """Create a completed time log entry for testing"""
+    # 30-minute completed session
+    # Has start_time, end_time, duration_seconds
+    # Used for CRUD and isolation tests
+
+@pytest.fixture
+def active_timer(app, test_user, test_task):
+    """Create an active (running) timer for testing"""
+    # Timer started 10 minutes ago with no end_time
+    # Used for start-conflict and stop tests
+
+@pytest.fixture
+def multiple_time_logs(app, test_user, test_task):
+    """Create multiple completed time logs across different dates"""
+    # 5 logs spread across recent days
+    # Used for statistics and aggregation tests
+
+@pytest.fixture
+def test_task_user_2(app, test_user_2):
+    """Create a task owned by the second user"""
+    # Used for cross-user isolation tests
+    # Ensures time operations respect ownership
 ```
 
 ### Data Generation Fixtures
@@ -993,11 +1126,10 @@ pytest testing/ --cov=. --cov-report=html --cov-config=.coveragerc
 ## Test Metrics & Quality Assurance
 
 ### Current Test Statistics
-- **196 total tests** across 8 modules
-- **~95% pass rate** (190+ consistently passing)
-- **Covers 12 API blueprints** (auth, tasks, users, tags, dependencies, websocket)
-- **Tests 25+ utility functions** (overdue calculation, filtering, statistics)
-- **Validates 15+ models** (Task, User, Category, Priority, Dependency, UserSettings)
+- **~240 total tests** across 8 test modules
+- **Covers all 5 API blueprints** (auth, tasks, user, tags, time) plus dependencies and websockets
+- **Tests 25+ utility functions** (overdue calculation, filtering, statistics, time formatting)
+- **Validates all models** (Task, User, Category, Priority, Dependency, UserSettings, TimeLog)
 - **85%+ code coverage** across core business logic
 
 ### Quality Metrics
