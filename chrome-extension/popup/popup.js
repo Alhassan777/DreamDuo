@@ -10,8 +10,8 @@
 // API UTILITIES  (inlined from utils/api.js @ 7347d28)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const DEFAULT_API_URL      = 'http://localhost:3001/api';
-const DEFAULT_FRONTEND_URL = 'http://localhost:5173';
+const DEFAULT_API_URL      = 'https://attack-on-titan-backend.onrender.com/api';
+const DEFAULT_FRONTEND_URL = 'https://dreamduo.netlify.app';
 
 // ── Storage helpers ───────────────────────────────────────────────────────────
 
@@ -307,6 +307,8 @@ const cancelSettingsBtn    = $('cancelSettingsBtn');
 const todayTime            = $('todayTime');
 const weekTime             = $('weekTime');
 const syncIndicator        = $('syncIndicator');
+const loadingSection       = $('loadingSection');
+const loadingMessage       = $('loadingMessage');
 
 const URL_PRESETS = {
   local:      { api: 'http://localhost:3001/api',                            frontend: 'http://localhost:5173' },
@@ -359,8 +361,13 @@ function applyPreset(presetName) {
 // ── Auth ──────────────────────────────────────────────────────────────────────
 
 async function checkAuth() {
+  loadingSection.classList.remove('hidden');
+  authSection.classList.add('hidden');
+  mainSection.classList.add('hidden');
+
   try {
     const result = await auth.checkAuth();
+    loadingSection.classList.add('hidden');
     if (result.authenticated) {
       currentUser = result.user;
       showMainSection();
@@ -370,6 +377,7 @@ async function checkAuth() {
     }
   } catch (error) {
     console.error('Auth check failed:', error);
+    loadingSection.classList.add('hidden');
     showAuthSection();
   }
 }

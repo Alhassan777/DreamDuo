@@ -1,5 +1,4 @@
-from flask import Flask, request
-from flask_cors import CORS
+from flask import Flask, request, jsonify
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from datetime import timedelta
@@ -24,14 +23,20 @@ def create_app():
     # Support multiple origins (comma-separated) + allow all chrome-extension origins
     allowed_origins_list = [origin.strip() for origin in allowed_origins.split(',')]
     
-    # ✅ Enable CORS with wildcard pattern for chrome extensions
-    CORS(app, 
-         resources={r"/api/*": {"origins": "*"}},
-         supports_credentials=False,
-         allow_headers=["Content-Type", "Authorization"],
-         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+    # Handle OPTIONS preflight before any route logic runs
+    @app.before_request
+    def handle_preflight():
+        if request.method == 'OPTIONS' and request.path.startswith('/api/'):
+            response = jsonify({})
+            origin = request.headers.get('Origin', '')
+            response.headers['Access-Control-Allow-Origin'] = origin if origin else '*'
+            response.headers['Access-Control-Allow-Credentials'] = 'true'
+            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+            response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+            response.headers['Access-Control-Max-Age'] = '86400'
+            return response, 200
 
-    # ✅ Handle CORS headers manually to support credentials with specific origins
+    # Add CORS headers to every response — this is the only CORS handler now
     @app.after_request
     def add_cors_headers(response):
         origin = request.headers.get('Origin')

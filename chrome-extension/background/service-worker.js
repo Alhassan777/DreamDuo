@@ -3,13 +3,13 @@
  * Manages timer state, badge updates, and pause awareness.
  */
 
-// Force-register the popup every time the service worker starts.
-// This is necessary because Chrome can lose the popup registration
-// when the service worker type changes or the profile state is reset.
-chrome.action.setPopup({ popup: 'popup/popup.html' });
-
 let activeTimer = null;
 const TIMER_ALARM = 'dreamduo-timer-update';
+
+// ── Default URLs (overridden by chrome.storage values set via Settings panel) ──
+
+const DEFAULT_API_URL      = 'https://attack-on-titan-backend.onrender.com/api';
+const DEFAULT_FRONTEND_URL = 'https://dreamduo.netlify.app';
 
 // ── Storage helpers ────────────────────────────────────────────────────────
 
@@ -21,18 +21,16 @@ const storageRemove = (keys) =>
 
 // ── Lifecycle ──────────────────────────────────────────────────────────────
 
-const DEFAULT_API_URL      = 'http://localhost:3001/api';
-const DEFAULT_FRONTEND_URL = 'http://localhost:5173';
-
 chrome.runtime.onInstalled.addListener(async () => {
   console.log('DreamDuo Time Tracker installed');
   chrome.action.setPopup({ popup: 'popup/popup.html' });
   clearBadge();
 
   // Seed default URLs only if nothing is saved yet
-  const { dreamduo_api_url, dreamduo_frontend_url } = await new Promise((resolve) =>
-    chrome.storage.local.get(['dreamduo_api_url', 'dreamduo_frontend_url'], resolve)
-  );
+  const { dreamduo_api_url, dreamduo_frontend_url } = await storageGet([
+    'dreamduo_api_url',
+    'dreamduo_frontend_url',
+  ]);
 
   const updates = {};
   if (!dreamduo_api_url)      updates.dreamduo_api_url      = DEFAULT_API_URL;
@@ -50,14 +48,28 @@ chrome.runtime.onStartup.addListener(() => {
   checkActiveTimer();
 });
 
-self.addEventListener('activate', (event) => {
-  event.waitUntil(checkActiveTimer());
+self.addEventListener('activate', () => {
+  // Run in background — do NOT use event.waitUntil() here.
+  // waitUntil blocks service worker activation until the promise settles,
+  // which on a cold Render backend can take 30–60 s and prevents the popup from opening.
+  checkActiveTimer();
 });
 
-// ── Message handling from popup ────────────────────────────────────────────
+// ── Message handling ───────────────────────────────────────────────────────
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   switch (message.type) {
+    case 'DREAMDUO_TOKEN':
+      // Content script captured a login token from the web app — persist it
+      if (message.token) {
+        chrome.storage.local.set({ dreamduo_token: message.token }, () => {
+          console.log('[DreamDuo SW] Token stored from web app login');
+        });
+        if (message.user) {
+          chrome.storage.local.set({ dreamduo_user: message.user });
+        }
+      }
+      break;
     case 'TIMER_STARTED':
       handleTimerStarted(message.timer);
       break;
@@ -147,13 +159,13 @@ function updateBadgeFromTimer() {
 }
 
 function updateBadge(elapsedSeconds) {
-  const hours = Math.floor(elapsedSeconds / 3600);
+  const hours   = Math.floor(elapsedSeconds / 3600);
   const minutes = Math.floor((elapsedSeconds % 3600) / 60);
 
   let badgeText;
-  if (hours > 0) badgeText = `${hours}h`;
+  if (hours > 0)        badgeText = `${hours}h`;
   else if (minutes > 0) badgeText = `${minutes}m`;
-  else badgeText = '\u2022'; // bullet
+  else                  badgeText = '\u2022'; // bullet
 
   chrome.action.setBadgeText({ text: badgeText });
   chrome.action.setBadgeBackgroundColor({ color: '#6366f1' });
