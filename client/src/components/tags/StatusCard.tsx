@@ -2,6 +2,11 @@ import { Box, Flex, VStack, Text, Image, Select, Spacer } from '@chakra-ui/react
 import { useTheme } from '../../contexts/ThemeContext';
 import '../styles/StatusCard.css';
 
+import surveyCorpsImg from '../../assets/survey_corps.png';
+import policeImg from '../../assets/police.png';
+import garrisonImg from '../../assets/garrison.png';
+import trainingCorpsImg from '../../assets/training_corps.png';
+
 type StatusIcon = {
   status: 'free' | 'not_started' | 'in_progress' | 'finished';
   label: string;
@@ -17,23 +22,23 @@ type Logo = {
 export const AVAILABLE_LOGOS: Logo[] = [
   {
     id: 'survey_corps',
-    label: 'Survey Corps',
-    icon: '/src/assets/survey_corps.png',
+    label: 'Relaxed',
+    icon: surveyCorpsImg,
   },
   {
     id: 'military_police',
-    label: 'Military Police',
-    icon: '/src/assets/police.png',
+    label: 'Focused',
+    icon: policeImg,
   },
   {
     id: 'garrison',
-    label: 'Garrison Regiment',
-    icon: '/src/assets/garrison.png',
+    label: 'Steady',
+    icon: garrisonImg,
   },
   {
     id: 'training',
-    label: 'Training Corps',
-    icon: '/src/assets/training_corps.png',
+    label: 'Learning',
+    icon: trainingCorpsImg,
   },
 ];
 

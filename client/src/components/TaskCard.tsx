@@ -38,6 +38,7 @@ import { format, isValid, parseISO } from 'date-fns';
 
 import SubtaskCard from './SubtaskCard';
 import TaskEditModal from './tasks/TaskEditModal';
+import { formatDurationShort } from '../services/time';
 import './styles/TaskCard.css';
 
 /** Interface for each Task,
@@ -96,6 +97,7 @@ interface TaskCardProps extends Partial<DragProps> {
   task: Task;
   categories?: Category[];
   priorities?: PriorityColor[];
+  trackedSeconds?: number;
   onDelete: (taskId: number, subtaskId?: number) => void;
   onToggleCollapse: (taskId: number) => void;
   onAddSubtask: (taskId: number, parentSubtaskId?: number) => void;
@@ -113,6 +115,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
   task,
   categories = [],
   priorities = [],
+  trackedSeconds = 0,
   onDelete,
   onToggleCollapse,
   onAddSubtask,
@@ -372,6 +375,15 @@ const TaskCard: React.FC<TaskCardProps> = ({
               <Tag size="sm" colorScheme="orange" className="overdue-tag" data-aot-mode={isAotMode}>
                 <WarningTwoIcon className="overdue-icon" mr={1} />
                 {task.days_overdue} days old
+              </Tag>
+            </Tooltip>
+          )}
+
+          {trackedSeconds > 0 && (
+            <Tooltip label={`Total tracked time: ${formatDurationShort(trackedSeconds)}`}>
+              <Tag size="sm" colorScheme="purple" variant="subtle" data-aot-mode={isAotMode}>
+                <TimeIcon mr={1} />
+                {formatDurationShort(trackedSeconds)}
               </Tag>
             </Tooltip>
           )}

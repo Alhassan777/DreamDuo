@@ -16,10 +16,9 @@ def socket_jwt_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         try:
-            # Get the token from cookies (since we're using cookie-based auth)
             token = None
-            if 'access_token' in request.cookies:
-                token = request.cookies['access_token']
+            if 'access_token_cookie' in request.cookies:
+                token = request.cookies['access_token_cookie']
             
             if not token:
                 emit('error', {'message': 'No token provided'})
@@ -109,6 +108,28 @@ def emit_task_completed(task_id, completed, user_id=None, date_str=None):
         socketio.emit('task_completed', {'taskId': task_id, 'completed': completed, 'date': date_str}, room=f"user_{user_id}")
     else:
         socketio.emit('task_completed', {'taskId': task_id, 'completed': completed, 'date': date_str})
+
+# Time tracking socket events
+def emit_timer_started(time_log_data, user_id=None):
+    """Emit timer started event"""
+    if user_id:
+        socketio.emit('timer_started', {'timeLog': time_log_data}, room=f"user_{user_id}")
+    else:
+        socketio.emit('timer_started', {'timeLog': time_log_data})
+
+def emit_timer_stopped(time_log_data, user_id=None):
+    """Emit timer stopped event"""
+    if user_id:
+        socketio.emit('timer_stopped', {'timeLog': time_log_data}, room=f"user_{user_id}")
+    else:
+        socketio.emit('timer_stopped', {'timeLog': time_log_data})
+
+def emit_time_log_deleted(log_id, user_id=None):
+    """Emit time log deleted event"""
+    if user_id:
+        socketio.emit('time_log_deleted', {'logId': log_id}, room=f"user_{user_id}")
+    else:
+        socketio.emit('time_log_deleted', {'logId': log_id})
 
 # Error handling
 @socketio.on_error_default

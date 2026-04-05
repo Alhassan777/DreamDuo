@@ -39,6 +39,7 @@ import { useTaskFilters } from '../hooks/useTaskFilters';
 import { useTheme } from '../contexts/ThemeContext';
 import { tagsService, Category } from '../services/tags';
 import { tasksService, Task, TaskCreateRequest } from '../services/tasks';
+import { timeService } from '../services/time';
 import { getStorageItem, setStorageItem, STORAGE_KEYS } from '../utils/localStorage';
 import './styles/Tasks.css';
 
@@ -114,6 +115,27 @@ const TasksPage: React.FC = () => {
   
   // Track newly created subtask for auto-edit
   const [newlyCreatedSubtaskId, setNewlyCreatedSubtaskId] = useState<number | null>(null);
+
+  // Per-task tracked time lookup
+  const [taskTimeMap, setTaskTimeMap] = useState<Map<number, number>>(new Map());
+
+  useEffect(() => {
+    const fetchTimeStats = async () => {
+      try {
+        const res = await timeService.getStats();
+        if (res.success && res.data.tasks) {
+          const m = new Map<number, number>();
+          for (const t of res.data.tasks) {
+            m.set(t.task_id, t.total_seconds);
+          }
+          setTaskTimeMap(m);
+        }
+      } catch {
+        // Non-critical; silently ignore
+      }
+    };
+    fetchTimeStats();
+  }, [tasks]);
 
   // For new category creation
   const [newCategory, setNewCategory] = useState({
@@ -776,6 +798,7 @@ const TasksPage: React.FC = () => {
                   task={task}
                   categories={categories}
                   priorities={priorities}
+                  trackedSeconds={taskTimeMap.get(task.id) || 0}
                   onDelete={handleDeleteTask}
                   onToggleCollapse={toggleCollapse}
                   onAddSubtask={addSubtask}

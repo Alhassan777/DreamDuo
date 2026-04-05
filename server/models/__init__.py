@@ -10,6 +10,7 @@ from .user_settings import UserSettings, JSONEncodedDict
 from .priority import Priority
 from .task_hierarchy import TaskHierarchy
 from .task_dependency import TaskDependency
+from .time_log import TimeLog
 from .task_utils import (
     add_task,
     get_root_tasks,
@@ -28,6 +29,7 @@ __all__ = [
     'Priority',
     'TaskHierarchy',
     'TaskDependency',
+    'TimeLog',
     'add_task',
     'get_root_tasks',
     'get_task_with_subtasks',

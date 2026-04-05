@@ -13,9 +13,13 @@ import {
 } from '@chakra-ui/react';
 import DashboardLayout from '../components/DashboardLayout';
 import DashboardFilters from '../components/dashboard/DashboardFilters';
+import TimeTrackingCard from '../components/dashboard/TimeTrackingCard';
+import TaskTimeChart from '../components/dashboard/TaskTimeChart';
+import WeeklyTimeChart from '../components/dashboard/WeeklyTimeChart';
 import { useTheme } from '../contexts/ThemeContext';
 import { tasksService } from '../services/tasks';
 import { tagsService, Category } from '../services/tags';
+import { timeService, TimeStats } from '../services/time';
 import './styles/DashboardPage.css';
 
 interface TaskStats {
@@ -142,6 +146,7 @@ const DashboardPage: React.FC = () => {
     weeklyStats: [],
     monthlyStats: []
   });
+  const [timeStats, setTimeStats] = useState<TimeStats | null>(null);
   const [_isLoading, setIsLoading] = useState(true);
   const [viewType, setViewType] = useState<'bar' | 'compound'>('bar');
   
@@ -165,6 +170,21 @@ const DashboardPage: React.FC = () => {
       }
     };
     fetchTags();
+  }, []);
+
+  // Load time tracking stats
+  useEffect(() => {
+    const fetchTimeStats = async () => {
+      try {
+        const response = await timeService.getStats();
+        if (response.success) {
+          setTimeStats(response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching time stats:', error);
+      }
+    };
+    fetchTimeStats();
   }, []);
 
   // Refresh stats when filters change or on mount
@@ -299,7 +319,12 @@ const DashboardPage: React.FC = () => {
             />
           </Box>
 
-          <Grid templateColumns={{ base: '1fr', md: '1fr 2fr' }} gap={6} mt={8}>
+          {/* ── Task Completion Section ─────────────────────────── */}
+          <Heading size="md" mt={8} mb={2} data-aot-mode={isAotMode}>
+            Task Completion
+          </Heading>
+
+          <Grid templateColumns={{ base: '1fr', md: '1fr 2fr' }} gap={6} mt={4}>
             {/* Daily Progress Card */}
             <Box className="productivity-card" data-aot-mode={isAotMode} maxW="400px">
               <Text className="stats-heading" data-aot-mode={isAotMode}>
@@ -546,6 +571,30 @@ const DashboardPage: React.FC = () => {
               })}
             </Grid>
           </Box>
+
+          {/* ── Time Tracking Section ─────────────────────────── */}
+          {timeStats && (
+            <>
+              <Heading size="md" mt={10} mb={2} data-aot-mode={isAotMode}>
+                Time Tracking
+              </Heading>
+
+              <Grid templateColumns={{ base: '1fr', md: '1fr 1fr' }} gap={6} mt={4}>
+                <TimeTrackingCard
+                  todaySeconds={timeStats.today_seconds}
+                  weekSeconds={timeStats.weekly_stats.reduce((sum, d) => sum + d.total_seconds, 0)}
+                  monthSeconds={timeStats.total_time_seconds}
+                />
+                <TaskTimeChart tasks={timeStats.tasks} />
+              </Grid>
+
+              {timeStats.weekly_stats.length > 0 && (
+                <Box mt={6}>
+                  <WeeklyTimeChart weeklyStats={timeStats.weekly_stats} />
+                </Box>
+              )}
+            </>
+          )}
         </Container>
       </Box>
     </DashboardLayout>

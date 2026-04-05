@@ -24,6 +24,11 @@ def create_app():
     # Support multiple origins (comma-separated)
     allowed_origins_list = [origin.strip() for origin in allowed_origins.split(',')]
     
+    # Add Chrome extension origin if specified in environment
+    chrome_extension_id = os.getenv('CHROME_EXTENSION_ID')
+    if chrome_extension_id:
+        allowed_origins_list.append(f'chrome-extension://{chrome_extension_id}')
+    
     # ✅ Enable CORS Globally with proper configuration
     CORS(app, 
          resources={r"/api/*": {"origins": allowed_origins_list}},
@@ -35,7 +40,8 @@ def create_app():
     @app.after_request
     def add_cors_headers(response):
         origin = request.headers.get('Origin')
-        if origin in allowed_origins_list:
+        # Allow specified origins or any chrome-extension origin
+        if origin in allowed_origins_list or (origin and origin.startswith('chrome-extension://')):
             response.headers['Access-Control-Allow-Origin'] = origin
         response.headers['Access-Control-Allow-Credentials'] = "true"
         response.headers['Access-Control-Allow-Methods'] = "GET, POST, PUT, DELETE, OPTIONS"
@@ -60,8 +66,9 @@ def create_app():
     
     app.config['JWT_SECRET_KEY'] = jwt_secret
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
-    app.config['JWT_TOKEN_LOCATION'] = ['cookies']  # ✅ Read token from cookies
-    # Set cookie secure to True in production (requires HTTPS)
+    app.config['JWT_TOKEN_LOCATION'] = ['cookies', 'headers']
+    app.config['JWT_HEADER_NAME'] = 'Authorization'
+    app.config['JWT_HEADER_TYPE'] = 'Bearer'
     app.config['JWT_COOKIE_SECURE'] = os.getenv('FLASK_ENV') == 'production'
     app.config['JWT_COOKIE_SAMESITE'] = 'None' if os.getenv('FLASK_ENV') == 'production' else 'lax'
     app.config['JWT_COOKIE_CSRF_PROTECT'] = False  # Disable CSRF protection for now
@@ -76,14 +83,15 @@ def create_app():
     with app.app_context():
         try:
             # Import models and routes after app creation to avoid circular imports
-            from models import User, Category, Task, TaskDependency
-            from routes import auth_bp, tasks_bp, user_bp, tags_bp
+            from models import User, Category, Task, TaskDependency, TimeLog
+            from routes import auth_bp, tasks_bp, user_bp, tags_bp, time_bp
 
             # Register blueprints
             app.register_blueprint(auth_bp, url_prefix='/api/auth')
             app.register_blueprint(tasks_bp, url_prefix='/api/tasks')
             app.register_blueprint(user_bp)
             app.register_blueprint(tags_bp, url_prefix='/api/tags')
+            app.register_blueprint(time_bp, url_prefix='/api/time')
 
             # Run migrations automatically in production
             auto_migrate = os.getenv('AUTO_MIGRATE', 'false').lower() == 'true'

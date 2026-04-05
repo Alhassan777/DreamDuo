@@ -2,7 +2,7 @@ import { VStack, Heading, SimpleGrid } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 import { tagsService } from '../../services/tags';
 import { useToast } from '@chakra-ui/react';
-import StatusCard from './StatusCard';
+import StatusCard, { AVAILABLE_LOGOS } from './StatusCard';
 import { useTheme } from '../../contexts/ThemeContext';
 import '../styles/CompletionStatusSection.css';
 
@@ -12,55 +12,26 @@ type StatusIcon = {
   description: string;
 };
 
-type Logo = {
-  id: string;
-  label: string;
-  icon: string;
-};
-
 const STATUS_OPTIONS: StatusIcon[] = [
   { 
     status: 'free', 
-    label: 'Off Duty', 
-    description: 'No orders today. But a soldier’s duty never truly ends'
+    label: 'Free Day', 
+    description: 'No tasks scheduled. Enjoy your day off!'
   },
   { 
     status: 'not_started', 
-    label: 'Mission Pending', 
-    description: "Tasks assigned but not started yet. Shinzou wo Sasageyo!!"
+    label: 'Ready to Start', 
+    description: 'Tasks are waiting for you. Time to get going!'
   },
   { 
     status: 'in_progress', 
-    label: 'Battle Underway', 
-    description: 'Some tasks completed, but work remains. Susume!'
+    label: 'In Progress', 
+    description: 'Making progress! Keep up the great work.'
   },
   { 
     status: 'finished', 
-    label: 'Mission Accomplished', 
-    description: 'All tasks completed. You gave everything for this mission!!'
-  }
-];
-
-const AVAILABLE_LOGOS: Logo[] = [
-  {
-    id: 'survey_corps',
-    label: 'Survey Corps',
-    icon: '/src/assets/survey_corps.png'
-  },
-  {
-    id: 'military_police',
-    label: 'Military Police',
-    icon: '/src/assets/police.png'
-  },
-  {
-    id: 'garrison',
-    label: 'Garrison Regiment',
-    icon: '/src/assets/garrison.png'
-  },
-  {
-    id: 'training',
-    label: 'Training Corps',
-    icon: '/src/assets/training_corps.png'
+    label: 'All Done', 
+    description: 'Great job! All tasks completed for today.'
   }
 ];
 
@@ -69,7 +40,6 @@ const CompletionStatusSection = () => {
   const toast = useToast();
   const { isAotMode } = useTheme();
 
-  // Fetch status logos from the backend when component mounts
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -92,7 +62,6 @@ const CompletionStatusSection = () => {
 
   const handleLogoChange = async (statusId: string, logoId: string) => {
     try {
-      // If logoId is empty, remove the mapping
       if (logoId === '') {
         await tagsService.updateStatusLogo(statusId, null);
         setStatusLogoMap(prev => {
@@ -103,22 +72,18 @@ const CompletionStatusSection = () => {
         return;
       }
 
-      // Update the mapping in the backend
       await tagsService.updateStatusLogo(statusId, logoId);
 
       setStatusLogoMap(prev => {
         const newMap = { ...prev };
-        // Find if the logo is used by another status
         const existingStatusWithLogo = Object.entries(newMap).find(
           ([currentStatus, currentLogo]) => currentLogo === logoId && currentStatus !== statusId
         );
 
-        // If logo is used, remove it from the previous status
         if (existingStatusWithLogo) {
           delete newMap[existingStatusWithLogo[0]];
         }
 
-        // Assign the logo to the new status
         newMap[statusId] = logoId;
         return newMap;
       });

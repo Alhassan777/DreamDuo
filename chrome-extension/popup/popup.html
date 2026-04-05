@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DreamDuo Time Tracker</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <img src="../icons/icon48.png" alt="DreamDuo" width="24" height="24">
+        <span>DreamDuo</span>
+      </div>
+      <div class="header-actions">
+        <span id="syncIndicator" class="sync-indicator hidden" title="Pending sync"></span>
+        <button id="settingsBtn" class="icon-btn" title="Settings">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Auth Section (shown when not logged in) -->
+    <section id="authSection" class="section auth-section hidden">
+      <div class="auth-message">
+        <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M12 15v2m0 0v2m0-2h2m-2 0H10"/>
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        <p>Please log in to DreamDuo to track your time</p>
+        <a href="#" id="loginLink" class="btn btn-primary">Open DreamDuo</a>
+      </div>
+    </section>
+
+    <!-- Main Content (shown when logged in) -->
+    <section id="mainSection" class="section hidden">
+      <!-- Active Timer Display -->
+      <div id="activeTimerSection" class="active-timer hidden">
+        <div class="timer-info">
+          <span class="timer-label">Currently tracking:</span>
+          <span id="activeTaskName" class="task-name"></span>
+        </div>
+        <div class="timer-display">
+          <span id="timerDisplay" class="timer-time">0:00:00</span>
+        </div>
+        <div class="timer-controls">
+          <button id="pauseTimerBtn" class="btn btn-pause" title="Pause timer">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+              <rect x="6" y="4" width="4" height="16" rx="1"/>
+              <rect x="14" y="4" width="4" height="16" rx="1"/>
+            </svg>
+            Pause
+          </button>
+          <button id="stopTimerBtn" class="btn btn-danger" title="Stop and save">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+              <rect x="6" y="6" width="12" height="12" rx="2"/>
+            </svg>
+            Stop
+          </button>
+        </div>
+      </div>
+
+      <!-- Paused Task Banner -->
+      <div id="pausedTaskSection" class="paused-banner hidden">
+        <div class="paused-info">
+          <span class="paused-label">Paused:</span>
+          <span id="pausedTaskName" class="task-name"></span>
+        </div>
+        <div class="paused-actions">
+          <button id="resumeTimerBtn" class="btn btn-primary btn-sm">Resume</button>
+          <button id="dismissPausedBtn" class="btn btn-secondary btn-sm">Dismiss</button>
+        </div>
+      </div>
+
+      <!-- Task Selection (shown when no active timer) -->
+      <div id="taskSelectionSection">
+        <div class="search-container">
+          <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="M21 21l-4.35-4.35"/>
+          </svg>
+          <input type="text" id="taskSearch" placeholder="Search tasks..." class="search-input">
+        </div>
+        
+        <div id="taskList" class="task-list">
+          <div class="loading">Loading tasks...</div>
+        </div>
+      </div>
+
+      <!-- Today's Stats -->
+      <div class="stats-section">
+        <div class="stat-item">
+          <span class="stat-label">Today</span>
+          <span id="todayTime" class="stat-value">0h 0m</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">This Week</span>
+          <span id="weekTime" class="stat-value">0h 0m</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Settings Panel -->
+    <section id="settingsSection" class="section settings-section hidden">
+      <h3>Settings</h3>
+      <div class="setting-item">
+        <label for="apiUrlInput">API URL</label>
+        <input type="text" id="apiUrlInput" placeholder="http://localhost:3001/api">
+        <span class="setting-hint">Backend server endpoint</span>
+      </div>
+      <div class="setting-item">
+        <label for="frontendUrlInput">Frontend URL</label>
+        <input type="text" id="frontendUrlInput" placeholder="http://localhost:5173">
+        <span class="setting-hint">DreamDuo web app URL</span>
+      </div>
+      <div class="setting-item">
+        <label>Quick Presets</label>
+        <div class="preset-buttons">
+          <button id="presetLocalBtn" class="btn btn-secondary btn-sm">Local Dev</button>
+          <button id="presetProdBtn" class="btn btn-secondary btn-sm">Production</button>
+        </div>
+      </div>
+      <div class="setting-actions">
+        <button id="saveSettingsBtn" class="btn btn-primary">Save</button>
+        <button id="cancelSettingsBtn" class="btn btn-secondary">Cancel</button>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <a href="#" id="dashboardLink">Open Dashboard</a>
+    </footer>
+  </div>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

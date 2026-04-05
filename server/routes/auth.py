@@ -153,6 +153,21 @@ def oauth_callback():
     except Exception as e:
         return jsonify({'error': f'OAuth callback failed: {str(e)}'}), 500
 
+@auth_bp.route('/extension-token', methods=['GET'])
+@jwt_required()
+@cross_origin(supports_credentials=True)
+def extension_token():
+    """Return a raw JWT for the Chrome extension to store and use as Bearer token.
+    Requires an existing authenticated session (cookie). The extension calls this
+    once after the user logs in on the web app."""
+    try:
+        current_user_id = get_jwt_identity()
+        token = create_access_token(identity=current_user_id)
+        return jsonify({'token': token}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @auth_bp.route('/logout', methods=['POST'])
 @cross_origin(supports_credentials=True)
 def logout():
