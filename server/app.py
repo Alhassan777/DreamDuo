@@ -21,42 +21,29 @@ def create_app():
 
     # Get allowed origins from environment variable
     allowed_origins = os.getenv('FRONTEND_URL', 'http://localhost:5173')
-    # Support multiple origins (comma-separated)
+    # Support multiple origins (comma-separated) + allow all chrome-extension origins
     allowed_origins_list = [origin.strip() for origin in allowed_origins.split(',')]
     
-    # ✅ Enable CORS - use regex to match chrome-extension:// origins
+    # ✅ Enable CORS with wildcard pattern for chrome extensions
     CORS(app, 
-         resources={r"/api/*": {"origins": allowed_origins_list}},
-         supports_credentials=True,
+         resources={r"/api/*": {"origins": "*"}},
+         supports_credentials=False,
          allow_headers=["Content-Type", "Authorization"],
          methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 
-    # ✅ CRITICAL: Handle CORS for chrome-extension:// origins manually
-    # Flask-CORS doesn't handle dynamic origins well, so we use after_request
+    # ✅ Handle CORS headers manually to support credentials with specific origins
     @app.after_request
     def add_cors_headers(response):
         origin = request.headers.get('Origin')
         if origin:
-            # Allow known origins or any chrome-extension:// origin
             if origin in allowed_origins_list or origin.startswith('chrome-extension://'):
                 response.headers['Access-Control-Allow-Origin'] = origin
                 response.headers['Access-Control-Allow-Credentials'] = 'true'
-                response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
-                response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
-        return response
-    
-    # ✅ Handle OPTIONS preflight requests explicitly
-    @app.before_request
-    def handle_preflight():
-        if request.method == 'OPTIONS':
-            origin = request.headers.get('Origin')
-            if origin and (origin in allowed_origins_list or origin.startswith('chrome-extension://')):
-                response = app.make_default_options_response()
+            else:
                 response.headers['Access-Control-Allow-Origin'] = origin
-                response.headers['Access-Control-Allow-Credentials'] = 'true'
-                response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
-                response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
-                return response
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        return response
     
     # Configure SQLAlchemy
     database_url = os.getenv('DATABASE_URL')
