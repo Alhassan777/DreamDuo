@@ -82,8 +82,10 @@ def login():
         access_token = create_access_token(identity=str(user.id))
 
         # ✅ Set JWT token using Flask-JWT-Extended's set_access_cookies
+        # Also include token in body for extension/API clients that can't use cookies
         response = jsonify({
             'message': 'Login successful',
+            'access_token': access_token,
             'user': {
                 'id': user.id,
                 'first_name': user.first_name,

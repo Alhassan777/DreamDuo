@@ -41,6 +41,11 @@ const saveSettingsBtn    = $('saveSettingsBtn');
 const cancelSettingsBtn  = $('cancelSettingsBtn');
 const todayTime          = $('todayTime');
 const weekTime           = $('weekTime');
+const loginForm          = $('loginForm');
+const emailInput         = $('emailInput');
+const passwordInput      = $('passwordInput');
+const loginBtn           = $('loginBtn');
+const loginError         = $('loginError');
 const syncIndicator      = $('syncIndicator');
 
 // URL presets
@@ -89,6 +94,50 @@ function setupEventListeners() {
 
   loginLink.addEventListener('click', openDreamDuo);
   dashboardLink.addEventListener('click', openDashboard);
+  
+  loginForm.addEventListener('submit', handleLogin);
+}
+
+async function handleLogin(e) {
+  e.preventDefault();
+  
+  const email = emailInput.value.trim();
+  const password = passwordInput.value;
+  
+  if (!email || !password) {
+    showLoginError('Please enter email and password');
+    return;
+  }
+  
+  // Disable form while logging in
+  loginBtn.disabled = true;
+  loginBtn.textContent = 'Signing in...';
+  hideLoginError();
+  
+  try {
+    const result = await auth.login(email, password);
+    if (result.success) {
+      currentUser = result.user;
+      showMainSection();
+      await loadData();
+      showToast('Logged in successfully', 'success');
+    }
+  } catch (error) {
+    console.error('Login failed:', error);
+    showLoginError(error.message || 'Login failed. Please check your credentials.');
+  } finally {
+    loginBtn.disabled = false;
+    loginBtn.textContent = 'Sign In';
+  }
+}
+
+function showLoginError(message) {
+  loginError.textContent = message;
+  loginError.classList.remove('hidden');
+}
+
+function hideLoginError() {
+  loginError.classList.add('hidden');
 }
 
 function applyPreset(presetName) {

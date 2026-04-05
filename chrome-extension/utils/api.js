@@ -141,26 +141,16 @@ const apiRequest = async (endpoint, options = {}, { skipQueue = false } = {}) =>
 
 const auth = {
   /**
-   * Check authentication.  Tries cookie-based profile fetch first.
-   * If that works, also exchanges for a Bearer token so future requests
-   * are reliable regardless of SameSite cookie restrictions.
+   * Check authentication using stored Bearer token.
    */
   checkAuth: async () => {
-    // First try with whatever auth we currently have (cookie or stored token)
+    const token = await getStoredToken();
+    if (!token) {
+      return { authenticated: false, user: null };
+    }
+    
     try {
       const response = await apiRequest('/user/profile');
-      // Authenticated — try to exchange for a Bearer token if we don't have one
-      const existingToken = await getStoredToken();
-      if (!existingToken) {
-        try {
-          const tokenResponse = await apiRequest('/auth/extension-token');
-          if (tokenResponse.token) {
-            await setStoredToken(tokenResponse.token);
-          }
-        } catch {
-          // Token exchange failed — continue with cookie auth
-        }
-      }
       return { authenticated: true, user: response.user };
     } catch (error) {
       if (error.message === 'UNAUTHORIZED') {
@@ -171,19 +161,29 @@ const auth = {
   },
 
   /**
-   * Force a fresh token exchange (e.g. after web login detected).
+   * Login with email and password. Stores the JWT token for future requests.
    */
-  refreshToken: async () => {
-    try {
-      const tokenResponse = await apiRequest('/auth/extension-token');
-      if (tokenResponse.token) {
-        await setStoredToken(tokenResponse.token);
-        return true;
-      }
-    } catch {
-      // ignore
+  login: async (email, password) => {
+    const baseUrl = await getApiUrl();
+    const response = await fetch(`${baseUrl}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Login failed' }));
+      throw new Error(error.error || 'Login failed');
     }
-    return false;
+
+    const data = await response.json();
+    
+    // Store the access token from the response
+    if (data.access_token) {
+      await setStoredToken(data.access_token);
+    }
+
+    return { success: true, user: data.user };
   },
 
   logout: async () => {

@@ -26,15 +26,30 @@
     </header>
 
     <!-- Auth Section (shown when not logged in) -->
-    <section id="authSection" class="section auth-section hidden">
-      <div class="auth-message">
-        <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M12 15v2m0 0v2m0-2h2m-2 0H10"/>
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-        </svg>
-        <p>Please log in to DreamDuo to track your time</p>
-        <a href="#" id="loginLink" class="btn btn-primary">Open DreamDuo</a>
+    <section id="authSection" class="section auth-section">
+      <div class="auth-form">
+        <div class="auth-header">
+          <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <h3>Sign in to DreamDuo</h3>
+        </div>
+        <form id="loginForm">
+          <div class="form-group">
+            <label for="emailInput">Email</label>
+            <input type="email" id="emailInput" placeholder="you@example.com" required>
+          </div>
+          <div class="form-group">
+            <label for="passwordInput">Password</label>
+            <input type="password" id="passwordInput" placeholder="Your password" required>
+          </div>
+          <div id="loginError" class="error-message hidden"></div>
+          <button type="submit" id="loginBtn" class="btn btn-primary btn-block">Sign In</button>
+        </form>
+        <div class="auth-footer">
+          <p>Don't have an account? <a href="#" id="loginLink">Sign up on DreamDuo</a></p>
+        </div>
       </div>
     </section>
 
