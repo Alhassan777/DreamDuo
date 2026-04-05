@@ -3,6 +3,11 @@
  * Manages timer state, badge updates, and pause awareness.
  */
 
+// Force-register the popup every time the service worker starts.
+// This is necessary because Chrome can lose the popup registration
+// when the service worker type changes or the profile state is reset.
+chrome.action.setPopup({ popup: 'popup/popup.html' });
+
 let activeTimer = null;
 const TIMER_ALARM = 'dreamduo-timer-update';
 
@@ -16,34 +21,32 @@ const storageRemove = (keys) =>
 
 // ── Lifecycle ──────────────────────────────────────────────────────────────
 
-const PRODUCTION_API_URL = 'https://attack-on-titan-backend.onrender.com/api';
-const PRODUCTION_FRONTEND_URL = 'https://dreamduo.netlify.app';
+const DEFAULT_API_URL      = 'http://localhost:3001/api';
+const DEFAULT_FRONTEND_URL = 'http://localhost:5173';
 
 chrome.runtime.onInstalled.addListener(async () => {
   console.log('DreamDuo Time Tracker installed');
+  chrome.action.setPopup({ popup: 'popup/popup.html' });
   clearBadge();
 
-  // Seed production URLs if none are saved, or if old localhost values are stored
+  // Seed default URLs only if nothing is saved yet
   const { dreamduo_api_url, dreamduo_frontend_url } = await new Promise((resolve) =>
     chrome.storage.local.get(['dreamduo_api_url', 'dreamduo_frontend_url'], resolve)
   );
 
   const updates = {};
-  if (!dreamduo_api_url || dreamduo_api_url.includes('localhost')) {
-    updates.dreamduo_api_url = PRODUCTION_API_URL;
-  }
-  if (!dreamduo_frontend_url || dreamduo_frontend_url.includes('localhost')) {
-    updates.dreamduo_frontend_url = PRODUCTION_FRONTEND_URL;
-  }
+  if (!dreamduo_api_url)      updates.dreamduo_api_url      = DEFAULT_API_URL;
+  if (!dreamduo_frontend_url) updates.dreamduo_frontend_url = DEFAULT_FRONTEND_URL;
 
   if (Object.keys(updates).length > 0) {
     await new Promise((resolve) => chrome.storage.local.set(updates, resolve));
-    console.log('DreamDuo: URLs set to production defaults', updates);
+    console.log('DreamDuo: URLs seeded with defaults', updates);
   }
 });
 
 chrome.runtime.onStartup.addListener(() => {
   console.log('DreamDuo Time Tracker started');
+  chrome.action.setPopup({ popup: 'popup/popup.html' });
   checkActiveTimer();
 });
 
@@ -173,7 +176,7 @@ async function checkActiveTimer() {
       'dreamduo_api_url',
       'dreamduo_token',
     ]);
-    const apiUrl = dreamduo_api_url || 'https://attack-on-titan-backend.onrender.com/api';
+    const apiUrl = dreamduo_api_url || DEFAULT_API_URL;
 
     const headers = { 'Content-Type': 'application/json' };
     if (dreamduo_token) {

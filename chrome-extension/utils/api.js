@@ -141,16 +141,26 @@ const apiRequest = async (endpoint, options = {}, { skipQueue = false } = {}) =>
 
 const auth = {
   /**
-   * Check authentication using stored Bearer token.
+   * Check authentication.  Tries cookie-based profile fetch first.
+   * If that works, also exchanges for a Bearer token so future requests
+   * are reliable regardless of SameSite cookie restrictions.
    */
   checkAuth: async () => {
-    const token = await getStoredToken();
-    if (!token) {
-      return { authenticated: false, user: null };
-    }
-    
+    // First try with whatever auth we currently have (cookie or stored token)
     try {
       const response = await apiRequest('/user/profile');
+      // Authenticated — try to exchange for a Bearer token if we don't have one
+      const existingToken = await getStoredToken();
+      if (!existingToken) {
+        try {
+          const tokenResponse = await apiRequest('/auth/extension-token');
+          if (tokenResponse.token) {
+            await setStoredToken(tokenResponse.token);
+          }
+        } catch {
+          // Token exchange failed — continue with cookie auth
+        }
+      }
       return { authenticated: true, user: response.user };
     } catch (error) {
       if (error.message === 'UNAUTHORIZED') {
@@ -161,29 +171,19 @@ const auth = {
   },
 
   /**
-   * Login with email and password. Stores the JWT token for future requests.
+   * Force a fresh token exchange (e.g. after web login detected).
    */
-  login: async (email, password) => {
-    const baseUrl = await getApiUrl();
-    const response = await fetch(`${baseUrl}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Login failed' }));
-      throw new Error(error.error || 'Login failed');
+  refreshToken: async () => {
+    try {
+      const tokenResponse = await apiRequest('/auth/extension-token');
+      if (tokenResponse.token) {
+        await setStoredToken(tokenResponse.token);
+        return true;
+      }
+    } catch {
+      // ignore
     }
-
-    const data = await response.json();
-    
-    // Store the access token from the response
-    if (data.access_token) {
-      await setStoredToken(data.access_token);
-    }
-
-    return { success: true, user: data.user };
+    return false;
   },
 
   logout: async () => {
@@ -195,11 +195,10 @@ const auth = {
 // ── Tasks API ──────────────────────────────────────────────────────────────
 
 const tasks = {
-  getTasks: async () => {
-    // Match web app behavior: only pass client_today, no date filter
-    // This returns all visible tasks rather than filtering to a specific date
+  getTasks: async (date = null) => {
     const today = new Date().toISOString().split('T')[0];
     const params = new URLSearchParams({ client_today: today });
+    if (date) params.append('date', date);
     return apiRequest(`/tasks/?${params.toString()}`);
   },
 
