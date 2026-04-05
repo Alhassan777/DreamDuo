@@ -204,8 +204,7 @@ async function loadTheme() {
 async function loadTasks() {
   taskList.innerHTML = '<div class="loading">Loading tasks...</div>';
   try {
-    const today = new Date().toISOString().split('T')[0];
-    const result = await tasks.getTasks(today);
+    const result = await tasks.getTasks();
     allTasks = flattenTasks(result);
     renderTasks(allTasks);
   } catch (error) {

@@ -195,10 +195,11 @@ const auth = {
 // ── Tasks API ──────────────────────────────────────────────────────────────
 
 const tasks = {
-  getTasks: async (date = null) => {
+  getTasks: async () => {
+    // Match web app behavior: only pass client_today, no date filter
+    // This returns all visible tasks rather than filtering to a specific date
     const today = new Date().toISOString().split('T')[0];
     const params = new URLSearchParams({ client_today: today });
-    if (date) params.append('date', date);
     return apiRequest(`/tasks/?${params.toString()}`);
   },
 
