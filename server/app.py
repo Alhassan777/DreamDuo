@@ -29,23 +29,31 @@ def create_app():
     if chrome_extension_id:
         allowed_origins_list.append(f'chrome-extension://{chrome_extension_id}')
     
+    # Custom origin checker that allows any chrome-extension:// origin
+    def check_origin(origin):
+        if origin in allowed_origins_list:
+            return True
+        if origin and origin.startswith('chrome-extension://'):
+            return True
+        return False
+    
     # ✅ Enable CORS Globally with proper configuration
     CORS(app, 
-         resources={r"/api/*": {"origins": allowed_origins_list}},
+         resources={r"/api/*": {"origins": check_origin}},
          supports_credentials=True,
          allow_headers=["Content-Type", "Authorization"],
          methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 
-    # ✅ Ensure CORS Headers in Responses
+    # ✅ Ensure CORS Headers in Responses (backup for edge cases)
     @app.after_request
     def add_cors_headers(response):
         origin = request.headers.get('Origin')
         # Allow specified origins or any chrome-extension origin
-        if origin in allowed_origins_list or (origin and origin.startswith('chrome-extension://')):
+        if check_origin(origin):
             response.headers['Access-Control-Allow-Origin'] = origin
-        response.headers['Access-Control-Allow-Credentials'] = "true"
-        response.headers['Access-Control-Allow-Methods'] = "GET, POST, PUT, DELETE, OPTIONS"
-        response.headers['Access-Control-Allow-Headers'] = "Content-Type, Authorization"
+            response.headers['Access-Control-Allow-Credentials'] = "true"
+            response.headers['Access-Control-Allow-Methods'] = "GET, POST, PUT, DELETE, OPTIONS"
+            response.headers['Access-Control-Allow-Headers'] = "Content-Type, Authorization"
         return response
     
     # Configure SQLAlchemy
