@@ -10,8 +10,8 @@
 // API UTILITIES  (inlined from utils/api.js @ 7347d28)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const DEFAULT_API_URL      = 'https://attack-on-titan-backend.onrender.com/api';
-const DEFAULT_FRONTEND_URL = 'https://dreamduo.netlify.app';
+const DEFAULT_API_URL      = 'http://localhost:3001/api';
+const DEFAULT_FRONTEND_URL = 'http://localhost:5173';
 
 // ── Storage helpers ───────────────────────────────────────────────────────────
 

@@ -431,34 +431,42 @@ The Chrome extension lets you track time on your DreamDuo tasks from any browser
 
 The DD icon now appears permanently in your toolbar for easy access.
 
-#### Step 5c — (Optional) Register the Extension ID for CORS
+#### Step 5c — Log in to capture your auth token
 
-If the extension shows a "connection error" and you are running in a strict environment:
+The extension authenticates using a Bearer token that is automatically captured when you log in through the web app. You **must** log in via the web app at least once after loading the extension so that the content script can store your token.
 
-1. On the `chrome://extensions/` page, find the extension you just loaded.
-2. Copy the **ID** shown under the extension name (a long string like `abcdefghijklmnopqrstuvwxyz123456`).
-3. Open `server/.env` and add:
-   ```env
-   CHROME_EXTENSION_ID=paste-your-id-here
-   ```
-4. Restart the backend (`Ctrl+C` then `python app.py` again).
+1. With the extension loaded, navigate to **http://localhost:5173** in Chrome.
+2. Log in with your email and password.
+3. The extension's content script silently captures the token from the login response and stores it in `chrome.storage.local`.
+4. That's it — the extension is now authenticated and ready to use.
 
-> This step is usually not needed — the backend already accepts all `chrome-extension://` origins by default.
+> **Why this approach?** Chrome extensions run in a separate origin (`chrome-extension://...`), which makes `SameSite` cookie sharing unreliable across different environments. Capturing the Bearer token at login time and storing it locally is the most reliable cross-environment solution.
 
 #### Step 5d — Use the Extension
 
-1. Make sure you are **logged in to DreamDuo** at http://localhost:5173 in the same Chrome browser.
-2. Click the **DD icon** in the Chrome toolbar.
+1. Click the **DD icon** in the Chrome toolbar.
+2. A brief loading spinner appears while the extension checks your session.
 3. Your tasks for today automatically appear in the popup.
 4. Click the **▶ play button** next to any task to start the timer.
 5. Click **Pause** (amber) to temporarily stop — the task is remembered.
 6. Click **Stop** (red) to finalize the session and save it to the database.
 7. Open the **Dashboard** in the web app to see your tracked time.
 
-> **Extension not loading tasks?**
-> 1. Confirm the backend is running (`http://localhost:3001/api/tasks/` should return JSON).
-> 2. Confirm you are logged in at `http://localhost:5173`.
-> 3. Click the gear icon (⚙) in the extension popup and verify the API URL is `http://localhost:3001/api`.
+#### Step 5e — Switching between Local Dev and Production
+
+The extension ships defaulting to **local dev** (`http://localhost:3001/api`). To point it at the production backend without editing code:
+
+1. Click the **gear icon (⚙)** in the extension popup header.
+2. Use the **Production** or **Local Dev** preset buttons to fill in the correct URLs instantly.
+3. Click **Save**.
+4. The extension immediately reconnects to the selected backend.
+
+> **Switching to production also requires a fresh token.** After saving the production preset, visit `https://dreamduo.netlify.app`, log in, and the content script will capture and store the production token automatically.
+
+> **Resetting stored URLs:** If you need a clean slate, open the service worker console (`chrome://extensions` → DreamDuo → "service worker") and run:
+> ```javascript
+> chrome.storage.local.remove(['dreamduo_api_url', 'dreamduo_frontend_url'], () => console.log('cleared'));
+> ```
 
 ---
 
@@ -541,41 +549,44 @@ The DreamDuo Chrome Extension is a **Manifest V3** extension that acts as a comp
 
 ### Authentication Flow
 
-The web app uses JWT tokens in HTTP-only cookies. Chrome extensions run in a separate origin (`chrome-extension://...`), which creates a cross-origin challenge with `SameSite` cookie restrictions.
+The web app uses JWT tokens in HTTP-only cookies. Chrome extensions run in a separate origin (`chrome-extension://...`), which makes `SameSite` cookie sharing unreliable. The extension uses a **content-script token capture** approach to avoid this entirely.
 
-**Solution: Dual auth (cookies + Bearer token)**
+**How it works:**
 
-1. The backend accepts JWTs from both `cookies` and `Authorization: Bearer` headers.
-2. When the extension detects a valid cookie session (user is logged in on the web app), it calls `GET /api/auth/extension-token` to exchange the session for a raw JWT.
-3. The token is stored in `chrome.storage.local` and used for all subsequent API requests via `Authorization: Bearer <token>`.
-4. If the token expires (1 hour), the extension falls back to cookie auth and re-exchanges.
-
-This approach works reliably in both development (`SameSite=Lax`) and production (`SameSite=None`).
+1. A content script runs on the DreamDuo web app pages (`localhost:5173` or `dreamduo.netlify.app`).
+2. It intercepts `fetch` responses that come from `/auth/login` and extracts the `access_token` from the JSON body.
+3. The token is sent to the background service worker via `chrome.runtime.sendMessage`.
+4. The service worker stores it in `chrome.storage.local` under `dreamduo_token`.
+5. All extension API requests attach the token as `Authorization: Bearer <token>`.
+6. If no stored token exists, the popup shows "Please log in to DreamDuo" and the user must log in on the web app to capture a fresh token.
 
 ```
-User logs in on web app
+User navigates to web app and logs in
         │
         ▼
-Cookie set by Flask-JWT-Extended
+POST /api/auth/login  →  { access_token: "..." }
+        │
+        ▼
+Content script intercepts response
+        │
+        ▼
+sendMessage → service worker
+        │
+        ▼
+chrome.storage.local.set({ dreamduo_token: "..." })
         │
         ▼
 Extension popup opens
         │
-        ├── Try cookie-based auth → /api/user/profile
+        ├── GET /api/user/profile  (Authorization: Bearer <token>)
         │       │
-        │       ├── Success → exchange for Bearer token
-        │       │                  └── /api/auth/extension-token
-        │       │                  └── Store token in chrome.storage
-        │       │
-        │       └── Fail (SameSite blocks cookie)
-        │               │
-        │               └── Try stored Bearer token → /api/user/profile
-        │                       │
-        │                       ├── Success → continue
-        │                       └── Fail → show "Please log in"
+        │       ├── 200 → show tasks
+        │       └── 401 → show "Please log in" (token missing or expired)
         ▼
-Authenticated: use Bearer token for all API calls
+All subsequent calls use Bearer token from storage
 ```
+
+> **Token expiry:** Tokens expire after 1 hour. When a session expires, open the web app, log out and log back in — the content script captures a fresh token automatically.
 
 ### Time Tracking Data Flow
 
@@ -656,11 +667,14 @@ pytest testing/test_websocket.py -v
 
 | Symptom | Fix |
 |---|---|
-| "Please log in" even when logged in | Log into `http://localhost:5173` first, then click the extension icon. |
-| Tasks don't load | Click the gear icon ⚙ in the popup and confirm the API URL is `http://localhost:3001/api`. |
-| "Failed to fetch" error | The Flask backend is not running. Start it in Terminal 1. |
-| Extension shows old tasks after changes | Click inside the popup to refresh, or close and reopen it. |
-| Changes in `chrome-extension/` not reflected | Go to `chrome://extensions/` and click the **refresh icon** (🔄) on the extension card. |
+| "Please log in" even when logged in | The extension's token is missing or expired. Go to `http://localhost:5173`, log **out** and log **in** again — the content script captures a fresh token on login. |
+| Popup shows a spinner indefinitely | The backend is unreachable. Confirm `python app.py` is running and try refreshing the extension. |
+| Tasks don't load / "Failed to load tasks" | Click the gear icon ⚙, confirm the API URL shows `http://localhost:3001/api`, then click Save. Also ensure you are logged in on the web app so a token is stored. |
+| "Failed to fetch" / network error | The Flask backend is not running. Start it in Terminal 1. |
+| Extension shows old tasks after changes | Close and reopen the popup, or click inside it to trigger a refresh. |
+| Changes in `chrome-extension/` not reflected | Go to `chrome://extensions/` and click the **refresh icon** (🔄) on the extension card. For deeper changes (e.g. manifest), click **Remove** then **Load unpacked** again. |
+| Need to reset stored URLs to defaults | Open the service worker console (`chrome://extensions` → DreamDuo → "service worker") and run: `chrome.storage.local.remove(['dreamduo_api_url', 'dreamduo_frontend_url'], () => console.log('cleared'))`, then reload the extension. |
+| Switching to production backend | Click ⚙ in the popup → **Production** preset → Save. Then log in at `https://dreamduo.netlify.app` to capture a production token. |
 
 ---
 
